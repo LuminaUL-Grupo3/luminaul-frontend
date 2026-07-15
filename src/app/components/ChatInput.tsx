@@ -49,7 +49,7 @@ export function ChatInput({ onSendMessage, onError }: ChatInputProps) {
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyPress}
             placeholder="Escribe un mensaje..."
             rows={1}
             className="w-full px-4 py-3 bg-secondary border border-transparent rounded-lg focus:border-primary focus:outline-none resize-none max-h-32"
