@@ -8,10 +8,12 @@ function figmaAssetResolver() {
   return {
     name: 'figma-asset-resolver',
     resolveId(id) {
-      if (id.startsWith('figma:asset/')) {
-        const filename = id.replace('figma:asset/', '')
-        return path.resolve(__dirname, 'src/assets', filename)
-      }
+      if (!id.startsWith('figma:asset/')) return
+      const filename = id.slice('figma:asset/'.length)
+      const assetsDir = path.resolve(__dirname, 'src/assets')
+      const resolved = path.resolve(assetsDir, filename)
+      if (!resolved.startsWith(assetsDir + path.sep)) return
+      return resolved
     },
   }
 }
