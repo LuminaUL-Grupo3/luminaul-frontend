@@ -9,19 +9,20 @@ interface ChatInputProps {
 export function ChatInput({ onSendMessage, onError }: ChatInputProps) {
   const [message, setMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
 
-    if (!message.trim()) {
+    const trimmed = message.trim();
+    if (!trimmed) {
       onError('No puede enviar un mensaje vacío');
       return;
     }
 
-    onSendMessage(message);
+    onSendMessage(trimmed);
     setMessage('');
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
