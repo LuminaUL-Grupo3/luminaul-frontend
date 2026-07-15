@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Search, SearchX, Loader2, AlertCircle } from 'lucide-react';
+import { useSearchParams } from 'react-router';
 import { PostCard } from '../components/PostCard';
 import { FilterPanel } from '../components/FilterPanel';
 import { useCourses } from '../../hooks/useCourses';
@@ -10,10 +11,30 @@ import type { PublicationType } from '../../types/publication';
 type TypeValue = '' | PublicationType;
 
 export function SearchPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<TypeValue>('');
-  const [selectedCourseId, setSelectedCourseId] = useState('');
-  const [selectedCycle, setSelectedCycle] = useState('');
+  // Los filtros viven en la URL del navegador (?type=&course_id=&cycle=&q=), así
+  // el enlace es compartible, sobrevive a un F5 y funciona con el botón "atrás".
+  // Además cumple literalmente la tarea: "enviar los parámetros a través de la URL".
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const rawType = searchParams.get('type');
+  const selectedType: TypeValue =
+    rawType === 'study_group' || rawType === 'tutoring' ? rawType : '';
+  const selectedCourseId = searchParams.get('course_id') ?? '';
+  const selectedCycle = searchParams.get('cycle') ?? '';
+  const searchQuery = searchParams.get('q') ?? '';
+
+  // Escribe/borra un parámetro en la URL sin apilar historial (replace).
+  const setParam = (key: string, value: string) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (value) next.set(key, value);
+        else next.delete(key);
+        return next;
+      },
+      { replace: true },
+    );
+  };
 
   const { courses } = useCourses();
   const { publications, loading, error, reload } = usePublications({
@@ -21,8 +42,8 @@ export function SearchPage() {
     course_id: selectedCourseId || undefined,
   });
 
-  // El tipo y el curso viajan como parámetros al GET /publications. El ciclo y
-  // el texto libre se refinan en cliente porque el contrato del feed solo acepta
+  // El tipo y el curso viajan como parámetros al GET /publications. El ciclo y el
+  // texto libre se refinan en cliente porque el contrato del feed solo acepta
   // type y course_id como filtros de servidor.
   const posts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -51,21 +72,25 @@ export function SearchPage() {
   }, [publications, selectedCycle, searchQuery]);
 
   const handleCycleChange = (cycle: string) => {
-    setSelectedCycle(cycle);
-    // Si el curso elegido no pertenece al nuevo ciclo, lo limpiamos.
-    if (cycle && selectedCourseId) {
-      const course = courses.find((c) => c.id === selectedCourseId);
-      if (course && String(course.cycle) !== cycle) {
-        setSelectedCourseId('');
-      }
-    }
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (cycle) next.set('cycle', cycle);
+        else next.delete('cycle');
+        // Si el curso elegido no pertenece al nuevo ciclo, lo limpiamos.
+        const courseId = next.get('course_id');
+        if (cycle && courseId) {
+          const course = courses.find((c) => c.id === courseId);
+          if (course && String(course.cycle) !== cycle) next.delete('course_id');
+        }
+        return next;
+      },
+      { replace: true },
+    );
   };
 
   const handleClearFilters = () => {
-    setSelectedType('');
-    setSelectedCourseId('');
-    setSelectedCycle('');
-    setSearchQuery('');
+    setSearchParams({}, { replace: true });
   };
 
   const hasActiveFilters =
@@ -90,7 +115,7 @@ export function SearchPage() {
             type="text"
             placeholder="Buscar por curso, descripción o autor..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => setParam('q', e.target.value)}
             className="w-full h-14 pl-12 pr-4 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors text-base"
           />
         </div>
@@ -103,8 +128,8 @@ export function SearchPage() {
             selectedType={selectedType}
             selectedCourseId={selectedCourseId}
             selectedCycle={selectedCycle}
-            onTypeChange={setSelectedType}
-            onCourseChange={setSelectedCourseId}
+            onTypeChange={(type) => setParam('type', type)}
+            onCourseChange={(courseId) => setParam('course_id', courseId)}
             onCycleChange={handleCycleChange}
             onClearFilters={handleClearFilters}
           />
