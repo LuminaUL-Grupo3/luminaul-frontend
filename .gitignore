@@ -19,6 +19,8 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
+.claude
+context
 
 # SO
 .DS_Store
