@@ -1,13 +1,22 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Edit2, Trash2, Clock, Users, BookOpen, MoreVertical, Flag } from 'lucide-react';
+import {
+  Edit2,
+  Trash2,
+  Clock,
+  Users,
+  BookOpen,
+  MoreVertical,
+  Flag,
+} from 'lucide-react';
 import { ReportContentModal } from './ReportContentModal';
 import { Toast } from './Toast';
 
 interface PostCardProps {
   id: string;
+  authorId: string;
   author: string;
-  authorAvatar?: string;
+  authorAvatar?: string | null;
   postType: 'Asesoría' | 'Grupo de Estudio';
   course: string;
   studyGroup: string;
@@ -34,10 +43,16 @@ function PostMenu({
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
     };
+
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+
+    return () => {
+      document.removeEventListener('mousedown', handler);
+    };
   }, []);
 
   return (
@@ -56,15 +71,23 @@ function PostMenu({
           {isOwn ? (
             <>
               <button
-                onClick={() => { setOpen(false); onEdit?.(); }}
+                onClick={() => {
+                  setOpen(false);
+                  onEdit?.();
+                }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-foreground hover:bg-secondary transition-colors text-left"
               >
                 <Edit2 className="w-4 h-4 text-muted-foreground" />
                 Editar publicación
               </button>
+
               <div className="my-1 border-t border-border" />
+
               <button
-                onClick={() => { setOpen(false); onDelete?.(); }}
+                onClick={() => {
+                  setOpen(false);
+                  onDelete?.();
+                }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-destructive hover:bg-red-50 transition-colors text-left"
               >
                 <Trash2 className="w-4 h-4" />
@@ -73,7 +96,10 @@ function PostMenu({
             </>
           ) : (
             <button
-              onClick={() => { setOpen(false); onReport(); }}
+              onClick={() => {
+                setOpen(false);
+                onReport();
+              }}
               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-muted-foreground hover:text-destructive hover:bg-red-50 transition-colors text-left"
             >
               <Flag className="w-4 h-4" />
@@ -88,7 +114,9 @@ function PostMenu({
 
 export function PostCard({
   id,
+  authorId,
   author,
+  authorAvatar,
   postType,
   course,
   studyGroup,
@@ -99,12 +127,15 @@ export function PostCard({
   onDelete,
 }: PostCardProps) {
   const navigate = useNavigate();
-  const [showModal, setShowModal]     = useState(false);
-  const [reported, setReported]       = useState(false);
-  const [showToast, setShowToast]     = useState(false);
-  const [toastMsg, setToastMsg]       = useState('');
 
-  const handleReport = () => setShowModal(true);
+  const [showModal, setShowModal] = useState(false);
+  const [reported, setReported] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+
+  const handleReport = () => {
+    setShowModal(true);
+  };
 
   const handleConfirmReport = () => {
     setShowModal(false);
@@ -120,19 +151,43 @@ export function PostCard({
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => !isOwn && navigate(`/perfil/estudiante/${id}`)}
-              className={`w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 ${!isOwn ? 'hover:bg-primary/20 transition-colors' : ''}`}
+              onClick={() =>
+                !isOwn && navigate(`/perfil/estudiante/${authorId}`)
+              }
+              className={`w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ${
+                !isOwn
+                  ? 'hover:bg-primary/20 transition-colors'
+                  : ''
+              }`}
             >
-              <span className="text-primary font-semibold">{author.charAt(0)}</span>
+              {authorAvatar ? (
+                <img
+                  src={authorAvatar}
+                  alt={`Foto de ${author}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-primary font-semibold">
+                  {author.charAt(0).toUpperCase()}
+                </span>
+              )}
             </button>
+
             <div>
               <button
                 type="button"
-                onClick={() => !isOwn && navigate(`/perfil/estudiante/${id}`)}
-                className={`font-semibold text-left ${!isOwn ? 'hover:text-primary transition-colors' : ''}`}
+                onClick={() =>
+                  !isOwn && navigate(`/perfil/estudiante/${authorId}`)
+                }
+                className={`font-semibold text-left ${
+                  !isOwn
+                    ? 'hover:text-primary transition-colors'
+                    : ''
+                }`}
               >
                 {author}
               </button>
+
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="w-4 h-4" />
                 <span>{timeAgo}</span>
@@ -149,13 +204,16 @@ export function PostCard({
         </div>
 
         <div className="mb-4">
-          <span className={`inline-block px-3 py-1 rounded-full text-sm ${
-            postType === 'Asesoría'
-              ? 'bg-blue-100 text-blue-700'
-              : 'bg-purple-100 text-purple-700'
-          }`}>
+          <span
+            className={`inline-block px-3 py-1 rounded-full text-sm ${
+              postType === 'Asesoría'
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-purple-100 text-purple-700'
+            }`}
+          >
             {postType}
           </span>
+
           {reported && (
             <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
               <Flag className="w-3 h-3" />
@@ -164,13 +222,16 @@ export function PostCard({
           )}
         </div>
 
-        <p className="text-foreground mb-4 leading-relaxed">{description}</p>
+        <p className="text-foreground mb-4 leading-relaxed">
+          {description}
+        </p>
 
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
             <BookOpen className="w-4 h-4" />
             <span>{course}</span>
           </div>
+
           <div className="flex items-center gap-2 text-muted-foreground">
             <Users className="w-4 h-4" />
             <span>{studyGroup}</span>
