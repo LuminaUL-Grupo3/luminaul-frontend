@@ -40,16 +40,15 @@ export function SearchPage() {
   const { publications, loading, error, reload } = usePublications({
     type: selectedType || undefined,
     course_id: selectedCourseId || undefined,
+    cycle: selectedCycle ? Number(selectedCycle) : undefined,
   });
 
-  // El tipo y el curso viajan como parámetros al GET /publications. El ciclo y el
-  // texto libre se refinan en cliente porque el contrato del feed solo acepta
-  // type y course_id como filtros de servidor.
+  // Tipo, curso y ciclo viajan como parámetros al GET /posts. Solo el texto libre
+  // se refina en cliente, porque el contrato del feed no expone búsqueda por texto.
   const posts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
     return publications
-      .filter((p) => !selectedCycle || String(p.course.cycle) === selectedCycle)
       .filter((p) => {
         if (!query) return true;
         return (
@@ -69,7 +68,7 @@ export function SearchPage() {
         description: p.description,
         timeAgo: formatTimeAgo(p.created_at),
       }));
-  }, [publications, selectedCycle, searchQuery]);
+  }, [publications, searchQuery]);
 
   const handleCycleChange = (cycle: string) => {
     setSearchParams(

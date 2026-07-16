@@ -12,7 +12,7 @@ export function usePublications(filters: PublicationFilters) {
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const { type, course_id, limit, offset } = filters;
+  const { type, course_id, cycle, limit, offset } = filters;
 
   useEffect(() => {
     let active = true;
@@ -20,7 +20,7 @@ export function usePublications(filters: PublicationFilters) {
     setLoading(true);
     setError(null);
 
-    getPublications({ type, course_id, limit, offset })
+    getPublications({ type, course_id, cycle, limit, offset })
       .then((data) => {
         if (active) setPublications(data);
       })
@@ -38,7 +38,7 @@ export function usePublications(filters: PublicationFilters) {
     return () => {
       active = false;
     };
-  }, [type, course_id, limit, offset, reloadKey]);
+  }, [type, course_id, cycle, limit, offset, reloadKey]);
 
   const reload = () => setReloadKey((key) => key + 1);
 

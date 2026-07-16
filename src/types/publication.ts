@@ -9,7 +9,7 @@ export type PublicationStatus = "published" | "hidden";
 export interface PublicationAuthor {
   user_id: string;
   name: string;
-  profile_photo_url: string;
+  profile_photo_url: string | null;
 }
 
 // Curso embebido en la publicación (subconjunto de Course).
