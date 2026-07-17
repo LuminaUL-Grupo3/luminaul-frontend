@@ -1,14 +1,15 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, SearchX, Loader2, AlertCircle } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { PostCard } from '../components/PostCard';
 import { FilterPanel } from '../components/FilterPanel';
-import { useCourses } from '../../hooks/useCourses';
-import { usePublications } from '../../hooks/usePublications';
+import { PostController } from '../controllers/PostController';
+import { CourseController } from '../controllers/CourseController';
 import { formatTimeAgo } from '../../utils/formatTimeAgo';
-import type { PublicationType } from '../../types/publication';
+import type { Post, PostType } from '../../types/post';
+import type { Course } from '../../types/course';
 
-type TypeValue = '' | PublicationType;
+type TypeValue = '' | PostType;
 
 export function SearchPage() {
   // Los filtros viven en la URL del navegador (?type=&course_id=&cycle=&q=), así
@@ -36,19 +37,64 @@ export function SearchPage() {
     );
   };
 
-  const { courses } = useCourses();
-  const { publications, loading, error, reload } = usePublications({
-    type: selectedType || undefined,
-    course_id: selectedCourseId || undefined,
-    cycle: selectedCycle ? Number(selectedCycle) : undefined,
-  });
+  // Catálogo de cursos (CourseController.getCourses -> GET /courses) para el FilterPanel.
+  const [courses, setCourses] = useState<Course[]>([]);
+  useEffect(() => {
+    let active = true;
+    CourseController.getCourses()
+      .then((data) => {
+        if (active) setCourses(data);
+      })
+      .catch(() => {
+        if (active) setCourses([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  // Tipo, curso y ciclo viajan como parámetros al GET /posts. Solo el texto libre
-  // se refina en cliente, porque el contrato del feed no expone búsqueda por texto.
+  // Feed filtrado: la vista llama al controlador (filterFeed), que orquesta la
+  // capa de servicio -> GET /posts. type/course_id/cycle van al servidor; el
+  // texto libre se refina en cliente porque el contrato no expone búsqueda por texto.
+  const [feed, setFeed] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const reload = () => setReloadKey((k) => k + 1);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError(null);
+
+    PostController.filterFeed({
+      type: selectedType || undefined,
+      course_id: selectedCourseId || undefined,
+      cycle: selectedCycle ? Number(selectedCycle) : undefined,
+    })
+      .then((data) => {
+        if (active) setFeed(data);
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          setError(
+            err instanceof Error ? err.message : 'Error al cargar las publicaciones',
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedType, selectedCourseId, selectedCycle, reloadKey]);
+
   const posts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    return publications
+    return feed
       .filter((p) => {
         if (!query) return true;
         return (
@@ -68,7 +114,7 @@ export function SearchPage() {
         description: p.description,
         timeAgo: formatTimeAgo(p.created_at),
       }));
-  }, [publications, searchQuery]);
+  }, [feed, searchQuery]);
 
   const handleCycleChange = (cycle: string) => {
     setSearchParams(

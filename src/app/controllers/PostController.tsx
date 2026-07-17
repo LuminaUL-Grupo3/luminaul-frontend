@@ -1,18 +1,18 @@
-import { apiFetch } from "./client";
-import type { Publication, PublicationType } from "../types/publication";
+import { PostService } from "../services/PostService";
+import type { Post, PostType } from "../../types/post";
 
 // Filtros del feed (HU 1.3), mapeados al contrato oficial GET /api/v1/posts:
 // course_id, type y cycle son filtros de servidor; limit/offset paginan.
-export interface PublicationFilters {
+export interface PostFilters {
   course_id?: string;
-  type?: PublicationType;
+  type?: PostType;
   cycle?: number;
   limit?: number;
   offset?: number;
 }
 
 // Arma el query string omitiendo los filtros vacíos y aplicando paginación por defecto.
-function buildQuery(filters: PublicationFilters): string {
+function buildQuery(filters: PostFilters): string {
   const params = new URLSearchParams();
 
   if (filters.type) {
@@ -30,11 +30,12 @@ function buildQuery(filters: PublicationFilters): string {
   return `?${params.toString()}`;
 }
 
-// GET /posts — feed principal con filtros opcionales por curso, tipo y ciclo.
-// La entidad de dominio es "publication" (tabla publications); el equipo expone
-// la ruta REST como /posts.
-export function getPublications(
-  filters: PublicationFilters = {},
-): Promise<Publication[]> {
-  return apiFetch<Publication[]>(`/posts${buildQuery(filters)}`);
-}
+// Controlador de Publicaciones (frontend): recibe la acción de la vista y
+// orquesta la llamada a la capa de servicio.
+export const PostController = {
+  // filterFeed (HU 1.3 / 1.5) -> GET /api/v1/posts con filtros opcionales por
+  // curso, tipo y ciclo. Devuelve el arreglo de posts para renderizar el feed.
+  filterFeed(filters: PostFilters = {}): Promise<Post[]> {
+    return PostService.get<Post[]>(`/posts${buildQuery(filters)}`);
+  },
+};

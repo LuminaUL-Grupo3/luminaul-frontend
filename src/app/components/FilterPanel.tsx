@@ -1,8 +1,8 @@
 import { Filter } from 'lucide-react';
 import type { Course } from '../../types/course';
-import type { PublicationType } from '../../types/publication';
+import type { PostType } from '../../types/post';
 
-type TypeValue = '' | PublicationType;
+type TypeValue = '' | PostType;
 
 interface FilterPanelProps {
   courses: Course[];
