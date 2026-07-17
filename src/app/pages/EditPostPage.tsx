@@ -27,6 +27,8 @@ export function EditPostPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
 
   const { register, handleSubmit, formState: { errors, isDirty }, reset, watch } = useForm<FormData>({
     defaultValues: {
@@ -81,6 +83,23 @@ export function EditPostPage() {
       cancelled = true;
     };
   }, [id, reset]);
+
+  useEffect(() => {
+    let active = true;
+    getCourses()
+      .then((data) => {
+        if (active) setCourses(data);
+      })
+      .catch((err) => {
+        console.error('Error al cargar cursos:', err);
+      })
+      .finally(() => {
+        if (active) setIsLoadingCourses(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const subscription = watch(() => setHasChanges(isDirty));
