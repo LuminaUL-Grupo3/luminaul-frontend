@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { createPost } from './PostController';
+import { env } from '../../config/env';
 
 interface FormData {
   postType: string;
@@ -19,7 +20,7 @@ interface Course {
 }
 
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api/v1';
+const API_BASE_URL = env.apiUrl;
 
 export function CreatePostForm() {
   const [showSuccess, setShowSuccess] = useState(false);
