@@ -1,4 +1,5 @@
 import { env } from '../../config/env';
+import type { Post, PostUpdatePayload, PostDeleteResponse } from '../../types/post';
 
 const API_BASE_URL = env.apiUrl;
 
@@ -72,6 +73,65 @@ export interface PostFilters {
   cycle?: number;
   limit?: number;
   offset?: number;
+}
+
+
+// ----- Edición y eliminación (HU 1.2 / 1.4) -----
+
+// PostController.tsx (loadPostForEdit) -> GET /api/v1/posts/:id
+// Precarga los datos reales del post en el formulario de edición.
+export async function getById(id: string): Promise<Post> {
+  const response = await fetch(`${API_BASE_URL}/posts/${id}`);
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : `No se pudo cargar la publicación (${response.status}).`
+    );
+  }
+
+  return response.json();
+}
+
+// PostController.tsx (savePost) -> PUT /api/v1/posts/:id
+export async function update(id: string, payload: PostUpdatePayload): Promise<Post> {
+  const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : `No se pudo actualizar la publicación (${response.status}).`
+    );
+  }
+
+  return response.json();
+}
+
+// PostController.tsx (removePost) -> DELETE /api/v1/posts/:id
+// Soft delete: el backend marca deleted_at, el post solo se oculta del feed.
+export async function remove(id: string): Promise<PostDeleteResponse> {
+  const response = await fetch(`${API_BASE_URL}/posts/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    throw new Error(
+      typeof errorBody?.detail === 'string'
+        ? errorBody.detail
+        : `No se pudo eliminar la publicación (${response.status}).`
+    );
+  }
+
+  return response.json();
 }
 
 

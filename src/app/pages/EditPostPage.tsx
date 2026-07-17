@@ -1,22 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useLocation, useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
-import { getCourses } from '../components/CourseController';
-import type { Course } from '../components/CourseService';
+import {
+  loadPostForEdit,
+  savePost,
+  apiTypeToFormType,
+} from '../components/PostController';
+import { getCourses, type Course } from '../components/CourseService';
 
 interface FormData {
   postType: string;
-  course: string;
-  studyGroup: string;
+  course: string; // course_id (uuid)
   description: string;
 }
 
 export function EditPostPage() {
-  const location = useLocation();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const post = location.state?.post;
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -25,18 +32,57 @@ export function EditPostPage() {
 
   const { register, handleSubmit, formState: { errors, isDirty }, reset, watch } = useForm<FormData>({
     defaultValues: {
-      postType: post?.postType === 'Asesoría' ? 'asesoria' : 'grupo',
-      course: post?.course || '',
-      studyGroup: post?.studyGroup || '',
-      description: post?.description || '',
+      postType: '',
+      course: '',
+      description: '',
     }
   });
 
+  // Precarga: GET /api/v1/posts/:id + GET /api/v1/courses (H.U 1.2)
   useEffect(() => {
-    if (!post) {
-      navigate('/mis-publicaciones');
+    if (!id) {
+      setLoadError('Publicación no encontrada.');
+      setIsLoading(false);
+      return;
     }
-  }, [post, navigate]);
+
+    let cancelled = false;
+
+    async function fetchData() {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+
+        const [post, courseList] = await Promise.all([
+          loadPostForEdit(id!),
+          getCourses(),
+        ]);
+
+        if (cancelled) return;
+
+        setCourses(courseList);
+        reset({
+          postType: apiTypeToFormType(post.type),
+          course: post.course_id,
+          description: post.description,
+        });
+      } catch (error) {
+        if (cancelled) return;
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : 'No se pudo cargar la publicación. Verifica que el backend esté encendido.'
+        );
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
+  }, [id, reset]);
 
   useEffect(() => {
     let active = true;
@@ -60,14 +106,26 @@ export function EditPostPage() {
     return () => subscription.unsubscribe();
   }, [watch, isDirty]);
 
-  const onSubmit = (data: FormData) => {
-    console.log('Guardando cambios:', data);
-    setShowSuccess(true);
-    setHasChanges(false);
-    setTimeout(() => {
-      setShowSuccess(false);
-      navigate('/mis-publicaciones');
-    }, 2000);
+  // PUT /api/v1/posts/:id (H.U 1.2)
+  const onSubmit = async (data: FormData) => {
+    if (!id) return;
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      await savePost(id, data);
+      setShowSuccess(true);
+      setHasChanges(false);
+      setTimeout(() => {
+        setShowSuccess(false);
+        navigate('/mis-publicaciones');
+      }, 2000);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : 'Ocurrió un error inesperado.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleBack = () => {
@@ -86,12 +144,9 @@ export function EditPostPage() {
   };
 
   const saveAndExit = () => {
+    setShowExitConfirm(false);
     handleSubmit(onSubmit)();
   };
-
-  if (!post) {
-    return null;
-  }
 
   if (showSuccess) {
     return (
@@ -121,104 +176,114 @@ export function EditPostPage() {
         <h1 className="text-3xl mb-2">Editar Publicación</h1>
         <p className="text-muted-foreground mb-8">Modifica los detalles de tu publicación.</p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div>
-            <label className="block mb-2">Tipo de publicación</label>
-            <select
-              {...register('postType', { required: 'Debe seleccionar un tipo de publicación' })}
-              className="w-full h-12 px-4 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors"
-            >
-              <option value="">Selecciona una opción</option>
-              <option value="asesoria">Asesoría</option>
-              <option value="grupo">Grupo de Estudio</option>
-            </select>
-            {errors.postType && (
-              <div className="flex items-center gap-2 mt-2 text-destructive">
-                <AlertCircle className="w-4 h-4" />
-                <span className="text-sm">{errors.postType.message}</span>
-              </div>
-            )}
+        {isLoading && (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground">Cargando datos de la publicación...</p>
           </div>
+        )}
 
-          <div>
-            <label className="block mb-2">Curso</label>
-            <select
-              {...register('course', { required: 'Debe seleccionar un curso' })}
-              className="w-full h-12 px-4 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors"
-              disabled={isLoadingCourses}
-            >
-              <option value="">
-                {isLoadingCourses ? 'Cargando cursos...' : 'Selecciona un curso'}
-              </option>
-              {courses.map((course) => (
-                <option key={course.id} value={course.name}>
-                  {course.name}
-                </option>
-              ))}
-            </select>
-            {errors.course && (
-              <div className="flex items-center gap-2 mt-2 text-destructive">
-                <AlertCircle className="w-4 h-4" />
-                <span className="text-sm">{errors.course.message}</span>
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block mb-2">Grupo de estudio</label>
-            <select
-              {...register('studyGroup', { required: 'Debe seleccionar un grupo de estudio' })}
-              className="w-full h-12 px-4 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors"
-            >
-              <option value="">Selecciona un grupo</option>
-              <option value="Grupo A - Mañana">Grupo A - Mañana</option>
-              <option value="Grupo B - Tarde">Grupo B - Tarde</option>
-              <option value="Grupo C - Noche">Grupo C - Noche</option>
-              <option value="Grupo Virtual">Grupo Virtual</option>
-            </select>
-            {errors.studyGroup && (
-              <div className="flex items-center gap-2 mt-2 text-destructive">
-                <AlertCircle className="w-4 h-4" />
-                <span className="text-sm">{errors.studyGroup.message}</span>
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block mb-2">Descripción</label>
-            <textarea
-              {...register('description', {
-                required: 'La descripción es requerida',
-                minLength: { value: 20, message: 'La descripción debe tener al menos 20 caracteres' }
-              })}
-              rows={6}
-              placeholder="Describe tu publicación, incluye detalles sobre horarios, modalidad, temas a tratar..."
-              className="w-full px-4 py-3 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors resize-none"
-            />
-            {errors.description && (
-              <div className="flex items-center gap-2 mt-2 text-destructive">
-                <AlertCircle className="w-4 h-4" />
-                <span className="text-sm">{errors.description.message}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-4 pt-4">
+        {!isLoading && loadError && (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-destructive" />
+            </div>
+            <p className="text-destructive mb-4">{loadError}</p>
             <button
-              type="submit"
-              className="flex-1 h-12 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              onClick={() => navigate('/mis-publicaciones')}
+              className="px-6 h-12 bg-secondary text-secondary-foreground rounded-lg hover:bg-muted transition-colors"
             >
-              Guardar cambios
-            </button>
-            <button
-              type="button"
-              onClick={handleBack}
-              className="px-8 h-12 bg-secondary text-secondary-foreground rounded-lg hover:bg-muted transition-colors"
-            >
-              Regresar
+              Volver a Mis publicaciones
             </button>
           </div>
-        </form>
+        )}
+
+        {!isLoading && !loadError && (
+          <>
+            {submitError && (
+              <div className="flex items-center gap-2 mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm">{submitError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div>
+                <label className="block mb-2">Tipo de publicación</label>
+                <select
+                  {...register('postType', { required: 'Debe seleccionar un tipo de publicación' })}
+                  className="w-full h-12 px-4 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors"
+                >
+                  <option value="">Selecciona una opción</option>
+                  <option value="asesoria">Asesoría</option>
+                  <option value="grupo">Grupo de Estudio</option>
+                </select>
+                {errors.postType && (
+                  <div className="flex items-center gap-2 mt-2 text-destructive">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm">{errors.postType.message}</span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block mb-2">Curso</label>
+                <select
+                  {...register('course', { required: 'Debe seleccionar un curso' })}
+                  className="w-full h-12 px-4 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors"
+                >
+                  <option value="">Selecciona un curso</option>
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.cycle != null ? `Ciclo ${course.cycle} — ${course.name}` : course.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.course && (
+                  <div className="flex items-center gap-2 mt-2 text-destructive">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm">{errors.course.message}</span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block mb-2">Descripción</label>
+                <textarea
+                  {...register('description', {
+                    required: 'La descripción es requerida',
+                    minLength: { value: 20, message: 'La descripción debe tener al menos 20 caracteres' }
+                  })}
+                  rows={6}
+                  placeholder="Describe tu publicación, incluye detalles sobre horarios, modalidad, temas a tratar..."
+                  className="w-full px-4 py-3 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors resize-none"
+                />
+                {errors.description && (
+                  <div className="flex items-center gap-2 mt-2 text-destructive">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm">{errors.description.message}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 h-12 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60"
+                >
+                  {isSubmitting ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="px-8 h-12 bg-secondary text-secondary-foreground rounded-lg hover:bg-muted transition-colors"
+                >
+                  Regresar
+                </button>
+              </div>
+            </form>
+          </>
+        )}
       </div>
 
       {showExitConfirm && (
