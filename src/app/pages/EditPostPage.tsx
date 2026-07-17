@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router';
 import { AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { getCourses } from '../components/CourseController';
+import type { Course } from '../components/CourseService';
 
 interface FormData {
   postType: string;
@@ -18,6 +20,8 @@ export function EditPostPage() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
 
   const { register, handleSubmit, formState: { errors, isDirty }, reset, watch } = useForm<FormData>({
     defaultValues: {
@@ -33,6 +37,23 @@ export function EditPostPage() {
       navigate('/mis-publicaciones');
     }
   }, [post, navigate]);
+
+  useEffect(() => {
+    let active = true;
+    getCourses()
+      .then((data) => {
+        if (active) setCourses(data);
+      })
+      .catch((err) => {
+        console.error('Error al cargar cursos:', err);
+      })
+      .finally(() => {
+        if (active) setIsLoadingCourses(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const subscription = watch(() => setHasChanges(isDirty));
@@ -124,13 +145,16 @@ export function EditPostPage() {
             <select
               {...register('course', { required: 'Debe seleccionar un curso' })}
               className="w-full h-12 px-4 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors"
+              disabled={isLoadingCourses}
             >
-              <option value="">Selecciona un curso</option>
-              <option value="Matemáticas I">Matemáticas I</option>
-              <option value="Física General">Física General</option>
-              <option value="Programación Básica">Programación Básica</option>
-              <option value="Cálculo Diferencial">Cálculo Diferencial</option>
-              <option value="Estadística">Estadística</option>
+              <option value="">
+                {isLoadingCourses ? 'Cargando cursos...' : 'Selecciona un curso'}
+              </option>
+              {courses.map((course) => (
+                <option key={course.id} value={course.name}>
+                  {course.name}
+                </option>
+              ))}
             </select>
             {errors.course && (
               <div className="flex items-center gap-2 mt-2 text-destructive">
