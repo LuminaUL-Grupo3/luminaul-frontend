@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { PostCard } from '../components/PostCard';
 import { useNavigate } from 'react-router';
-import { Trash2, FileText } from 'lucide-react';
+import { Trash2, FileText, AlertCircle } from 'lucide-react';
 import { env } from '../../config/env';
+import { removePost } from '../components/PostController';
 
 interface ApiPost {
   id: string;
@@ -84,6 +85,9 @@ export function MyPostsPage() {
     useState(false);
   const [postToDelete, setPostToDelete] =
     useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] =
+    useState<string | null>(null);
 
   useEffect(() => {
     const fetchMyPosts = async () => {
@@ -143,27 +147,40 @@ export function MyPostsPage() {
 
   const handleDelete = (postId: string) => {
     setPostToDelete(postId);
+    setDeleteError(null);
     setShowDeleteConfirm(true);
   };
 
-  const confirmDelete = () => {
+  // MyPostsPage -> PostController.removePost -> DELETE /api/v1/posts/:id (H.U 1.4)
+  // Soft delete: el backend marca deleted_at y el post sale del feed.
+  const confirmDelete = async () => {
     if (!postToDelete) {
       return;
     }
 
-    /*
-      Por ahora solo se retira visualmente.
-      La conexión con DELETE /api/v1/posts/{post_id}
-      corresponde a la funcionalidad de eliminación.
-    */
-    setPosts((currentPosts) =>
-      currentPosts.filter(
-        (post) => post.id !== postToDelete
-      )
-    );
+    setIsDeleting(true);
+    setDeleteError(null);
 
-    setShowDeleteConfirm(false);
-    setPostToDelete(null);
+    try {
+      await removePost(postToDelete);
+
+      setPosts((currentPosts) =>
+        currentPosts.filter(
+          (post) => post.id !== postToDelete
+        )
+      );
+
+      setShowDeleteConfirm(false);
+      setPostToDelete(null);
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo eliminar la publicación. Intenta nuevamente.'
+      );
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -241,17 +258,26 @@ export function MyPostsPage() {
               </h2>
 
               <p className="text-muted-foreground">
-                La publicación se retirará de la vista.
+                La publicación dejará de verse en el feed,
+                pero quedará en tu historial.
               </p>
             </div>
+
+            {deleteError && (
+              <div className="flex items-center gap-2 mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm">{deleteError}</span>
+              </div>
+            )}
 
             <div className="flex gap-4">
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="flex-1 h-12 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors"
+                disabled={isDeleting}
+                className="flex-1 h-12 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 transition-colors disabled:opacity-60"
               >
-                Eliminar
+                {isDeleting ? 'Eliminando...' : 'Eliminar'}
               </button>
 
               <button
@@ -260,7 +286,8 @@ export function MyPostsPage() {
                   setShowDeleteConfirm(false);
                   setPostToDelete(null);
                 }}
-                className="flex-1 h-12 bg-secondary text-secondary-foreground rounded-lg hover:bg-muted transition-colors"
+                disabled={isDeleting}
+                className="flex-1 h-12 bg-secondary text-secondary-foreground rounded-lg hover:bg-muted transition-colors disabled:opacity-60"
               >
                 Cancelar
               </button>
