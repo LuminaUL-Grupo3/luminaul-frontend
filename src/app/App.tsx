@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router';
 import { Navbar } from './components/Navbar';
 import { AppSidebar } from './components/AppSidebar';
@@ -43,6 +44,13 @@ import { MyPublishedReviewsPage } from './pages/MyPublishedReviewsPage';
 
 function AppContent() {
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Cierra el drawer del sidebar al cambiar de ruta (relevante en móvil).
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
   const isAuthPage = ['/login', '/registro', '/verificar-correo', '/verificar-cuenta', '/recuperar-password', '/actualizar-password', '/cuenta-suspendida'].includes(location.pathname);
 
   if (isAuthPage) {
@@ -61,9 +69,9 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      <AppSidebar />
-      <main className="ml-64 mt-16 p-8">
+      <Navbar onMenuClick={() => setSidebarOpen((v) => !v)} />
+      <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <main className="lg:ml-64 mt-16 p-4 sm:p-8">
         <Routes>
           <Route path="/" element={<FeedPage />} />
           <Route path="/buscar" element={<SearchPage />} />

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Bell } from 'lucide-react';
+import { Menu, Search, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { UserMenu } from './UserMenu';
 import { LogoutModal } from './LogoutModal';
@@ -11,7 +11,7 @@ interface ToastState {
   type: 'success' | 'error';
 }
 
-export function Navbar() {
+export function Navbar({ onMenuClick }: { onMenuClick: () => void }) {
   const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [toast, setToast] = useState<ToastState>({
@@ -42,15 +42,23 @@ export function Navbar() {
 
   return (
     <>
-      <nav className="h-16 bg-white border-b border-border flex items-center justify-between px-6 fixed top-0 left-0 right-0 z-10">
+      <nav className="h-16 bg-white border-b border-border flex items-center justify-between px-4 sm:px-6 fixed top-0 left-0 right-0 z-30">
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onMenuClick}
+            className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-secondary transition-colors"
+            aria-label="Abrir menú"
+          >
+            <Menu className="w-5 h-5 text-foreground" />
+          </button>
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <span className="text-white font-bold">L</span>
           </div>
           <span className="text-xl font-semibold text-foreground">LuminaUL</span>
         </div>
 
-        <div className="flex-1 max-w-md mx-8">
+        <div className="hidden md:block flex-1 max-w-md mx-8">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
