@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PostCard } from '../components/PostCard';
 import { BookOpen } from 'lucide-react';
+import { env } from '../../config/env';
 
 interface ApiPost {
   id: string;
@@ -34,8 +35,7 @@ interface FeedPost {
   isOwn: boolean;
 }
 
-const API_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 
 function getTimeAgo(dateString: string): string {
   const createdDate = new Date(dateString);
@@ -89,7 +89,7 @@ export function FeedPage() {
         setError(null);
 
         const response = await fetch(
-          `${API_URL}/api/v1/posts?limit=15&offset=0`
+          `${env.apiUrl}/posts?limit=15&offset=0`
         );
 
         if (!response.ok) {
