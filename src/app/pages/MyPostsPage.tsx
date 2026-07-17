@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { PostCard } from '../components/PostCard';
 import { useNavigate } from 'react-router';
 import { Trash2, FileText } from 'lucide-react';
+import { env } from '../../config/env';
 
 interface ApiPost {
   id: string;
@@ -28,8 +29,7 @@ interface Post {
   timeAgo: string;
 }
 
-const API_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 
 const DEMO_USER_ID = '3fa85f64-5717-4562-b3fc-2c963f66afa6';
 
@@ -92,7 +92,7 @@ export function MyPostsPage() {
         setError(null);
 
         const response = await fetch(
-          `${API_URL}/api/v1/posts/me?limit=15&offset=0`
+          `${env.apiUrl}/posts/me?limit=15&offset=0`
         );
 
         if (!response.ok) {
