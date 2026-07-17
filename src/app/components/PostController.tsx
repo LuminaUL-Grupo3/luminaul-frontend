@@ -1,5 +1,12 @@
 
-import { create, type PostPayload, type PostResponse } from './PostService';
+import {
+  create,
+  getPosts,
+  type PostPayload,
+  type PostResponse,
+  type PostFilters,
+  type PostFeedResponse,
+} from './PostService';
 
 interface CreatePostFormData {
   postType: string;
@@ -23,4 +30,12 @@ export async function createPost(data: CreatePostFormData): Promise<PostResponse
   };
 
   return create(payload);
+}
+
+
+// SearchPage.tsx -> PostController.tsx (filterFeed) -> PostService.tsx (getPosts)
+// Trae el feed filtrado (HU 1.3 / 1.5). Los filtros type/course_id/cycle viajan
+// al servidor; devuelve los posts con autor y curso anidados.
+export function filterFeed(filters: PostFilters = {}): Promise<PostFeedResponse[]> {
+  return getPosts(filters);
 }

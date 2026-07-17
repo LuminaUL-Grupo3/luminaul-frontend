@@ -1,18 +1,31 @@
 import { Filter } from 'lucide-react';
+import type { PostType } from './PostService';
+import type { Course } from './CourseService';
+
+type TypeValue = '' | PostType;
 
 interface FilterPanelProps {
-  selectedType: string;
-  selectedCourse: string;
+  courses: Course[];
+  selectedType: TypeValue;
+  selectedCourseId: string;
   selectedCycle: string;
-  onTypeChange: (type: string) => void;
-  onCourseChange: (course: string) => void;
+  onTypeChange: (type: TypeValue) => void;
+  onCourseChange: (courseId: string) => void;
   onCycleChange: (cycle: string) => void;
   onClearFilters: () => void;
 }
 
+// Etiquetas visibles mapeadas 1:1 a los valores que espera el API (type).
+const TYPE_OPTIONS: { value: TypeValue; label: string }[] = [
+  { value: '', label: 'Todos' },
+  { value: 'study_group', label: 'Grupo de Estudio' },
+  { value: 'tutoring', label: 'Asesoría' },
+];
+
 export function FilterPanel({
+  courses,
   selectedType,
-  selectedCourse,
+  selectedCourseId,
   selectedCycle,
   onTypeChange,
   onCourseChange,
@@ -20,7 +33,16 @@ export function FilterPanel({
   onClearFilters,
 }: FilterPanelProps) {
   const hasActiveFilters =
-    selectedType !== '' || selectedCourse !== '' || selectedCycle !== '';
+    selectedType !== '' || selectedCourseId !== '' || selectedCycle !== '';
+
+  // Ciclos y cursos se derivan del catálogo real (GET /courses).
+  const cycles = Array.from(new Set(courses.map((c) => c.cycle))).sort((a, b) => a - b);
+  const visibleCourses = selectedCycle
+    ? courses.filter((c) => String(c.cycle) === selectedCycle)
+    : courses;
+
+  const selectedCourseName = courses.find((c) => c.id === selectedCourseId)?.name ?? '';
+  const selectedTypeLabel = TYPE_OPTIONS.find((o) => o.value === selectedType)?.label ?? '';
 
   return (
     <div className="bg-white rounded-xl border border-border p-6 sticky top-24">
@@ -44,39 +66,23 @@ export function FilterPanel({
         <div>
           <label className="block mb-3 font-medium">Tipo de publicación</label>
           <div className="space-y-2">
-            {['', 'Grupo de Estudio', 'Asesoría'].map((type) => (
+            {TYPE_OPTIONS.map((option) => (
               <label
-                key={type || 'todos'}
+                key={option.value || 'todos'}
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary cursor-pointer transition-colors"
               >
                 <input
                   type="radio"
                   name="postType"
-                  value={type}
-                  checked={selectedType === type}
-                  onChange={(e) => onTypeChange(e.target.value)}
+                  value={option.value}
+                  checked={selectedType === option.value}
+                  onChange={() => onTypeChange(option.value)}
                   className="w-4 h-4 text-primary accent-primary"
                 />
-                <span>{type || 'Todos'}</span>
+                <span>{option.label}</span>
               </label>
             ))}
           </div>
-        </div>
-
-        <div className="border-t border-border pt-6">
-          <label className="block mb-3 font-medium">Curso</label>
-          <select
-            value={selectedCourse}
-            onChange={(e) => onCourseChange(e.target.value)}
-            className="w-full h-12 px-4 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors"
-          >
-            <option value="">Todos los cursos</option>
-            <option value="Matemáticas I">Matemáticas I</option>
-            <option value="Física General">Física General</option>
-            <option value="Programación Básica">Programación Básica</option>
-            <option value="Cálculo Diferencial">Cálculo Diferencial</option>
-            <option value="Estadística">Estadística</option>
-          </select>
         </div>
 
         <div className="border-t border-border pt-6">
@@ -87,16 +93,27 @@ export function FilterPanel({
             className="w-full h-12 px-4 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors"
           >
             <option value="">Todos los ciclos</option>
-            <option value="1">1er ciclo</option>
-            <option value="2">2do ciclo</option>
-            <option value="3">3er ciclo</option>
-            <option value="4">4to ciclo</option>
-            <option value="5">5to ciclo</option>
-            <option value="6">6to ciclo</option>
-            <option value="7">7mo ciclo</option>
-            <option value="8">8vo ciclo</option>
-            <option value="9">9no ciclo</option>
-            <option value="10">10mo ciclo</option>
+            {cycles.map((cycle) => (
+              <option key={cycle} value={String(cycle)}>
+                {cycle}° ciclo
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="border-t border-border pt-6">
+          <label className="block mb-3 font-medium">Curso</label>
+          <select
+            value={selectedCourseId}
+            onChange={(e) => onCourseChange(e.target.value)}
+            className="w-full h-12 px-4 bg-white border border-input rounded-lg focus:border-primary focus:outline-none transition-colors"
+          >
+            <option value="">Todos los cursos</option>
+            {visibleCourses.map((course) => (
+              <option key={course.id} value={course.id}>
+                {course.name}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -108,15 +125,8 @@ export function FilterPanel({
           <div className="flex flex-wrap gap-2 mt-3">
             {selectedType && (
               <span className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
-                {selectedType}
+                {selectedTypeLabel}
                 <button onClick={() => onTypeChange('')}>×</button>
-              </span>
-            )}
-
-            {selectedCourse && (
-              <span className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
-                {selectedCourse}
-                <button onClick={() => onCourseChange('')}>×</button>
               </span>
             )}
 
@@ -124,6 +134,13 @@ export function FilterPanel({
               <span className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
                 {selectedCycle}° ciclo
                 <button onClick={() => onCycleChange('')}>×</button>
+              </span>
+            )}
+
+            {selectedCourseId && (
+              <span className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
+                {selectedCourseName}
+                <button onClick={() => onCourseChange('')}>×</button>
               </span>
             )}
           </div>
