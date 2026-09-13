@@ -296,26 +296,6 @@ export function AuthPage({
               <Link to="/login">Volver al inicio de sesión</Link>
             )}
           </p>
-          {mode === "login" && (
-            <details className="demo-accounts">
-              <summary>Explorar con una cuenta de demostración</summary>
-              <p>Datos ficticios para pruebas locales.</p>
-              <div className="button-row">
-                {["robert", "ana", "admin"].map((w) => (
-                  <button
-                    key={w}
-                    className="button secondary small"
-                    onClick={() => {
-                      setEmail(`${w}.demo@aloe.ulima.edu.pe`);
-                      setPassword("LuminaDemo2026!");
-                    }}
-                  >
-                    {w === "robert" ? "Robert" : w === "ana" ? "Ana" : "Admin"}
-                  </button>
-                ))}
-              </div>
-            </details>
-          )}
         </div>
       </main>
     </div>
