@@ -103,9 +103,9 @@ async function cancelCheck(route, button, title, cancel = "Cancelar") {
 }
 try {
   await page.goto(base + "/mis-publicaciones");
-  await page.getByRole("button", { name: "Eliminar", exact: true }).click();
+  await page.getByRole("button", { name: "Borrar publicación", exact: true }).click();
   await expect(
-    page.getByRole("dialog", { name: "¿Eliminar esta publicación?" }),
+    page.getByRole("dialog", { name: "¿Seguro que desea borrar el post?" }),
   ).toBeVisible();
   await expect(
     dialog().getByRole("button", { name: "Regresar", exact: true }),
@@ -118,7 +118,7 @@ try {
   await expect(dialog()).toHaveCount(0);
   expect(writes).toHaveLength(0);
   await expect(
-    page.getByRole("button", { name: "Eliminar", exact: true }),
+    page.getByRole("button", { name: "Borrar publicación", exact: true }),
   ).toBeFocused();
   await expect(
     page.getByText("No se eliminó el post", { exact: true }),
@@ -127,13 +127,13 @@ try {
     "Eliminar post: modal accesible, Escape cancela sin HTTP, foco restaurado",
   );
 
-  await page.getByRole("link", { name: "Editar", exact: true }).click();
+  await page.getByRole("link", { name: "Editar publicación", exact: true }).click();
   await page
     .getByLabel("Descripción")
     .fill("Descripción modificada desde el editor");
   await page.getByRole("button", { name: "Regresar", exact: true }).click();
   await expect(
-    page.getByRole("dialog", { name: "¿Deseas guardar los cambios?" }),
+    page.getByRole("dialog", { name: "¿Desea guardar los cambios?" }),
   ).toBeVisible();
   await dialog().getByRole("button", { name: "Seguir editando" }).click();
   await expect(page.getByLabel("Descripción")).toHaveValue(
@@ -147,7 +147,7 @@ try {
     page.getByText("Post modificado con éxito", { exact: true }),
   ).toBeVisible();
   results.push("Editar post: continuar editando o guardar antes de regresar");
-  await page.getByRole("button", { name: "Eliminar", exact: true }).click();
+  await page.getByRole("button", { name: "Borrar publicación", exact: true }).click();
   await dialog().getByRole("button", { name: "Aceptar", exact: true }).click();
   await expect(
     page.getByText("Post eliminado con éxito", { exact: true }),
@@ -220,7 +220,16 @@ try {
   results.push(
     "Aviso de éxito persiste tras cerrar el formulario y puede descartarse",
   );
+  await page.goto(base + "/publicar");
+  await page.getByRole("button", { name: "Publicar", exact: true }).click();
+  await expect(page.getByText(/debe completarse/i)).toBeVisible();
+  results.push("Validación de campos obligatorios al crear publicación");
+
   await page.goto(base + "/buscar");
+  await page.getByRole("button", { name: "Grupo de Estudio", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Grupo de Estudio", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Asesoría", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Asesoría", exact: true }),

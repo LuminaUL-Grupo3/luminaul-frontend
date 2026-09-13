@@ -1,0 +1,69 @@
+N° ÉPICA,SPRINT,N° H.U.,HISTORIA DE USUARIO,DESCRIPCIÓN HISTORIA DE USUARIO,ESCENARIO,CRITERIO DE ACEPTACIÓN
+1,1,1.1,Agregar publicación,"Como alumno
+quiero crear una publicación
+para que sea vista por lo demás usuarios.","Publicar una nueva publicación desde el formulario ""Crear publicación""","Dado que soy un usuario autenticado y estoy en el formulario ""Crear publicación"", 
+cuando ingreso el tipo (Asesoría/Grupo), el curso, la descripción, los beneficios y los requisitos
+Y hago click en el botón ""Publicar""
+Entonces el sistema debe mostrar el mensaje ""Publicación enviada con éxito""."
+,,,,,Intentar publicar una publicación con datos faltantes,"Dado que soy un usuario autenticado y estoy en el formulario ""Crear publicación"", 
+cuando dejo uno o varios campos en blanco
+Y hago click en el botón ""Publicar""
+Entonces el sistema debe mostrar un mensaje indicando que dicho(s) campo(s) en blanco debe completarse."
+1,1,1.2,Editar publicación,"Como alumno
+quiero editar una publicación propia
+para corregir errores en los detalles de la publicación.","Editar una publicación creada anteriormente desde el botón ""Editar publicación""","Dado que soy un usuario autenticado y hago click en el botón ""Editar publicación"", 
+cuando modifico el texto de la descripción
+Y hago click en el botón ""Guardar cambios""
+Entonces el sistema debe mostrar el mensaje ""Post modificado con éxito""."
+,,,,,Editar una publicación creada anteriormente pero sin guardar los cambios,"Dado que soy un usuario autenticado y hago click en el botón ""Editar publicación"",
+cuando modifico el texto de la descripción
+Y hago click en el botón ""Regresar""
+Entonces el sistema debe mostrar el mensaje ""Desea guardar los cambios?"""
+1,1,1.3,Filtrar publicación,"Como alumno
+quiero filtrar publicaciones por tipo o curso
+para encontrar las publicaciones de mi interés.","Filtrar las publicaciones por tipo ""Grupo de Estudio""","Dado que soy un usuario autenticado y estoy en la página de búsqueda, 
+cuando el sistema muestra dos botones: Grupo de Estudio y Asesoría.
+Y hago click en el botón ""Grupo de Estudio""
+Entonces el sistema debe mostrar los posts del tipo ""Grupo de Estudio""."
+,,,,,"Filtrar las publicaciones por tipo ""Asesoría""","Dado que soy un usuario autenticado y y estoy en la página de búsqueda, 
+cuando el sistema muestra dos botones: Grupo de Estudio y Asesoría.
+Y hago click en el botón ""Asesoría""
+Entonces el sistema debe mostrar los posts del tipo ""Asesoría""."
+,,,,,Filtrar las publicaciones por ciclo del curso,"Dado que soy un usuario autenticado y estoy en la página de búsqueda, 
+cuando el sistema muestra una lista preestablecida de ciclos
+Y hago click en una opción de la lista
+Entonces el sistema debe mostrar los posts de cursos que pertenecen al ciclo elegido."
+,,,,,Filtrar las publicaciones por curso,"Dado que soy un usuario autenticado y estoy en la página de búsqueda, 
+cuando el sistema muestra una lista preestablecida de cursos
+Y hago click en una opción de la lista
+Entonces el sistema debe mostrar los posts del curso elegido."
+,,,,,Filtrar las publicaciones y no encontrar coincidencias,"Dado que soy un usuario autenticado,
+cuando aplico un filtro de búsqueda por tipo y/o curso y el sistema no encuentra publicaciones que coinciden con los criterios de búsqueda,
+entonces el sistema muestra un mensaje ""No se encontraron resultados para tu búsqueda""."
+1,1,1.4,Eliminar publicación,"Como alumno
+quiero eliminar una publicación propia
+para ocultarla de la vista pública.","Eliminar una publicación creada anteriormente desde el botón ""Borrar publicación""","Dado que soy un usuario autenticado y hago click en el botón ""Borrar publicación"", 
+cuando el sistema muestra un mensaje de confirmación ""Seguro que desea borrar el post?"" con dos opciones: Aceptar y Regresar.
+Y hago click en el botón ""Aceptar""
+Entonces el sistema debe mostrar el mensaje ""Post eliminado con éxito"""
+,,,,,Eliminar una publicación creada anteriormente pero sin confirmar,"Dado que soy un usuario autenticado y hago click en el botón ""Borrar publicación"",
+cuando el sistema muestra un mensaje de confirmación ""Seguro que desea borrar el post"" con dos opciones: Aceptar y Regresar.
+Y hago click en el botón ""Regresar""
+Entonces el sistema debe mostrar el mensaje ""No se eliminó el post"""
+1,1,1.5,Ver feed de publicaciones,Como alumno quiero ver un feed de publicaciones para conocer los últimos posts de otros usuarios.,Intentar visualizar historial de publicaciones al ingresar a la plataforma,"Dado que soy un usuario autenticado, 
+Y hago click en la sección ""Inicio""
+Entonces el sistema debe mostrar un historial de publicaciones de otros usuarios."
+,,,,,Intentar visualizar historial de publicaciones al hacer click,"Dado que soy un usuario autenticado,
+cuando ingreso a la plataforma como usuario autenticado
+Entonces el sistema debe mostrar un historial de publicaciones de otros usuarios."
+,,,,,Intentar visualizar historial de publicaciones ,"Dado que soy un usuario autenticado,
+cuando el sistema muestra el historial de publicaciones y no existen publicaciones,
+Entonces el sistema debe mostrar un mensaje: ""No hay publicaciones aún""."
+1,1,1.6,Ver historial de mis publicaciones,Como alumno quiero ver un historial de las publicaciones que yo he realizado para monitorear y tener un acceso rápido a ellas.,Intentar visualizar historial de publicaciones al hacer click,"Dado que soy un usuario autenticado,
+cuando ingreso a la plataforma como usuario autenticado
+Y hago click en la sección ""Mis publicaciones""
+Entonces el sistema debe mostrar mi historial de publicaciones."
+,,,,,Intentar visualizar historial de publicaciones ,"Dado que soy un usuario autenticado,
+cuando ingreso a la plataforma como usuario autenticado
+Y hago click en la sección ""Mis publicaciones"" y no tengo publicaciones,
+entonces el sistema debe mostrar un mensaje: ""No tienes publicaciones aún""."

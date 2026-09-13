@@ -63,7 +63,7 @@ export function FeedPage({
   async function remove(id: string) {
     if (
       !(await feedbackUi.confirm({
-        title: "¿Eliminar esta publicación?",
+        title: "¿Seguro que desea borrar el post?",
         description:
           "El post dejará de mostrarse en el inicio y las búsquedas. El grupo y sus conversaciones se conservarán.",
         acceptLabel: "Aceptar",
@@ -164,15 +164,15 @@ export function FeedPage({
                 aria-label="Tipo de publicación"
               >
                 {[
-                  ["", "Todos"],
-                  ["study_group", "Grupo de estudio"],
+                  ["study_group", "Grupo de Estudio"],
                   ["tutoring", "Asesoría"],
                 ].map(([value, label]) => (
                   <button
                     key={value}
+                    type="button"
                     className={`button small ${type === value ? "" : "secondary"}`}
                     aria-pressed={type === value}
-                    onClick={() => setType(value)}
+                    onClick={() => setType(type === value ? "" : value)}
                   >
                     {label}
                   </button>
@@ -225,7 +225,7 @@ export function FeedPage({
                   <span
                     className={`tag ${p.type === "tutoring" ? "purple" : ""}`}
                   >
-                    {p.type === "tutoring" ? "Asesoría" : "Grupo de estudio"}
+                    {p.type === "tutoring" ? "Asesoría" : "Grupo de Estudio"}
                   </span>
                   <span className="course-tag">{p.course_name}</span>
                   {p.status !== "published" && (
@@ -259,14 +259,14 @@ export function FeedPage({
                     <>
                       <Link className="text-button" to={`/publicar/${p.id}`}>
                         <Pencil size={16} />
-                        Editar
+                        Editar publicación
                       </Link>
                       <button
                         className="text-button danger"
                         onClick={() => remove(p.id)}
                       >
                         <Trash2 size={16} />
-                        Eliminar
+                        Borrar publicación
                       </button>
                     </>
                   ) : !memberships.data.some((g) => g.id === p.group_id) &&
@@ -420,6 +420,18 @@ export function PostEditor() {
   }, [id]);
   async function submit(e: FormEvent) {
     e.preventDefault();
+    const missing: string[] = [];
+    if (!form.course_id) missing.push("Curso");
+    if (!form.description.trim()) missing.push("Descripción");
+    if (!form.benefits.trim()) missing.push("Beneficios");
+    if (!form.requirements.trim()) missing.push("Requisitos");
+
+    if (missing.length > 0) {
+      setError(
+        `Dicho(s) campo(s) en blanco debe completarse: ${missing.join(", ")}.`
+      );
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -450,7 +462,7 @@ export function PostEditor() {
     <>
       <PageHeader
         eyebrow="COMPARTE TU CONOCIMIENTO"
-        title={id ? "Editar publicación" : "Crea una nueva conexión."}
+        title={id ? "Editar publicación" : "Crear publicación"}
         description="Cuenta qué quieres aprender o compartir. Las publicaciones son de texto."
       />
       <Notice error>{error}</Notice>
@@ -458,14 +470,14 @@ export function PostEditor() {
         <Loading />
       ) : (
         <div className="editor-layout">
-          <form ref={formRef} className="panel form" onSubmit={submit}>
+          <form ref={formRef} className="panel form" onSubmit={submit} noValidate>
             <div className="two-cols">
               <Field label="Tipo de publicación">
                 <select
                   value={form.type}
                   onChange={(e) => set("type", e.target.value)}
                 >
-                  <option value="study_group">Grupo de estudio</option>
+                  <option value="study_group">Grupo de Estudio</option>
                   <option value="tutoring">Asesoría</option>
                 </select>
               </Field>
@@ -562,7 +574,7 @@ export function PostEditor() {
       )}
       {leaving && (
         <Modal
-          title="¿Deseas guardar los cambios?"
+          title="¿Desea guardar los cambios?"
           close={() => setLeaving(false)}
         >
           <p className="confirmation-copy">
