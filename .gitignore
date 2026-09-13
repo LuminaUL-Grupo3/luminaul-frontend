@@ -1,41 +1,10 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Dependencias y compilacion
-node_modules
-dist
-dist-ssr
-
-# Archivos locales
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-
-# SO
-.DS_Store
-Thumbs.db
-
-# Archivos de proyecto / editor
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Variables de entorno privadas
+node_modules/
+dist/
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
-*.csv
+.env.*
+!.env.example
+.data/
+*.log
+analysis/
+playwright-report/
+test-results/
