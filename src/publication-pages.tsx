@@ -286,7 +286,8 @@ export function FeedPage({
                           Borrar publicación
                         </button>
                       </>
-                    ) : !memberships.data.some((g) => g.id === p.group_id) &&
+                    ) : p.group_id &&
+                      !memberships.data.some((g) => g.id === p.group_id) &&
                       !memberships.loading ? (
                       <button
                         className="text-button"
