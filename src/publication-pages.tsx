@@ -209,89 +209,108 @@ export function FeedPage({
           {posts.loading ? (
             <Loading />
           ) : posts.data.length ? (
-            posts.data.map((p) => (
-              <article className="post-card" key={p.id}>
-                <div className="post-top">
-                  <Link className="person" to={`/perfil/${p.user_id}`}>
-                    <Avatar name={p.author_name} src={p.photo_url} />
-                    <div>
-                      <strong>{p.author_name}</strong>
-                      <span>{date(p.created_at)}</span>
-                    </div>
-                  </Link>
-                  <ReportButton kind="publication" id={p.id} />
-                </div>
-                <div className="tags">
-                  <span
-                    className={`tag ${p.type === "tutoring" ? "purple" : ""}`}
-                  >
-                    {p.type === "tutoring" ? "Asesoría" : "Grupo de Estudio"}
-                  </span>
-                  <span className="course-tag">{p.course_name}</span>
-                  {p.status !== "published" && (
-                    <span className="tag warning">
-                      {p.status === "hidden" ? "Oculta" : "En revisión"}
-                    </span>
-                  )}
-                </div>
-                <p className="post-description">{p.description}</p>
-                <div className="post-details">
-                  <span>
-                    <BookOpen size={15} />
-                    Ciclo {p.cycle}
-                  </span>
-                  <span>
-                    <Users size={15} />
-                    Hasta {p.max_capacity} integrantes
-                  </span>
-                </div>
-                <details className="post-more">
-                  <summary>Beneficios y requisitos</summary>
-                  <p>
-                    <strong>Beneficios:</strong> {p.benefits}
-                  </p>
-                  <p>
-                    <strong>Requisitos:</strong> {p.requirements}
-                  </p>
-                </details>
-                <footer className="post-actions">
-                  {p.user_id === user?.id ? (
-                    <>
-                      <Link className="text-button" to={`/publicar/${p.id}`}>
-                        <Pencil size={16} />
-                        Editar publicación
-                      </Link>
-                      <button
-                        className="text-button danger"
-                        onClick={() => remove(p.id)}
-                      >
-                        <Trash2 size={16} />
-                        Borrar publicación
-                      </button>
-                    </>
-                  ) : !memberships.data.some((g) => g.id === p.group_id) &&
-                    !memberships.loading ? (
-                    <button
-                      className="text-button"
-                      onClick={() => {
-                        setJoining(p);
-                        setMessage("");
-                      }}
-                    >
-                      Me interesa <ArrowRight size={16} />
-                    </button>
-                  ) : null}
-                  {memberships.data.some((g) => g.id === p.group_id) && (
-                    <Link
-                      className="text-button muted"
-                      to={`/grupos/${p.group_id}`}
-                    >
-                      Ver grupo <ArrowUpRight size={15} />
+            posts.data.map((p) => {
+              const authorName = p.author?.name || p.author_name || "Estudiante";
+              const authorPhoto = p.author?.profile_photo_url || p.photo_url;
+              const authorId = p.author?.user_id || p.user_id || "";
+              const courseName = p.course?.name || p.course_name || "Curso";
+              const cycleNum = p.course?.cycle ?? p.cycle ?? 1;
+              const isMine =
+                (Boolean(p.user_id) && p.user_id === user?.id) ||
+                (Boolean(p.author?.user_id) && p.author?.user_id === user?.id);
+              return (
+                <article className="post-card" key={p.id}>
+                  <div className="post-top">
+                    <Link className="person" to={authorId ? `/perfil/${authorId}` : "#"}>
+                      <Avatar name={authorName} src={authorPhoto} />
+                      <div>
+                        <strong>{authorName}</strong>
+                        <span>{date(p.created_at)}</span>
+                      </div>
                     </Link>
+                    <ReportButton kind="publication" id={p.id} />
+                  </div>
+                  <div className="tags">
+                    <span
+                      className={`tag ${p.type === "tutoring" ? "purple" : ""}`}
+                    >
+                      {p.type === "tutoring" ? "Asesoría" : "Grupo de Estudio"}
+                    </span>
+                    <span className="course-tag">{courseName}</span>
+                    {p.status !== "published" && (
+                      <span className="tag warning">
+                        {p.status === "hidden" ? "Oculta" : "En revisión"}
+                      </span>
+                    )}
+                  </div>
+                  <p className="post-description">{p.description}</p>
+                  <div className="post-details">
+                    <span>
+                      <BookOpen size={15} />
+                      Ciclo {cycleNum}
+                    </span>
+                    {p.max_capacity ? (
+                      <span>
+                        <Users size={15} />
+                        Hasta {p.max_capacity} integrantes
+                      </span>
+                    ) : null}
+                  </div>
+                  {(p.benefits || p.requirements) && (
+                    <details className="post-more">
+                      <summary>Beneficios y requisitos</summary>
+                      {p.benefits && (
+                        <p>
+                          <strong>Beneficios:</strong> {p.benefits}
+                        </p>
+                      )}
+                      {p.requirements && (
+                        <p>
+                          <strong>Requisitos:</strong> {p.requirements}
+                        </p>
+                      )}
+                    </details>
                   )}
-                </footer>
-              </article>
-            ))
+                  <footer className="post-actions">
+                    {isMine ? (
+                      <>
+                        <Link className="text-button" to={`/publicar/${p.id}`}>
+                          <Pencil size={16} />
+                          Editar publicación
+                        </Link>
+                        <button
+                          className="text-button danger"
+                          onClick={() => remove(p.id)}
+                        >
+                          <Trash2 size={16} />
+                          Borrar publicación
+                        </button>
+                      </>
+                    ) : p.group_id &&
+                      !memberships.data.some((g) => g.id === p.group_id) &&
+                      !memberships.loading ? (
+                      <button
+                        className="text-button"
+                        onClick={() => {
+                          setJoining(p);
+                          setMessage("");
+                        }}
+                      >
+                        Me interesa <ArrowRight size={16} />
+                      </button>
+                    ) : null}
+                    {memberships.data.some((g) => g.id === p.group_id) && (
+                      <Link
+                        className="text-button muted"
+                        to={`/grupos/${p.group_id}`}
+                      >
+                        Ver grupo <ArrowUpRight size={15} />
+                      </Link>
+                    )}
+                  </footer>
+                </article>
+              );
+            })
           ) : (
             <Empty
               title={
@@ -353,7 +372,7 @@ export function FeedPage({
       </div>
       {joining && (
         <Modal
-          title={`Unirme a ${joining.group_name}`}
+          title={`Unirme a ${joining.group_name || "grupo"}`}
           close={() => setJoining(null)}
         >
           <ActionForm
@@ -403,12 +422,12 @@ export function PostEditor() {
       .then((p) => {
         if (active) {
           setForm({
-            course_id: p.course_id,
+            course_id: p.course?.id || p.course_id || "",
             type: p.type,
             description: p.description,
-            benefits: p.benefits,
-            requirements: p.requirements,
-            max_capacity: p.max_capacity,
+            benefits: p.benefits || "",
+            requirements: p.requirements || "",
+            max_capacity: p.max_capacity ?? 10,
           });
           setLoaded(true);
         }

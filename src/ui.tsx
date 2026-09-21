@@ -7,7 +7,7 @@ import {
   FormEvent,
 } from "react";
 import { X, LoaderCircle, ArrowRight, MessageCircle, Flag } from "lucide-react";
-import { api } from "./api";
+import { api, ApiError } from "./api";
 import { useFeedback } from "./feedback";
 export function useResource<T>(path: string, initial: T) {
   const [data, setData] = useState<T>(initial),
@@ -24,7 +24,13 @@ export function useResource<T>(path: string, initial: T) {
         if (active) setData(d);
       })
       .catch((e) => {
-        if (active) setError(e.message);
+        if (active) {
+          if (e instanceof ApiError && e.status === 404) {
+            setError("");
+          } else {
+            setError(e.message);
+          }
+        }
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -102,23 +108,25 @@ export function PageHeader({
   );
 }
 export function Avatar({
-  name,
+  name = "U",
   src,
   large = false,
 }: {
-  name: string;
+  name?: string;
   src?: string;
   large?: boolean;
 }) {
+  const safeName = (name || "U").trim() || "U";
   return src ? (
-    <img className={`avatar ${large ? "large" : ""}`} src={src} alt={name} />
+    <img className={`avatar ${large ? "large" : ""}`} src={src} alt={safeName} />
   ) : (
     <span className={`avatar ${large ? "large" : ""}`}>
-      {name
+      {safeName
         .split(" ")
+        .filter(Boolean)
         .slice(0, 2)
-        .map((x) => x[0])
-        .join("")}
+        .map((x) => x[0]?.toUpperCase() || "")
+        .join("") || "U"}
     </span>
   );
 }

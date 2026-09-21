@@ -8,3 +8,4 @@ dist/
 analysis/
 playwright-report/
 test-results/
+*.md

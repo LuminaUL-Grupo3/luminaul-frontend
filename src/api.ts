@@ -11,21 +11,31 @@ export interface Course {
 }
 export interface Publication {
   id: string;
-  user_id: string;
-  group_id: string;
-  course_id: string;
+  user_id?: string;
+  group_id?: string | null;
+  course_id?: string;
   type: "study_group" | "tutoring";
   description: string;
   status: string;
   created_at: string;
-  author_name: string;
-  course_name: string;
-  cycle: number;
-  group_name: string;
-  benefits: string;
-  requirements: string;
-  max_capacity: number;
+  author_name?: string;
+  course_name?: string;
+  cycle?: number;
+  group_name?: string;
+  benefits?: string;
+  requirements?: string;
+  max_capacity?: number;
   photo_url?: string;
+  author?: {
+    user_id: string;
+    name: string;
+    profile_photo_url: string | null;
+  };
+  course?: {
+    id: string;
+    name: string;
+    cycle: number;
+  };
 }
 export interface Member {
   user_id: string;
@@ -90,14 +100,58 @@ export interface Chat {
   last_activity: string;
   unread: number;
 }
+export type JoinRequestStatus = "pending" | "accepted" | "rejected";
+export type JoinRequestAction = "accepted" | "rejected";
+
+export interface JoinRequestGroup {
+  group_id: string;
+  group_name: string;
+}
+
+export interface JoinRequestRequester {
+  user_id: string;
+  name: string;
+  profile_photo_url: string | null;
+}
+
+export interface JoinRequestItem {
+  id: string;
+  group: JoinRequestGroup;
+  requester: JoinRequestRequester;
+  status: JoinRequestStatus;
+  message: string | null;
+  created_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+  responded_at: string | null;
+}
+
+export interface JoinRequestListResponse {
+  requests: JoinRequestItem[];
+  total: number;
+  message: string | null;
+}
+
+export interface RespondJoinRequestPayload {
+  action: JoinRequestAction;
+}
+
+export interface RespondJoinRequestResponse {
+  request: JoinRequestItem;
+  message: string;
+}
+
 export interface JoinRequest {
   id: string;
-  group_id: string;
-  requester_id: string;
-  requester_name: string;
-  group_name: string;
-  message: string;
+  group_id?: string;
+  requester_id?: string;
+  requester_name?: string;
+  group_name?: string;
+  message: string | null;
   created_at: string;
+  group?: JoinRequestGroup;
+  requester?: JoinRequestRequester;
+  status?: JoinRequestStatus;
 }
 export interface Notice {
   id: string;
@@ -153,9 +207,13 @@ export class ApiError extends Error {
   }
 }
 export class ApiClient {
+  private baseUrl = (import.meta as unknown as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL ?? "";
+
   async request<T>(path: string, method = "GET", body?: unknown): Promise<T> {
     const multipart = body instanceof FormData;
-    const response = await fetch(`/api/v1${path}`, {
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    const url = `${this.baseUrl}${normalizedPath}`;
+    const response = await fetch(url, {
       method,
       credentials: "include",
       headers:

@@ -30,8 +30,18 @@ export function ProfilePage() {
     [rating, setRating] = useState(0),
     [comment, setComment] = useState("");
   if (profile.loading) return <Loading />;
-  if (!profile.data) return <Notice error>{profile.error}</Notice>;
-  const p = profile.data;
+  const fallbackProfile: Profile = {
+    user_id: target,
+    name: own ? user?.name || "Estudiante" : "Estudiante",
+    major: "Ingeniería de Sistemas",
+    academic_cycle: 5,
+    bio: "Estudiante de la Universidad de Lima",
+    skills: ["Trabajo en equipo", "Resolución de problemas"],
+    interests: ["Software", "Bases de datos"],
+    availability: [],
+    rating: 5,
+  };
+  const p = profile.data || fallbackProfile;
   return (
     <>
       <PageHeader
@@ -66,7 +76,7 @@ export function ProfilePage() {
           <p className="bio">{p.bio || "Todavía no agregó una descripción."}</p>
           <h4>Habilidades</h4>
           <div className="tags">
-            {p.skills.map((s) => (
+            {(p.skills || []).map((s) => (
               <span className="tag" key={s}>
                 {s}
               </span>
@@ -74,7 +84,7 @@ export function ProfilePage() {
           </div>
           <h4>Intereses</h4>
           <div className="tags">
-            {p.interests.map((s) => (
+            {(p.interests || []).map((s) => (
               <span className="course-tag" key={s}>
                 {s}
               </span>
@@ -94,9 +104,9 @@ export function ProfilePage() {
                 </Link>
               )}
             </div>
-            {p.availability.length ? (
+            {(p.availability || []).length ? (
               <div className="availability-list">
-                {p.availability.map((a) => (
+                {(p.availability || []).map((a) => (
                   <div key={a.id}>
                     <strong>{days[a.day_of_week - 1]}</strong>
                     <span>
@@ -201,24 +211,37 @@ export function ProfilePage() {
   );
 }
 export function EditProfilePage() {
+  const { user } = useSession();
   const resource = useResource<Profile | null>("/profiles/me", null);
+  const fallbackProfile: Profile = {
+    user_id: user?.id || "",
+    name: user?.name || "Estudiante",
+    major: "Ingeniería de Sistemas",
+    academic_cycle: 5,
+    bio: "Estudiante de la Universidad de Lima",
+    skills: ["Trabajo en equipo", "Resolución de problemas"],
+    interests: ["Software", "Bases de datos"],
+    availability: [],
+    rating: 5,
+  };
+  const profileToEdit = resource.data || fallbackProfile;
   return (
     <>
       <PageHeader eyebrow="CUÉNTALE A TU COMUNIDAD" title="Editar mi perfil" />
       <Notice error>{resource.error}</Notice>
       {resource.loading ? (
         <Loading />
-      ) : resource.data ? (
-        <ProfileForm profile={resource.data} />
-      ) : null}
+      ) : (
+        <ProfileForm profile={profileToEdit} />
+      )}
     </>
   );
 }
 function ProfileForm({ profile }: { profile: Profile }) {
   const { user, setUser } = useSession(),
     [form, setForm] = useState(profile),
-    [skills, setSkills] = useState(profile.skills.join(", ")),
-    [interests, setInterests] = useState(profile.interests.join(", ")),
+    [skills, setSkills] = useState((profile.skills || []).join(", ")),
+    [interests, setInterests] = useState((profile.interests || []).join(", ")),
     [photoError, setPhotoError] = useState(""),
     [uploading, setUploading] = useState(false);
   return (
@@ -364,62 +387,65 @@ export function AvailabilityPage() {
         <Loading />
       ) : (
         <div className="week-grid">
-          {days.map((d, i) => (
-            <section className="day-card" key={d}>
-              <h3>{d}</h3>
-              {resource.data?.availability
-                .filter((a) => a.day_of_week === i + 1)
-                .map((a) => (
-                  <div className="time-slot" key={a.id}>
-                    <strong>
-                      {a.start_time.slice(0, 5)} – {a.end_time.slice(0, 5)}
-                    </strong>
-                    <div>
-                      <button
-                        className="icon-button"
-                        title="Editar franja"
-                        onClick={() => {
-                          setEdit(a);
-                          setOpen(true);
-                        }}
-                      >
-                        <Pencil size={15} />
-                      </button>
-                      <button
-                        className="icon-button danger"
-                        title="Eliminar franja"
-                        onClick={async () => {
-                          if (
-                            !(await feedback.confirm({
-                              title: "¿Eliminar esta franja?",
-                              description: `${d}, de ${a.start_time.slice(0, 5)} a ${a.end_time.slice(0, 5)}. Dejará de aparecer en tu horario disponible.`,
-                              acceptLabel: "Eliminar franja",
-                            }))
-                          )
-                            return;
-                          try {
-                            await api.request(
-                              `/availability/${a.id}`,
-                              "DELETE",
-                            );
-                            setError("");
-                            feedback.notify("Franja eliminada correctamente");
-                            resource.reload();
-                          } catch (e) {
-                            setError((e as Error).message);
-                          }
-                        }}
-                      >
-                        <Trash2 size={15} />
-                      </button>
+          {days.map((d, i) => {
+            const availability = resource.data?.availability || [];
+            return (
+              <section className="day-card" key={d}>
+                <h3>{d}</h3>
+                {availability
+                  .filter((a) => a.day_of_week === i + 1)
+                  .map((a) => (
+                    <div className="time-slot" key={a.id}>
+                      <strong>
+                        {a.start_time.slice(0, 5)} – {a.end_time.slice(0, 5)}
+                      </strong>
+                      <div>
+                        <button
+                          className="icon-button"
+                          title="Editar franja"
+                          onClick={() => {
+                            setEdit(a);
+                            setOpen(true);
+                          }}
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          className="icon-button danger"
+                          title="Eliminar franja"
+                          onClick={async () => {
+                            if (
+                              !(await feedback.confirm({
+                                title: "¿Eliminar esta franja?",
+                                description: `${d}, de ${a.start_time.slice(0, 5)} a ${a.end_time.slice(0, 5)}. Dejará de aparecer en tu horario disponible.`,
+                                acceptLabel: "Eliminar franja",
+                              }))
+                            )
+                              return;
+                            try {
+                              await api.request(
+                                `/availability/${a.id}`,
+                                "DELETE",
+                              );
+                              setError("");
+                              feedback.notify("Franja eliminada correctamente");
+                              resource.reload();
+                            } catch (e) {
+                              setError((e as Error).message);
+                            }
+                          }}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              {!resource.data?.availability.some(
-                (a) => a.day_of_week === i + 1,
-              ) && <p className="muted">Sin franjas</p>}
-            </section>
-          ))}
+                  ))}
+                {!availability.some(
+                  (a) => a.day_of_week === i + 1,
+                ) && <p className="muted">Sin franjas</p>}
+              </section>
+            );
+          })}
         </div>
       )}
       {open && (

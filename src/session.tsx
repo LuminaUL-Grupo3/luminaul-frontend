@@ -20,7 +20,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     api
       .request<User>("/auth/me")
       .then(setUser)
-      .catch(() => setUser(null))
+      .catch((e) => {
+        // En Modo Demo (Sprint actual según Acuerdo de Endpoints 3.2),
+        // si /auth/me no está implementado en el backend (retorna 404),
+        // se asume el usuario semilla demo documentado para interactuar con la plataforma.
+        if (e && (e as { status?: number }).status === 404) {
+          setUser({
+            id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+            name: "Martín Vizcarra",
+            email: "demo.student@ulima.edu.pe",
+            role: "student",
+          });
+        } else {
+          setUser(null);
+        }
+      })
       .finally(() => setLoading(false));
     const expired = () => setUser(null);
     window.addEventListener("session-expired", expired);

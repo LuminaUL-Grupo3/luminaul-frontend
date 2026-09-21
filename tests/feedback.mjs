@@ -45,28 +45,82 @@ const group = {
     { user_id: "user-two", name: "Ana Demo", role: "member" },
   ],
 };
+let joinRequests = [
+  {
+    id: "req-1",
+    group: { group_id: "group-one", group_name: "Grupo de prueba" },
+    requester: { user_id: "user-two", name: "Ana Demo", profile_photo_url: null },
+    status: "pending",
+    message: "Hola, me gustaría unirme para estudiar.",
+    created_at: new Date().toISOString(),
+    reviewed_at: null,
+    reviewed_by: null,
+    responded_at: null,
+  },
+  {
+    id: "req-2",
+    group: { group_id: "group-one", group_name: "Grupo de prueba" },
+    requester: { user_id: "user-three", name: "Carlos Demo", profile_photo_url: null },
+    status: "pending",
+    message: "Tengo disponibilidad los fines de semana.",
+    created_at: new Date().toISOString(),
+    reviewed_at: null,
+    reviewed_by: null,
+    responded_at: null,
+  },
+];
 page.on("pageerror", (e) => errors.push(e.message));
 page.on("dialog", async (dialog) => {
   nativeDialogs.push(dialog.type());
   await dialog.dismiss();
 });
-await page.route("**/api/v1/**", async (route) => {
-  const request = route.request(),
-    path = new URL(request.url()).pathname.replace("/api/v1", "");
-  let data = [];
-  if (request.method() !== "GET") {
-    writes.push({ path, method: request.method() });
-    if (path === "/posts/post-one" && request.method() === "PUT")
-      post = { ...post, ...request.postDataJSON() };
-    if (path === "/posts/post-one" && request.method() === "DELETE")
-      post = null;
-    data = { message: "Cambios guardados con éxito" };
-  } else if (path === "/auth/me") data = me;
+await page.route(
+  (url) =>
+    url.pathname.startsWith("/api/v1") ||
+    /^\/(api|posts|courses|groups|profiles|reviews|join-requests|auth|availability|availabilities|notifications|moderation|admin|chats|requests)(\/|$)/.test(
+      url.pathname,
+    ),
+  async (route) => {
+    const request = route.request(),
+      path = new URL(request.url()).pathname.replace(/^\/api\/v1/, "");
+    let data = [];
+    if (request.method() !== "GET") {
+      const body = request.postDataJSON ? request.postDataJSON() : null;
+      writes.push({ path, method: request.method(), body });
+      if (path === "/posts/post-one" && request.method() === "PUT")
+        post = { ...post, ...body };
+      if (path === "/posts/post-one" && request.method() === "DELETE")
+        post = null;
+      if (path.startsWith("/join-requests/") && request.method() === "PATCH") {
+        const reqId = path.replace("/join-requests/", "");
+        const action = body?.action || "accepted";
+        const found = joinRequests.find((r) => r.id === reqId);
+        joinRequests = joinRequests.filter((r) => r.id !== reqId);
+        data = {
+          request: { ...(found || { id: reqId }), status: action },
+          message:
+            action === "accepted"
+              ? "Solicitud aceptada exitosamente"
+              : "Solicitud rechazada exitosamente",
+        };
+      } else {
+        data = { message: "Cambios guardados con éxito" };
+      }
+    } else if (path === "/auth/me") data = me;
   else if (path === "/posts/me" || path === "/posts") data = post ? [post] : [];
   else if (path === "/posts/post-one") data = post;
   else if (path === "/courses")
     data = [{ id: "course-one", name: "Ingeniería de Software II", cycle: 7 }];
   else if (path === "/groups/group-one") data = group;
+  else if (path === "/join-requests/me")
+    data = {
+      requests: joinRequests,
+      total: joinRequests.length,
+      message:
+        joinRequests.length === 0
+          ? "No hay solicitudes pendientes por revisar"
+          : null,
+    };
   else if (path === "/profiles/me")
     data = {
       availability: [
@@ -240,6 +294,46 @@ try {
     }),
   ).toBeVisible();
   results.push("Filtros por botones y estado vacío de búsqueda");
+
+  // Pruebas específicas HU 2.2: Gestión de solicitudes de unión
+  await page.goto(base + "/solicitudes");
+  await expect(page.locator("main h1")).toHaveText("Solicitudes de ingreso");
+  // Criterio 4: Ver lista con solicitudes del administrador
+  await expect(page.locator(".join-request-card")).toHaveCount(2);
+  await expect(page.getByText("Ana Demo")).toBeVisible();
+  await expect(page.getByText("Carlos Demo")).toBeVisible();
+
+  // Criterio 1: Aceptar la solicitud
+  await page.getByRole("button", { name: "Aceptar solicitud de Ana Demo" }).click();
+  await expect(page.locator(".toast")).toContainText("Solicitud aceptada exitosamente");
+  await expect(page.locator(".join-request-card")).toHaveCount(1);
+  expect(
+    writes.some(
+      (w) =>
+        w.path === "/join-requests/req-1" &&
+        w.method === "PATCH" &&
+        w.body?.action === "accepted",
+    ),
+  ).toBe(true);
+
+  // Criterio 2: Rechazar la solicitud
+  await page.getByRole("button", { name: "Rechazar solicitud de Carlos Demo" }).click();
+  await expect(page.locator(".toast")).toContainText("Solicitud rechazada exitosamente");
+  await expect(page.locator(".join-request-card")).toHaveCount(0);
+  expect(
+    writes.some(
+      (w) =>
+        w.path === "/join-requests/req-2" &&
+        w.method === "PATCH" &&
+        w.body?.action === "rejected",
+    ),
+  ).toBe(true);
+
+  // Criterio 3: Ver lista de solicitudes vacía
+  await expect(
+    page.getByRole("heading", { name: "No hay solicitudes pendientes por revisar" }),
+  ).toBeVisible();
+  results.push("HU 2.2: Listado, aceptación, rechazo y estado vacío de solicitudes");
   expect(nativeDialogs).toEqual([]);
   expect(errors).toEqual([]);
   results.push(
