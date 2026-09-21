@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "^/(posts|courses|join-requests|groups|auth|profiles|availabilities|reviews|reports|moderations|admin|users|chats|health)": {
+      "^/(posts|courses|join-requests|groups|auth|profiles|availability|availabilities|reviews|reports|moderation|moderations|notifications|admin|users|chats|health)": {
         target: process.env.BACKEND_URL || "http://127.0.0.1:8000",
         changeOrigin: true,
       },
