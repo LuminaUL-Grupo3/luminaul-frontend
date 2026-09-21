@@ -5,9 +5,13 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/api": "http://127.0.0.1:3000",
-      "/uploads": "http://127.0.0.1:3000",
-      "/socket.io": { target: "http://127.0.0.1:3000", ws: true },
+      "^/(posts|courses|join-requests|groups|auth|profiles|availabilities|reviews|reports|moderations|admin|users|chats|health)": {
+        target: process.env.BACKEND_URL || "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/api": process.env.BACKEND_URL || "http://127.0.0.1:8000",
+      "/uploads": process.env.BACKEND_URL || "http://127.0.0.1:8000",
+      "/socket.io": { target: process.env.BACKEND_URL || "http://127.0.0.1:8000", ws: true },
     },
   },
 });

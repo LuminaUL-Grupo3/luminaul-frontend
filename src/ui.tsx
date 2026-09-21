@@ -102,23 +102,25 @@ export function PageHeader({
   );
 }
 export function Avatar({
-  name,
+  name = "U",
   src,
   large = false,
 }: {
-  name: string;
+  name?: string;
   src?: string;
   large?: boolean;
 }) {
+  const safeName = (name || "U").trim() || "U";
   return src ? (
-    <img className={`avatar ${large ? "large" : ""}`} src={src} alt={name} />
+    <img className={`avatar ${large ? "large" : ""}`} src={src} alt={safeName} />
   ) : (
     <span className={`avatar ${large ? "large" : ""}`}>
-      {name
+      {safeName
         .split(" ")
+        .filter(Boolean)
         .slice(0, 2)
-        .map((x) => x[0])
-        .join("")}
+        .map((x) => x[0]?.toUpperCase() || "")
+        .join("") || "U"}
     </span>
   );
 }

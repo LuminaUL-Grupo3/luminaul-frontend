@@ -18,8 +18,9 @@ import {
   Notice,
   Empty,
   Avatar,
-  ActionForm,
 } from "./ui";
+import { useJoinRequests } from "./use-join-requests";
+import { JoinRequestCard } from "./join-request-card";
 export function GroupsPage() {
   const groups = useResource<Group[]>("/groups", []);
   return (
@@ -226,50 +227,42 @@ export function GroupPage() {
   );
 }
 export function RequestsPage() {
-  const requests = useResource<JoinRequest[]>("/requests", []);
+  const {
+    requests,
+    emptyMessage,
+    loading,
+    error,
+    actionError,
+    processingId,
+    acceptRequest,
+    rejectRequest,
+  } = useJoinRequests();
+
   return (
     <>
       <PageHeader
-        eyebrow="HAZ CRECER TU COMUNIDAD"
+        eyebrow="GESTIONAR COMUNIDAD"
         title="Solicitudes de ingreso"
         description="Revisa quién quiere unirse a los grupos que administras."
       />
-      <Notice error>{requests.error}</Notice>
-      {requests.loading ? (
+      <Notice error>{error || actionError}</Notice>
+      {loading ? (
         <Loading />
-      ) : requests.data.length ? (
+      ) : requests.length > 0 ? (
         <div className="stack">
-          {requests.data.map((r) => (
-            <article className="panel" key={r.id}>
-              <div className="person">
-                <Avatar name={r.requester_name} />
-                <div>
-                  <Link to={`/perfil/${r.requester_id}`}>
-                    <strong>{r.requester_name}</strong>
-                  </Link>
-                  <span>
-                    {r.group_name} · {date(r.created_at)}
-                  </span>
-                </div>
-              </div>
-              <p>{r.message}</p>
-              <div className="two-cols">
-                {[true, false].map((accept) => (
-                  <ActionForm
-                    key={String(accept)}
-                    path={`/requests/${r.id}/decision`}
-                    payload={() => ({ accept })}
-                    label={accept ? "Aceptar solicitud" : "Rechazar solicitud"}
-                    done={requests.reload}
-                  />
-                ))}
-              </div>
-            </article>
+          {requests.map((r) => (
+            <JoinRequestCard
+              key={r.id}
+              request={r}
+              onAccept={acceptRequest}
+              onReject={rejectRequest}
+              isProcessing={processingId === r.id}
+            />
           ))}
         </div>
       ) : (
         <Empty title="No hay solicitudes pendientes por revisar">
-          Las nuevas solicitudes aparecerán aquí.
+          {emptyMessage || "Las nuevas solicitudes aparecerán aquí."}
         </Empty>
       )}
     </>
