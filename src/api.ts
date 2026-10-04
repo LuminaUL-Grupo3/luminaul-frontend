@@ -55,6 +55,23 @@ export interface Group {
   role: string;
   members: Member[];
 }
+/** H.U 2.1 — Estado del usuario actual frente a un grupo (GET /groups/:group_id). */
+export type GroupMembershipStatus = "admin" | "member" | "pending" | "none";
+export interface GroupDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  benefits: string | null;
+  requirements: string | null;
+  meeting_mode: string | null;
+  meeting_shift: string | null;
+  max_capacity: number | null;
+  member_count: number;
+  admin_id: string;
+  admin: { user_id: string; name: string; profile_photo_url: string | null };
+  my_status: GroupMembershipStatus;
+  created_at: string;
+}
 export interface Availability {
   id: string;
   day_of_week: number;
