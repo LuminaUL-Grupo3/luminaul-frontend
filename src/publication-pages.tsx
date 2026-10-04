@@ -14,6 +14,7 @@ import {
 import { api, Publication, Course, date } from "./api";
 import { useSession } from "./session";
 import { useFeedback } from "./feedback";
+import { useGroupStatuses } from "./use-group-statuses";
 import {
   useResource,
   PageHeader,
@@ -36,7 +37,6 @@ export function FeedPage({
   const { user } = useSession();
   const feedbackUi = useFeedback();
   const location = useLocation();
-  const memberships = useResource<{ id: string }[]>("/groups", []);
   const [query, setQuery] = useState(""),
     [type, setType] = useState(""),
     [course, setCourse] = useState(""),
@@ -58,6 +58,14 @@ export function FeedPage({
   const posts = useResource<Publication[]>(
     `${mine ? "/posts/me" : "/posts"}?${params}`,
     [],
+  );
+  // H.U 2.1: estado del usuario frente a cada grupo del feed (admin | member | pending | none)
+  const groupStatuses = useGroupStatuses(
+    mine
+      ? []
+      : posts.data
+          .map((p) => p.group_id)
+          .filter((id): id is string => Boolean(id)),
   );
   useEffect(() => setPage(0), [query, type, course, cycle]);
   async function remove(id: string) {
@@ -286,27 +294,43 @@ export function FeedPage({
                           Borrar publicación
                         </button>
                       </>
-                    ) : p.group_id &&
-                      !memberships.data.some((g) => g.id === p.group_id) &&
-                      !memberships.loading ? (
-                      <button
-                        className="text-button"
-                        onClick={() => {
-                          setJoining(p);
-                          setMessage("");
-                        }}
-                      >
-                        Me interesa <ArrowRight size={16} />
-                      </button>
+                    ) : p.group_id ? (
+                      (() => {
+                        const status = groupStatuses.statuses[p.group_id];
+                        if (status === "admin" || status === "member") {
+                          // Escenario 3: ya es miembro → no se muestra "Enviar solicitud"
+                          return (
+                            <Link
+                              className="text-button muted"
+                              to={`/grupos/${p.group_id}`}
+                            >
+                              Ver grupo <ArrowUpRight size={15} />
+                            </Link>
+                          );
+                        }
+                        if (status === "pending") {
+                          return (
+                            <span className="text-button muted">
+                              Solicitud pendiente
+                            </span>
+                          );
+                        }
+                        if (status === "none") {
+                          return (
+                            <button
+                              className="text-button"
+                              onClick={() => {
+                                setJoining(p);
+                                setMessage("");
+                              }}
+                            >
+                              Me interesa <ArrowRight size={16} />
+                            </button>
+                          );
+                        }
+                        return null;
+                      })()
                     ) : null}
-                    {memberships.data.some((g) => g.id === p.group_id) && (
-                      <Link
-                        className="text-button muted"
-                        to={`/grupos/${p.group_id}`}
-                      >
-                        Ver grupo <ArrowUpRight size={15} />
-                      </Link>
-                    )}
                   </footer>
                 </article>
               );
@@ -376,9 +400,17 @@ export function FeedPage({
           close={() => setJoining(null)}
         >
           <ActionForm
-            path={`/groups/${joining.group_id}/requests`}
-            payload={() => ({ message })}
+            path={`/groups/${joining.group_id}/join-requests`}
+            payload={() => ({ message: message.trim() })}
             label="Enviar solicitud"
+            validate={() =>
+              message.trim() ? "" : "Escribe un mensaje para el administrador del grupo"
+            }
+            done={() => {
+              // Escenario 1: el backend responde "Solicitud enviada con éxito"
+              if (joining.group_id) groupStatuses.markPending(joining.group_id);
+              setJoining(null);
+            }}
           >
             <Field label="Preséntate al grupo">
               <textarea
