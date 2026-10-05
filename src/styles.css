@@ -2085,6 +2085,20 @@ dialog::backdrop {
     font-size: 27px;
   }
 }
+.field .field-error { color: #a73724; }
+.field [aria-invalid="true"] { border-color: #b7462f; background: #fff8f5; }
+.join-request-form { margin-top: 20px; }
+.join-success { text-align: center; padding-top: 12px; }
+.join-success .confirmation-symbol { margin: 0 auto 18px; animation: success-in .3s ease both; }
+.join-success .modal-actions { justify-content: center; }
+.request-group-icon { display: inline; vertical-align: middle; margin-right: 4px; }
+.request-message { margin: 16px 0; overflow-wrap: anywhere; }
+.request-message p { margin: 0; }
+.request-actions { margin-top: 16px; }
+.join-request-card { animation: fade-up .3s ease both; transition: box-shadow .18s ease, border-color .18s ease; }
+.join-request-card:hover { box-shadow: var(--shadow); border-color: #edc9b9; }
+.join-request-card .muted a:hover { color: var(--orange-dark); }
+@keyframes success-in { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) {
   *,
   *:before,

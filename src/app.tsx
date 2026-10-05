@@ -47,6 +47,7 @@ import {
   AdminPage,
 } from "./moderation-pages";
 import { Avatar, Loading, Notice } from "./ui";
+import { useFeedback } from "./feedback";
 const nav = [
   ["/", "Inicio", House],
   ["/buscar", "Explorar", Search],
@@ -62,11 +63,29 @@ const personal = [
   ["/moderacion", "Moderación", Shield],
 ] as const;
 function Layout() {
+  const feedback = useFeedback();
   const { user, loading, logout } = useSession(),
     [open, setOpen] = useState(false),
     [error, setError] = useState(""),
+    [closing, setClosing] = useState(false),
     location = useLocation();
   useEffect(() => setOpen(false), [location.pathname]);
+  async function closeSession() {
+    if (closing) return;
+    const accepted = await feedback.confirm({
+      title: "¿Cerrar sesión?",
+      description: "Para volver a entrar a LuminaUL necesitarás tu correo y contraseña.",
+      acceptLabel: "Cerrar sesión", cancelLabel: "Seguir aquí",
+    });
+    if (!accepted) return;
+    setClosing(true);
+    setError("");
+    try {
+      await logout();
+      feedback.notify("Sesión cerrada correctamente");
+    } catch (e) { setError((e as Error).message); }
+    finally { setClosing(false); }
+  }
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/login" replace />;
   return (
@@ -162,9 +181,9 @@ function Layout() {
             <Settings size={18} />
             Configuración
           </Link>
-          <button onClick={() => logout().catch((e) => setError(e.message))}>
+          <button onClick={closeSession} disabled={closing}>
             <LogOut size={18} />
-            Cerrar sesión
+            {closing ? "Cerrando sesión…" : "Cerrar sesión"}
           </button>
           <span>LuminaUL · Ingeniería de Software II</span>
         </div>

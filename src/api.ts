@@ -70,6 +70,7 @@ export interface GroupDetail {
   admin_id: string;
   admin: { user_id: string; name: string; profile_photo_url: string | null };
   my_status: GroupMembershipStatus;
+  members: Member[];
   created_at: string;
 }
 export interface Availability {
@@ -83,12 +84,12 @@ export interface Profile {
   name: string;
   bio: string;
   major: string;
-  academic_cycle: number;
-  photo_url?: string;
+  academic_cycle: number | null;
+  photo_url?: string | null;
   skills: string[];
   interests: string[];
   availability: Availability[];
-  rating?: number;
+  rating?: number | null;
 }
 export interface Review {
   id: string;
@@ -230,19 +231,27 @@ export class ApiClient {
     const multipart = body instanceof FormData;
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
     const url = `${this.baseUrl}${normalizedPath}`;
-    const response = await fetch(url, {
+    let response: Response;
+    try { response = await fetch(url, {
       method,
       credentials: "include",
       headers:
         body && !multipart ? { "Content-Type": "application/json" } : undefined,
       body: body ? (multipart ? body : JSON.stringify(body)) : undefined,
-    });
+    }); } catch {
+      throw new ApiError("No pudimos conectar con el servidor. Comprueba tu conexión e inténtalo nuevamente.", 0);
+    }
+    if (response.status === 204) return undefined as T;
+    if (!response.headers.get("content-type")?.includes("application/json"))
+      throw new ApiError("El servidor no devolvió una respuesta válida. Inténtalo nuevamente.", response.status);
     const data = await response
       .json()
       .catch(() => ({ message: "Respuesta no válida del servidor" }));
     if (!response.ok) {
       if (response.status === 401 && !path.startsWith("/auth/"))
         window.dispatchEvent(new Event("session-expired"));
+      if (typeof data.message === "string" && /^Cannot (GET|POST|PUT|PATCH|DELETE)\s/.test(data.message))
+        throw new ApiError("Esta función todavía no está disponible. Inténtalo más tarde.", response.status);
       throw new ApiError(
         Array.isArray(data.message)
           ? data.message.join(". ")

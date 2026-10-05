@@ -4,23 +4,23 @@ Frontend de LuminaUL construido con React, TypeScript, Vite y CSS responsive. La
 
 ## Ejecutar
 
-Requiere Node.js 24 LTS y la API NestJS ejecutándose en `http://127.0.0.1:3000`.
+Requiere Node.js 22.12 o superior y el backend del equipo en `http://127.0.0.1:8000`.
 
 ~~~powershell
 npm ci
 npm run dev
 ~~~
 
-Abre `http://localhost:5173`, que coincide con `WEB_ORIGIN` del backend. Vite reenvía `/api`, `/uploads` y `/socket.io` al backend local. Para validar el artefacto:
+Abre `http://localhost:5173`, que coincide con `WEB_ORIGIN` del backend. Vite reenvía las rutas de API y `/uploads` al backend local. Para validar el artefacto:
 
 ~~~powershell
 npm run build
 npm run test:feedback
 ~~~
 
-Las pruebas de interacciones necesitan Vite ejecutándose y Microsoft Edge instalado; usan respuestas simuladas sin modificar usuarios. `npm run test:browser` comprueba navegación y chat reales con las cuentas demo del backend. Los resultados se guardan en `analysis/validation/`.
+`test:feedback` usa respuestas simuladas y Microsoft Edge. `npm run test:integration` inicia servicios reales en 5174/8001 y usa únicamente `luminaul_equipo_test`: prueba autenticación, solicitudes, registro con correo SMTP, perfil y horario. Requiere haber compilado el backend y tener su PostgreSQL/Mailpit locales encendidos. Busca el backend en `../backend`; si está en otra carpeta, define `LUMINAUL_BACKEND_DIR` con esa ubicación. Resultados en `analysis/validation/`.
 
-Backend compatible: [codex/software-ii-backend](https://github.com/LuminaUL-Grupo3/luminaul-new-backend/tree/codex/software-ii-backend). Lee [las decisiones y límites](docs/IMPLEMENTACION.md) antes de integrar esta migración.
+Backend compatible: [rama de integración de cuentas y perfil del equipo](https://github.com/LuminaUL-Grupo3/luminaul-new-backend/tree/feature/robert-integracion-cuentas-perfil). Lee [la guía de integración](docs/INTEGRACION_ROBERT.md) para ejecutar y conocer el alcance.
 
 ## Estructura
 

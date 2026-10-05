@@ -8,7 +8,7 @@ import {
   UserMinus,
   Crown,
 } from "lucide-react";
-import { api, Group, JoinRequest, date } from "./api";
+import { api, Group, GroupDetail } from "./api";
 import { useSession } from "./session";
 import { useFeedback } from "./feedback";
 import {
@@ -21,6 +21,7 @@ import {
 } from "./ui";
 import { useJoinRequests } from "./use-join-requests";
 import { JoinRequestCard } from "./join-request-card";
+import { JoinGroupDialog } from "./join-group-dialog";
 export function GroupsPage() {
   const groups = useResource<Group[]>("/groups", []);
   return (
@@ -76,8 +77,9 @@ export function GroupPage() {
   const { id } = useParams(),
     { user } = useSession(),
     navigate = useNavigate();
-  const group = useResource<Group | null>(`/groups/${id}`, null),
-    [error, setError] = useState("");
+  const group = useResource<GroupDetail | null>(`/groups/${id}`, null),
+    [error, setError] = useState(""),
+    [joining, setJoining] = useState(false);
   async function action(path: string, method: string, body?: unknown) {
     setError("");
     try {
@@ -93,42 +95,43 @@ export function GroupPage() {
     }
   }
   if (group.loading) return <Loading />;
-  const fallbackGroup: Group = {
-    id: id || "",
-    name: "Grupo de estudio",
-    description: "Espacio de colaboración académica.",
-    benefits: "Aprender en equipo",
-    requirements: "Interés en el curso",
-    admin_id: user?.id || "",
-    max_capacity: 10,
-    member_count: 1,
-    role: "admin",
-    members: [
-      {
-        user_id: user?.id || "",
-        name: user?.name || "Estudiante",
-        role: "admin",
-      },
-    ],
-  };
-  const g = group.data || fallbackGroup,
-    admin = g.admin_id === user?.id;
+  if (!group.data) return <>
+    <PageHeader title="Detalle del grupo" />
+    <Notice error>{group.error || "No se encontró el grupo."}</Notice>
+    <button className="button secondary" onClick={group.reload}>Volver a intentar</button>
+  </>;
+  const g = group.data,
+    admin = g.my_status === "admin",
+    member = admin || g.my_status === "member";
   return (
     <>
       <PageHeader
         eyebrow={admin ? "ADMINISTRAS ESTE GRUPO" : "APRENDE EN EQUIPO"}
         title={g.name}
-        description={g.description}
+        description={g.description || undefined}
         action={
-          <Link className="button" to={`/mensajes/${id}`}>
+          member ? <Link className="button" to={`/mensajes/${id}`}>
             <MessageCircle size={18} />
             Abrir conversación
-          </Link>
+          </Link> : <button className="button" disabled={g.my_status === "pending"} onClick={() => setJoining(true)}>
+            {g.my_status === "pending" ? "Solicitud pendiente" : "Enviar solicitud"}<ArrowUpRight size={18} />
+          </button>
         }
       />
       <Notice error>{error || group.error}</Notice>
       <div className="editor-layout">
         <section className="panel">
+          {!member ? <>
+            <h2>Aprende con este grupo</h2>
+            <p>{g.description || "Un espacio para aprender en equipo."}</p>
+            <div className="member-row">
+              <div className="person"><Avatar name={g.admin.name} src={g.admin.profile_photo_url || undefined} />
+                <div><strong>{g.admin.name}</strong><span>Administrador del grupo</span></div>
+              </div>
+            </div>
+            <p className="muted">{g.member_count} integrantes · {g.meeting_mode || "Modalidad por coordinar"} · {g.meeting_shift || "Horario por coordinar"}</p>
+            {g.my_status === "pending" && <Notice>Tu solicitud está pendiente de revisión.</Notice>}
+          </> : <>
           <h2>
             Integrantes <span className="count">{(g.members || []).length}</span>
           </h2>
@@ -186,21 +189,23 @@ export function GroupPage() {
               )}
             </div>
           ))}
+          {admin && <Link className="button secondary" to="/solicitudes">Gestionar solicitudes <ArrowUpRight size={16} /></Link>}
+          </>}
         </section>
         <aside className="panel">
           <h3>Sobre el grupo</h3>
           <p>
             <strong>Beneficios</strong>
             <br />
-            {g.benefits}
+            {g.benefits || "Por coordinar con el grupo"}
           </p>
           <p>
             <strong>Requisitos</strong>
             <br />
-            {g.requirements}
+            {g.requirements || "Por coordinar con el grupo"}
           </p>
-          <p className="muted">Capacidad: {g.max_capacity} integrantes</p>
-          <button
+          <p className="muted">Capacidad: {g.member_count} de {g.max_capacity ?? "sin límite de"} integrantes</p>
+          {member && <button
             className="button secondary danger"
             onClick={async () => {
               if (
@@ -222,7 +227,7 @@ export function GroupPage() {
           >
             <LogOut size={16} />
             Salir del grupo
-          </button>
+          </button>}
           {admin && (
             <small>
               Para salir, primero transfiere la administración a otro integrante
@@ -231,12 +236,14 @@ export function GroupPage() {
           )}
         </aside>
       </div>
+      {joining && <JoinGroupDialog groupId={g.id} close={() => setJoining(false)} sent={() => group.setData({ ...g, my_status: "pending" })} />}
     </>
   );
 }
 export function RequestsPage() {
   const {
     requests,
+    total,
     emptyMessage,
     loading,
     error,
@@ -244,6 +251,7 @@ export function RequestsPage() {
     processingId,
     acceptRequest,
     rejectRequest,
+    reload,
   } = useJoinRequests();
 
   return (
@@ -254,6 +262,7 @@ export function RequestsPage() {
         description="Revisa quién quiere unirse a los grupos que administras."
       />
       <Notice error>{error || actionError}</Notice>
+      {!loading && <div className="feed-toolbar"><span className="muted small-label">{total} solicitudes pendientes</span><button className="text-button" disabled={Boolean(processingId)} onClick={reload}>Actualizar lista</button></div>}
       {loading ? (
         <Loading />
       ) : requests.length > 0 ? (
@@ -265,11 +274,12 @@ export function RequestsPage() {
               onAccept={acceptRequest}
               onReject={rejectRequest}
               isProcessing={processingId === r.id}
+              disabled={Boolean(processingId)}
             />
           ))}
         </div>
       ) : (
-        <Empty title="No hay solicitudes pendientes por revisar">
+        <Empty title={error ? "No se pudieron cargar las solicitudes" : "No hay solicitudes pendientes por revisar"}>
           {emptyMessage || "Las nuevas solicitudes aparecerán aquí."}
         </Empty>
       )}

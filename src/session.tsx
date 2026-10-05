@@ -20,21 +20,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     api
       .request<User>("/auth/me")
       .then(setUser)
-      .catch((e) => {
-        // En Modo Demo (Sprint actual según Acuerdo de Endpoints 3.2),
-        // si /auth/me no está implementado en el backend (retorna 404),
-        // se asume el usuario semilla demo documentado para interactuar con la plataforma.
-        if (e && (e as { status?: number }).status === 404) {
-          setUser({
-            id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-            name: "Martín Vizcarra",
-            email: "demo.student@ulima.edu.pe",
-            role: "student",
-          });
-        } else {
-          setUser(null);
-        }
-      })
+      .catch(() => setUser(null))
       .finally(() => setLoading(false));
     const expired = () => setUser(null);
     window.addEventListener("session-expired", expired);
@@ -46,9 +32,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       // 401 = no había sesión activa o ya estaba cerrada: el resultado es el mismo
       if ((e as { status?: number }).status !== 401) throw e;
-    } finally {
-      setUser(null);
     }
+    setUser(null);
   }
   return (
     <Context.Provider value={{ user, loading, setUser, logout }}>

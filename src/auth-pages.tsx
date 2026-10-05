@@ -28,7 +28,8 @@ export function AuthPage({
     [code, setCode] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [visible, setVisible] = useState(false);
+    [visible, setVisible] = useState(false),
+    [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; name?: string; code?: string }>({});
   const titles = {
     login: "Qué bueno verte de nuevo.",
     register: "Tu comunidad empieza aquí.",
@@ -38,33 +39,36 @@ export function AuthPage({
   };
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (busy) return;
     setError("");
+    if (["login", "register", "verify"].includes(mode)) {
+      const errors: typeof fieldErrors = {};
+      if (!email.trim()) errors.email = "Ingresa tu correo institucional.";
+      else if (!/^[^@\s]+@(aloe\.)?ulima\.edu\.pe$/i.test(email.trim()))
+        errors.email = "Usa un correo @aloe.ulima.edu.pe o @ulima.edu.pe válido.";
+      if (mode !== "verify") {
+        if (!password) errors.password = "Ingresa tu contraseña.";
+        else if (mode === "register" && password.length < 10) errors.password = "Usa al menos 10 caracteres.";
+        else if (new TextEncoder().encode(password).length > 72) errors.password = "La contraseña supera el límite permitido.";
+      }
+      if (mode === "register" && name.trim().length < 2) errors.name = "Ingresa tu nombre completo.";
+      if (mode === "verify" && !/^\d{6}$/.test(code)) errors.code = "Ingresa el código de seis dígitos que recibiste.";
+      setFieldErrors(errors);
+      if (Object.keys(errors).length) return;
+    }
     setBusy(true);
     try {
       if (mode === "login") {
-        try {
-          setUser(
-            await api.request<User>("/auth/login", "POST", { email, password }),
-          );
-        } catch (err) {
-          if (err && (err as { status?: number }).status === 404) {
-            setUser({
-              id: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-              name: "Martín Vizcarra",
-              email: email || "demo.student@ulima.edu.pe",
-              role: "student",
-            });
-          } else {
-            throw err;
-          }
-        }
-        navigate("/");
+        setUser(await api.request<User>("/auth/login", "POST", {
+          email: email.trim().toLowerCase(), password,
+        }));
+        navigate("/", { replace: true });
       } else if (mode === "register") {
-        await api.request("/auth/register", "POST", { name, email, password });
-        feedback.notify("Usuario registrado correctamente");
-        navigate(`/verificar?email=${encodeURIComponent(email)}`);
+        const result = await api.request<{ message: string }>("/auth/register", "POST", { name: name.trim(), email: email.trim().toLowerCase(), password });
+        feedback.notify(result.message);
+        navigate(`/verificar?email=${encodeURIComponent(email.trim().toLowerCase())}`);
       } else {
-        await api.request("/auth/verify", "POST", { email, code });
+        await api.request("/auth/verify", "POST", { email: email.trim().toLowerCase(), code });
         navigate("/login?verified=1");
       }
     } catch (e) {
@@ -136,7 +140,7 @@ export function AuthPage({
               : ""}
           </Notice>
           {["login", "register", "verify"].includes(mode) ? (
-            <form className="form" onSubmit={submit}>
+            <form className="form" onSubmit={submit} noValidate aria-busy={busy}>
               {mode === "register" && (
                 <Field label="Nombre completo">
                   <input
@@ -144,20 +148,28 @@ export function AuthPage({
                     minLength={2}
                     maxLength={100}
                     autoComplete="name"
+                    aria-label="Nombre completo"
+                    aria-invalid={Boolean(fieldErrors.name)}
+                    aria-describedby={fieldErrors.name ? "register-name-error" : undefined}
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => { setName(e.target.value); setFieldErrors(v => ({ ...v, name: undefined })); }}
                   />
+                  {fieldErrors.name && <small className="field-error" id="register-name-error">{fieldErrors.name}</small>}
                 </Field>
               )}
               <Field label="Correo institucional">
                 <input
                   type="email"
+                  aria-label="Correo institucional"
                   required
                   autoComplete="email"
                   placeholder="tu.codigo@aloe.ulima.edu.pe"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  aria-describedby={fieldErrors.email ? "login-email-error" : undefined}
+                  onChange={(e) => { setEmail(e.target.value); setFieldErrors((v) => ({ ...v, email: undefined })); }}
                 />
+                {fieldErrors.email && <small className="field-error" id="login-email-error">{fieldErrors.email}</small>}
               </Field>
               {mode === "verify" ? (
                 <Field
@@ -169,15 +181,21 @@ export function AuthPage({
                     pattern="[0-9]{6}"
                     maxLength={6}
                     required
+                    aria-label="Código de verificación"
+                    autoComplete="one-time-code"
+                    aria-invalid={Boolean(fieldErrors.code)}
+                    aria-describedby={fieldErrors.code ? "verify-code-error" : undefined}
                     value={code}
-                    onChange={(e) => setCode(e.target.value)}
+                    onChange={(e) => { setCode(e.target.value.replace(/\D/g, "")); setFieldErrors(v => ({ ...v, code: undefined })); }}
                   />
+                  {fieldErrors.code && <small className="field-error" id="verify-code-error">{fieldErrors.code}</small>}
                 </Field>
               ) : (
                 <Field label="Contraseña">
                   <div className="password-input">
                     <input
                       type={visible ? "text" : "password"}
+                      aria-label="Contraseña"
                       required
                       minLength={mode === "register" ? 10 : 1}
                       maxLength={128}
@@ -185,7 +203,9 @@ export function AuthPage({
                         mode === "login" ? "current-password" : "new-password"
                       }
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      aria-invalid={Boolean(fieldErrors.password)}
+                      aria-describedby={fieldErrors.password ? "login-password-error" : undefined}
+                      onChange={(e) => { setPassword(e.target.value); setFieldErrors((v) => ({ ...v, password: undefined })); }}
                       placeholder={
                         mode === "register"
                           ? "Al menos 10 caracteres"
@@ -202,6 +222,7 @@ export function AuthPage({
                       {visible ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
+                  {fieldErrors.password && <small className="field-error" id="login-password-error">{fieldErrors.password}</small>}
                 </Field>
               )}
               {mode === "login" && (
@@ -217,7 +238,7 @@ export function AuthPage({
                     En la versión local, los correos se guardan en el buzón de
                     pruebas.{" "}
                     <a
-                      href="http://localhost:8025"
+                      href="http://localhost:8026"
                       target="_blank"
                       rel="noreferrer"
                     >
@@ -244,9 +265,12 @@ export function AuthPage({
               done={mode === "reset" ? () => navigate("/login") : undefined}
               payload={() =>
                 mode === "recover"
-                  ? { email }
+                  ? { email: email.trim().toLowerCase() }
                   : { token: params.get("token") || "", password }
               }
+              validate={() => mode === "recover"
+                ? /^[^@\s]+@(aloe\.)?ulima\.edu\.pe$/i.test(email.trim()) ? "" : "Ingresa un correo institucional válido."
+                : password.length < 10 ? "Usa al menos 10 caracteres." : new TextEncoder().encode(password).length > 72 ? "La contraseña supera el límite permitido." : !params.get("token") ? "El enlace no es válido. Solicita otro desde Recuperar acceso." : ""}
               label={
                 mode === "recover"
                   ? "Enviar instrucciones"
@@ -287,7 +311,7 @@ export function AuthPage({
                   const r = await api.request<{ message: string }>(
                     "/auth/verification",
                     "POST",
-                    { email },
+                    { email: email.trim().toLowerCase() },
                   );
                   feedback.notify(r.message);
                 } catch (e) {

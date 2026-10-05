@@ -15,6 +15,7 @@ import { api, Publication, Course, date } from "./api";
 import { useSession } from "./session";
 import { useFeedback } from "./feedback";
 import { useGroupStatuses } from "./use-group-statuses";
+import { JoinGroupDialog } from "./join-group-dialog";
 import {
   useResource,
   PageHeader,
@@ -43,7 +44,6 @@ export function FeedPage({
     [cycle, setCycle] = useState(""),
     [page, setPage] = useState(0),
     [joining, setJoining] = useState<Publication | null>(null),
-    [message, setMessage] = useState(""),
     [error, setError] = useState(""),
     [feedback, setFeedback] = useState("");
   const courses = useResource<Course[]>("/courses", []);
@@ -213,7 +213,8 @@ export function FeedPage({
               <SlidersHorizontal size={17} />
             </div>
           </div>
-          <Notice error>{error || posts.error}</Notice>
+          <Notice error>{error || posts.error || groupStatuses.error}</Notice>
+          {groupStatuses.error && <button className="text-button" onClick={groupStatuses.reload}>Volver a cargar los grupos</button>}
           {posts.loading ? (
             <Loading />
           ) : posts.data.length ? (
@@ -224,6 +225,7 @@ export function FeedPage({
               const courseName = p.course?.name || p.course_name || "Curso";
               const cycleNum = p.course?.cycle ?? p.cycle ?? 1;
               const isMine =
+                mine ||
                 (Boolean(p.user_id) && p.user_id === user?.id) ||
                 (Boolean(p.author?.user_id) && p.author?.user_id === user?.id);
               return (
@@ -321,7 +323,6 @@ export function FeedPage({
                               className="text-button"
                               onClick={() => {
                                 setJoining(p);
-                                setMessage("");
                               }}
                             >
                               Me interesa <ArrowRight size={16} />
@@ -395,35 +396,11 @@ export function FeedPage({
         </aside>
       </div>
       {joining && (
-        <Modal
-          title={`Unirme a ${joining.group_name || "grupo"}`}
+        <JoinGroupDialog
+          groupId={joining.group_id!}
           close={() => setJoining(null)}
-        >
-          <ActionForm
-            path={`/groups/${joining.group_id}/join-requests`}
-            payload={() => ({ message: message.trim() })}
-            label="Enviar solicitud"
-            validate={() =>
-              message.trim() ? "" : "Escribe un mensaje para el administrador del grupo"
-            }
-            done={() => {
-              // Escenario 1: el backend responde "Solicitud enviada con éxito"
-              if (joining.group_id) groupStatuses.markPending(joining.group_id);
-              setJoining(null);
-            }}
-          >
-            <Field label="Preséntate al grupo">
-              <textarea
-                required
-                minLength={1}
-                maxLength={1000}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Cuéntales qué te gustaría aprender…"
-              />
-            </Field>
-          </ActionForm>
-        </Modal>
+          sent={() => groupStatuses.markPending(joining.group_id!)}
+        />
       )}
     </>
   );
@@ -464,7 +441,8 @@ export function PostEditor() {
           setLoaded(true);
         }
       })
-      .catch((e) => setError(e.message));
+      .catch((e) => { if (active) setError(e.message); })
+      .finally(() => { if (active) setLoaded(true); });
     return () => {
       active = false;
     };

@@ -21,7 +21,7 @@ export function ProfilePage() {
     { user } = useSession(),
     target = id || user!.id,
     own = target === user!.id;
-  const profile = useResource<Profile | null>(`/profiles/${target}`, null),
+  const profile = useResource<Profile | null>(own ? "/profiles/me" : `/profiles/${target}`, null),
     reviews = useResource<Review[]>(`/profiles/${target}/reviews`, []),
     eligible = useResource<{ allowed: boolean; reason: string }>(
       `/profiles/${target}/review-eligibility`,
@@ -30,18 +30,8 @@ export function ProfilePage() {
     [rating, setRating] = useState(0),
     [comment, setComment] = useState("");
   if (profile.loading) return <Loading />;
-  const fallbackProfile: Profile = {
-    user_id: target,
-    name: own ? user?.name || "Estudiante" : "Estudiante",
-    major: "Ingeniería de Sistemas",
-    academic_cycle: 5,
-    bio: "Estudiante de la Universidad de Lima",
-    skills: ["Trabajo en equipo", "Resolución de problemas"],
-    interests: ["Software", "Bases de datos"],
-    availability: [],
-    rating: 5,
-  };
-  const p = profile.data || fallbackProfile;
+  if (!profile.data) return <><PageHeader title="Perfil" /><Notice error>{profile.error || "No encontramos este perfil."}</Notice><button className="button secondary" onClick={profile.reload}>Volver a intentar</button></>;
+  const p = profile.data;
   return (
     <>
       <PageHeader
@@ -64,10 +54,10 @@ export function ProfilePage() {
       <div className="profile-layout">
         <aside className="panel profile-card">
           <div className="profile-cover" />
-          <Avatar name={p.name} src={p.photo_url} large />
+          <Avatar name={p.name} src={p.photo_url || undefined} large />
           <h2>{p.name}</h2>
           <p>
-            {p.major} · Ciclo {p.academic_cycle}
+            {p.major || "Carrera por completar"}{p.academic_cycle ? ` · Ciclo ${p.academic_cycle}` : ""}
           </p>
           <span className="rating">
             <Star size={17} />
@@ -211,29 +201,16 @@ export function ProfilePage() {
   );
 }
 export function EditProfilePage() {
-  const { user } = useSession();
   const resource = useResource<Profile | null>("/profiles/me", null);
-  const fallbackProfile: Profile = {
-    user_id: user?.id || "",
-    name: user?.name || "Estudiante",
-    major: "Ingeniería de Sistemas",
-    academic_cycle: 5,
-    bio: "Estudiante de la Universidad de Lima",
-    skills: ["Trabajo en equipo", "Resolución de problemas"],
-    interests: ["Software", "Bases de datos"],
-    availability: [],
-    rating: 5,
-  };
-  const profileToEdit = resource.data || fallbackProfile;
   return (
     <>
       <PageHeader eyebrow="CUÉNTALE A TU COMUNIDAD" title="Editar mi perfil" />
       <Notice error>{resource.error}</Notice>
       {resource.loading ? (
         <Loading />
-      ) : (
-        <ProfileForm profile={profileToEdit} />
-      )}
+      ) : resource.data ? (
+        <ProfileForm profile={resource.data} />
+      ) : <button className="button secondary" onClick={resource.reload}>Volver a intentar</button>}
     </>
   );
 }
@@ -247,7 +224,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
   return (
     <div className="panel narrow">
       <div className="photo-edit">
-        <Avatar large name={form.name} src={form.photo_url} />
+        <Avatar large name={form.name} src={form.photo_url || undefined} />
         <label className="button secondary">
           <Camera size={18} />
           {uploading ? "Subiendo…" : "Cambiar foto"}
@@ -271,7 +248,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
                   "POST",
                   data,
                 );
-                setForm({ ...form, photo_url: r.photo_url });
+                setForm(previous => ({ ...previous, photo_url: r.photo_url }));
               } catch (e) {
                 setPhotoError((e as Error).message);
               } finally {
@@ -286,9 +263,9 @@ function ProfileForm({ profile }: { profile: Profile }) {
         path="/profiles/me"
         method="PUT"
         payload={() => ({
-          name: form.name,
+          name: form.name.trim(),
           bio: form.bio,
-          major: form.major,
+          major: form.major.trim(),
           academic_cycle: form.academic_cycle,
           skills: skills
             .split(",")
@@ -300,7 +277,18 @@ function ProfileForm({ profile }: { profile: Profile }) {
             .filter(Boolean),
         })}
         label="Guardar perfil"
-        done={() => setUser({ ...user!, name: form.name })}
+        done={() => setUser({ ...user!, name: form.name.trim() })}
+        validate={() => {
+          if (form.name.trim().length < 2) return "Ingresa tu nombre completo.";
+          if (form.major.trim().length < 2) return "Ingresa tu carrera.";
+          if (!Number.isInteger(form.academic_cycle) || !form.academic_cycle || form.academic_cycle < 1 || form.academic_cycle > 10) return "Elige un ciclo entre 1 y 10.";
+          for (const text of [skills, interests]) {
+            const tags = text.split(",").map(s => s.trim()).filter(Boolean);
+            if (tags.length > 15 || tags.some(s => s.length > 100)) return "Usa hasta 15 habilidades o intereses, de hasta 100 caracteres cada uno.";
+            if (new Set(tags).size !== tags.length) return "Evita repetir habilidades o intereses.";
+          }
+          return "";
+        }}
       >
         <Field label="Nombre completo">
           <input
@@ -334,9 +322,9 @@ function ProfileForm({ profile }: { profile: Profile }) {
               min={1}
               max={10}
               required
-              value={form.academic_cycle}
+              value={form.academic_cycle ?? ""}
               onChange={(e) =>
-                setForm({ ...form, academic_cycle: Number(e.target.value) })
+                setForm({ ...form, academic_cycle: e.target.value ? Number(e.target.value) : null })
               }
             />
           </Field>
@@ -372,6 +360,7 @@ export function AvailabilityPage() {
         action={
           <button
             className="button"
+            disabled={resource.loading || !resource.data}
             onClick={() => {
               setEdit(null);
               setOpen(true);
@@ -385,7 +374,7 @@ export function AvailabilityPage() {
       <Notice error>{resource.error || error}</Notice>
       {resource.loading ? (
         <Loading />
-      ) : (
+      ) : resource.data ? (
         <div className="week-grid">
           {days.map((d, i) => {
             const availability = resource.data?.availability || [];
@@ -447,7 +436,7 @@ export function AvailabilityPage() {
             );
           })}
         </div>
-      )}
+      ) : <button className="button secondary" onClick={resource.reload}>Volver a intentar</button>}
       {open && (
         <AvailabilityModal
           edit={edit}
@@ -485,9 +474,10 @@ function AvailabilityModal({
         done={done}
         cancel={close}
         label="Guardar horario"
+        validate={() => !start || !end ? "Completa las horas de inicio y fin." : start >= end ? "La hora de fin debe ser posterior a la hora de inicio." : ""}
       >
         <Field label="Día">
-          <select value={day} onChange={(e) => setDay(Number(e.target.value))}>
+          <select aria-label="Día" value={day} onChange={(e) => setDay(Number(e.target.value))}>
             {days.map((d, i) => (
               <option value={i + 1} key={d}>
                 {d}
@@ -647,6 +637,7 @@ export function SettingsPage() {
             payload={() => ({ current_password: current, password })}
             label="Actualizar contraseña"
             done={() => setUser(null)}
+            validate={() => !current ? "Ingresa tu contraseña actual." : password.length < 10 ? "Usa al menos 10 caracteres en la nueva contraseña." : new TextEncoder().encode(password).length > 72 || new TextEncoder().encode(current).length > 72 ? "La contraseña supera el límite permitido." : ""}
           >
             <Field label="Contraseña actual">
               <input

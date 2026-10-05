@@ -8,6 +8,7 @@ interface JoinRequestCardProps {
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
   isProcessing: boolean;
+  disabled?: boolean;
 }
 
 /**
@@ -24,6 +25,7 @@ export function JoinRequestCard({
   onAccept,
   onReject,
   isProcessing,
+  disabled = false,
 }: JoinRequestCardProps) {
   const { requester, group, message, created_at } = request;
 
@@ -36,23 +38,23 @@ export function JoinRequestCard({
             <strong>{requester.name}</strong>
           </Link>
           <span className="muted">
-            <Users size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: "4px" }} />
-            {group.group_name} · {date(created_at)}
+            <Users size={14} className="request-group-icon" />
+            <Link to={`/grupos/${group.group_id}`}>{group.group_name}</Link> · {date(created_at)}
           </span>
         </div>
       </div>
 
-      <div style={{ margin: "12px 0" }}>
-        <p style={{ margin: 0, color: "#374151" }}>
+      <div className="request-message">
+        <p>
           {message ? `"${message}"` : <em className="muted">Sin mensaje adjunto</em>}
         </p>
       </div>
 
-      <div className="two-cols" style={{ marginTop: "16px" }}>
+      <div className="two-cols request-actions">
         <button
           type="button"
           className="button"
-          disabled={isProcessing}
+          disabled={isProcessing || disabled}
           onClick={() => onAccept(request.id)}
           aria-label={`Aceptar solicitud de ${requester.name}`}
         >
@@ -69,7 +71,7 @@ export function JoinRequestCard({
         <button
           type="button"
           className="button secondary danger"
-          disabled={isProcessing}
+          disabled={isProcessing || disabled}
           onClick={() => onReject(request.id)}
           aria-label={`Rechazar solicitud de ${requester.name}`}
         >

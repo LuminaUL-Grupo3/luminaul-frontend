@@ -15,22 +15,27 @@ export function useGroupStatuses(groupIds: string[]) {
     Record<string, GroupMembershipStatus>
   >({});
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [revision, setRevision] = useState(0);
   const key = [...new Set(groupIds)].sort().join(",");
 
   useEffect(() => {
     const ids = key ? key.split(",") : [];
     if (ids.length === 0) {
       setStatuses({});
+      setLoading(false);
+      setError("");
       return;
     }
     let active = true;
     setLoading(true);
+    setError("");
     Promise.all(
       ids.map((id) =>
         api
           .request<GroupDetail>(`/groups/${id}`)
           .then((group) => [id, group.my_status] as const)
-          .catch(() => null),
+          .catch((e) => { if (active) setError(e.message); return null; }),
       ),
     )
       .then((entries) => {
@@ -47,12 +52,12 @@ export function useGroupStatuses(groupIds: string[]) {
     return () => {
       active = false;
     };
-  }, [key]);
+  }, [key, revision]);
 
   /** Marca un grupo como "pending" después de enviar la solicitud con éxito. */
   const markPending = useCallback((groupId: string) => {
     setStatuses((current) => ({ ...current, [groupId]: "pending" }));
   }, []);
 
-  return { statuses, loading, markPending };
+  return { statuses, loading, error, markPending, reload: () => setRevision(v => v + 1) };
 }

@@ -2,10 +2,9 @@
 
 LuminaUL conecta estudiantes de la Universidad de Lima mediante publicaciones de texto, grupos, chat, perfiles, horarios y reseñas. La moderación y la administración gestionan reportes y apelaciones.
 
-Frontend React y backend NestJS están escritos en TypeScript estricto. El backend separa controladores, servicios, políticas y DAO; utiliza contratos de correo, moderación, almacenamiento y base de datos con inyección de dependencias. Strategy, Adapter y eventos internos tienen implementaciones concretas. El frontend comparte cliente HTTP, formularios, avisos y confirmaciones accesibles con diseño naranja y movimiento reducido.
+Frontend React y backend NestJS del equipo están escritos en TypeScript. El backend separa Controller → Service → Repository, con inyección de dependencias. La integración de correo usa el contrato `MailDelivery` y el adaptador SMTP; perfiles y horarios usan TypeORM y un componente de almacenamiento de fotos. El frontend comparte cliente HTTP, formularios, avisos y confirmaciones accesibles con diseño naranja y movimiento reducido.
 
-Esta migración se preparó con asistencia de IA a solicitud del equipo. El código y sus decisiones deben revisarse y sustentarse. No hay textos de asistencia de IA en las pantallas del producto. La existencia de módulos para las 38 historias no certifica automáticamente sus 100 criterios ni la aprobación del curso.
 
-Decisiones a contrastar con el backlog: anonimización de cuenta y conservación de mensajes en HU 3.6; reglas locales de moderación en HU 6.2; límites de historial y ausencia de despliegue productivo. Las pruebas cubren contratos y escenarios concretos, no toda combinación posible.
+Están conectadas las solicitudes, login/logout, registro/verificación/recuperación, perfiles, horarios y reseñas. Chat, notificaciones, moderación, eliminación de cuenta y administración completa requieren nuevos endpoints del equipo. Las pruebas cubren contratos y escenarios concretos; no certifican todas las historias ni todos los patrones del sílabo.
 
-Estas ramas conservan main como ancestro y proponen la migración completa para revisión del equipo. No se ha fusionado la migración en main.
+La rama `feature/robert-integracion-cuentas-perfil` conserva main como ancestro y permite revisar esta integración sin fusionarla con main. Consulta `INTEGRACION_ROBERT.md` para arranque, contratos y pruebas.

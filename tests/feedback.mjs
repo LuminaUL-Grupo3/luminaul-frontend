@@ -40,6 +40,9 @@ const group = {
   name: "Grupo de prueba",
   admin_id: me.id,
   max_capacity: 10,
+  my_status: "admin",
+  admin: { user_id: me.id, name: me.name, profile_photo_url: null },
+  member_count: 2,
   members: [
     { user_id: me.id, name: me.name, role: "admin" },
     { user_id: "user-two", name: "Ana Demo", role: "member" },

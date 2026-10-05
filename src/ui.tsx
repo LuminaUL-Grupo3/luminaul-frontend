@@ -7,7 +7,7 @@ import {
   FormEvent,
 } from "react";
 import { X, LoaderCircle, ArrowRight, MessageCircle, Flag } from "lucide-react";
-import { api, ApiError } from "./api";
+import { api } from "./api";
 import { useFeedback } from "./feedback";
 export function useResource<T>(path: string, initial: T) {
   const [data, setData] = useState<T>(initial),
@@ -18,6 +18,7 @@ export function useResource<T>(path: string, initial: T) {
     let active = true;
     setLoading(true);
     setError("");
+    setData(initial);
     api
       .request<T>(path)
       .then((d) => {
@@ -25,11 +26,7 @@ export function useResource<T>(path: string, initial: T) {
       })
       .catch((e) => {
         if (active) {
-          if (e instanceof ApiError && e.status === 404) {
-            setError("");
-          } else {
-            setError(e.message);
-          }
+          setError(e.message);
         }
       })
       .finally(() => {

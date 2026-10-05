@@ -9,3 +9,6 @@ analysis/
 playwright-report/
 test-results/
 *.md
+!README.md
+!docs/
+!docs/**/*.md
