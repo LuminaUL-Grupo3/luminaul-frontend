@@ -43,6 +43,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   async function logout() {
     try {
       await api.request("/auth/logout", "POST");
+    } catch (e) {
+      // 401 = no había sesión activa o ya estaba cerrada: el resultado es el mismo
+      if ((e as { status?: number }).status !== 401) throw e;
     } finally {
       setUser(null);
     }
