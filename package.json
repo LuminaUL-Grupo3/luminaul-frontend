@@ -7,6 +7,9 @@
     "dev": "vite --configLoader runner --host 127.0.0.1 --port 5173 --strictPort",
     "build": "tsc --noEmit && vite build --configLoader runner",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "test": "node --test tests/features.test.mjs tests/integration.test.mjs",
+    "test:unit": "node --test tests/features.test.mjs",
+    "test:integration": "node --test tests/integration.test.mjs",
     "test:feedback": "node tests/feedback.mjs",
     "test:browser": "node tests/browser.mjs"
   },
