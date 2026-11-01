@@ -123,14 +123,25 @@ await page.route(
     };
   else if (path === "/profiles/me")
     data = {
-      availability: [
+      userId: "user-one",
+      name: me.name,
+      email: "demo@aloe.ulima.edu.pe",
+      bio: null,
+      major: null,
+      academicCycle: null,
+      profilePhotoUrl: null,
+      skills: [],
+      interests: [],
+      availabilities: [
         {
           id: "slot-one",
-          day_of_week: 1,
-          start_time: "10:00:00",
-          end_time: "12:00:00",
+          userId: "user-one",
+          dayOfWeek: "lunes",
+          startTime: "10:00",
+          endTime: "12:00",
         },
       ],
+      updatedAt: "2026-10-29T14:30:00.000Z",
     };
   else if (path === "/reviews/me")
     data = [

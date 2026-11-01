@@ -1,0 +1,81 @@
+/* Estilos propios de features/profile; el resto viene de styles.css (panel, section-title, icon-button) */
+
+.schedule-scroll {
+  overflow-x: auto;
+}
+
+/* Sin esto la grilla ensancha las columnas de .profile-layout y .stack en vez de usar su propio scroll */
+.profile-layout > .stack,
+.schedule-panel {
+  min-width: 0;
+}
+
+.schedule-grid {
+  --hour-height: 52px;
+  display: grid;
+  grid-template-columns: 52px repeat(7, minmax(96px, 1fr));
+  min-width: 740px;
+}
+
+.schedule-day-name {
+  padding: 8px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.schedule-hours,
+.schedule-day {
+  position: relative;
+  height: calc(var(--hour-height) * var(--schedule-hours));
+}
+
+.schedule-hour {
+  position: absolute;
+  right: 8px;
+  font-size: 10px;
+  color: #9299a4;
+  transform: translateY(-50%);
+}
+
+.schedule-hour:first-child {
+  transform: none;
+}
+
+.schedule-hour:last-child {
+  transform: translateY(-100%);
+}
+
+.schedule-day {
+  border-left: 1px solid var(--border);
+  background-image: linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 100% var(--hour-height);
+}
+
+.schedule-slot {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 3px 5px;
+  border-radius: 6px;
+  background: #edf4ee;
+  color: #4f6d54;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.schedule-slot-actions {
+  display: flex;
+}
+
+.schedule-slot .icon-button {
+  padding: 2px;
+  min-height: 18px;
+}

@@ -1,41 +1,51 @@
 import { api } from "../../../config/api";
-import { Profile, Availability } from "../types";
+import {
+  AvailabilityActionResponse,
+  CreateAvailabilityRequest,
+  DeleteAvailabilityResponse,
+  StudentProfileDto,
+  UpdateAvailabilityRequest,
+  UpdateProfileRequest,
+} from "../types";
 
 export const profileService = {
-  async getProfile(userId: string): Promise<Profile> {
-    return api.request<Profile>(`/profiles/${userId}`);
+  getMyProfile(): Promise<StudentProfileDto> {
+    return api.request<StudentProfileDto>("/profiles/me");
   },
 
-  async getMyProfile(): Promise<Profile> {
-    return api.request<Profile>("/profiles/me");
+  getProfile(userId: string): Promise<StudentProfileDto> {
+    return api.request<StudentProfileDto>(`/profiles/${userId}`);
   },
 
-  async updateMyProfile(payload: Partial<Profile>): Promise<{ message: string }> {
-    return api.request<{ message: string }>("/profiles/me", "PUT", payload);
+  updateMyProfile(payload: UpdateProfileRequest): Promise<StudentProfileDto> {
+    return api.request<StudentProfileDto>("/profiles/me", "PUT", payload);
   },
 
-  async uploadPhoto(file: File): Promise<{ photo_url: string }> {
-    const data = new FormData();
-    data.append("photo", file);
-    return api.request<{ photo_url: string }>("/profiles/me/photo", "POST", data);
-  },
-
-  async saveAvailability(
-    payload: { day_of_week: number; start_time: string; end_time: string },
-    id?: string,
-  ): Promise<{ message: string }> {
-    return api.request<{ message: string }>(
-      id ? `/availability/${id}` : "/availability",
-      id ? "PUT" : "POST",
+  createAvailability(
+    payload: CreateAvailabilityRequest,
+  ): Promise<AvailabilityActionResponse> {
+    return api.request<AvailabilityActionResponse>(
+      "/profiles/me/availability",
+      "POST",
       payload,
     );
   },
 
-  async deleteAvailability(id: string): Promise<{ message: string }> {
-    return api.request<{ message: string }>(`/availability/${id}`, "DELETE");
+  updateAvailability(
+    id: string,
+    payload: UpdateAvailabilityRequest,
+  ): Promise<AvailabilityActionResponse> {
+    return api.request<AvailabilityActionResponse>(
+      `/profiles/me/availability/${id}`,
+      "PUT",
+      payload,
+    );
   },
 
-  async deleteAccount(): Promise<{ message: string }> {
-    return api.request<{ message: string }>("/auth/account", "DELETE");
+  deleteAvailability(id: string): Promise<DeleteAvailabilityResponse> {
+    return api.request<DeleteAvailabilityResponse>(
+      `/profiles/me/availability/${id}`,
+      "DELETE",
+    );
   },
 };
