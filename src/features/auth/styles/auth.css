@@ -1,0 +1,81 @@
+/* Estilos propios de features/auth; el resto viene de styles.css (auth-layout, field, button) */
+
+.otp-input {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 9px;
+}
+.otp-input input,
+.auth-form .otp-input input {
+  padding: 12px 0;
+  text-align: center;
+  font-family: "Manrope", Arial, sans-serif;
+  font-size: 21px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  caret-color: var(--orange);
+}
+.otp-input input:not(:placeholder-shown) {
+  border-color: #f3c3a4;
+  background: var(--orange-soft);
+}
+
+.verify-copy {
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 22px;
+}
+.verify-copy strong {
+  color: #343b45;
+  word-break: break-all;
+}
+
+.resend-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+.resend-row .text-button {
+  font-size: 12px;
+  padding: 0;
+}
+.resend-row .text-button:disabled {
+  color: #a9aeb7;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.auth-steps {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.auth-steps span {
+  height: 4px;
+  flex: 1;
+  border-radius: 4px;
+  background: var(--border);
+}
+.auth-steps span.done {
+  background: var(--orange);
+}
+
+.delete-confirm-input {
+  font-family: "Manrope", Arial, sans-serif;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 420px) {
+  .otp-input {
+    gap: 6px;
+  }
+  .otp-input input,
+  .auth-form .otp-input input {
+    font-size: 18px;
+    padding: 10px 0;
+  }
+}
