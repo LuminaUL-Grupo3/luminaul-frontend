@@ -1,0 +1,424 @@
+/* ==========================================================================
+   Modern Post Editor Styles (LuminaUL v3.0.0)
+   Diseño dinámico, interactivo y responsivo para creación de publicaciones
+   ========================================================================== */
+
+.modern-editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+/* Bloquear redimensionamiento en todos los textareas del formulario */
+.modern-editor-wrapper textarea,
+form.form textarea,
+.panel.form textarea {
+  resize: none !important;
+}
+
+.modern-editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .modern-editor-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Selector de Tipo en Tarjetas */
+.type-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.type-card-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 2px solid var(--border-color, #e2e8f0);
+  background: var(--card-bg, #ffffff);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+  position: relative;
+}
+
+.type-card-option:hover {
+  border-color: var(--primary-light, #94a3b8);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.type-card-option.selected {
+  border-color: var(--primary, #0f172a);
+  background: var(--active-bg, #f8fafc);
+  box-shadow: 0 0 0 1px var(--primary, #0f172a), 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.type-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.type-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.type-card-option.selected .type-card-icon {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.type-card-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.type-card-option.selected .type-card-badge {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.type-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.type-card-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Categorización de Cursos por Ciclo */
+.courses-category-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.cycle-pills-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.cycle-pills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cycle-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cycle-pill-btn:hover {
+  border-color: #94a3b8;
+  background: #f1f5f9;
+}
+
+.cycle-pill-btn.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.course-quick-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.course-quick-search svg {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.course-quick-search input {
+  width: 100%;
+  padding: 10px 12px 10px 38px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.course-quick-search input:focus {
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.1);
+}
+
+.course-quick-search .clear-btn {
+  position: absolute;
+  right: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+}
+
+.course-chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 6px;
+  padding-bottom: 4px;
+}
+
+.course-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.course-chip-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.course-chip-btn.selected {
+  background: #e0e7ff;
+  border-color: #6366f1;
+  color: #312e81;
+  font-weight: 600;
+}
+
+.course-chip-cycle {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.course-chip-btn.selected .course-chip-cycle {
+  background: #c7d2fe;
+  color: #3730a3;
+}
+
+/* Tarjeta de Curso Seleccionado */
+.selected-course-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.selected-course-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selected-course-info strong {
+  font-size: 14px;
+  color: #064e3b;
+}
+
+.selected-course-tag {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #d1fae5;
+  color: #047857;
+}
+
+/* Capacidad de Grupo Dinámica */
+.capacity-control-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.capacity-slider-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.capacity-slider-wrap input[type="range"] {
+  flex: 1;
+  cursor: pointer;
+}
+
+.capacity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  background: #ffffff;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  min-width: 90px;
+  justify-content: center;
+}
+
+/* Vista Previa en Vivo */
+.live-preview-panel {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.live-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.live-preview-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.live-preview-card {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.preview-placeholder-text {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* ==========================================================================
+   Errores Dinámicos Inline en Campos de Formulario
+   ========================================================================== */
+.field-error-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #dc2626;
+  animation: fieldErrorFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.field-error-message svg {
+  flex-shrink: 0;
+  color: #ef4444;
+}
+
+textarea.input-error,
+input.input-error,
+select.input-error {
+  border-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+  box-shadow: 0 0 0 1px #ef4444 !important;
+}
+
+textarea.input-error:focus,
+input.input-error:focus,
+select.input-error:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+.courses-category-box.has-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15) !important;
+}
+
+@keyframes fieldErrorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
