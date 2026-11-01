@@ -25,9 +25,7 @@ export function FeedWelcomeBanner() {
         <div className="art-users">
           <Users size={34} />
         </div>
-        <span className="art-star">✳</span>
       </div>
     </section>
   );
 }
-

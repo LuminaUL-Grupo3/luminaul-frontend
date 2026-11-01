@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../../../config/api";
 
-export type GroupMembershipStatus = "admin" | "member" | "pending" | "none";
+export type GroupMembershipStatus = "leader" | "admin" | "member" | "pending" | "none";
 
 export interface GroupDetailMinimal {
   id: string;

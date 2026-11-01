@@ -21,22 +21,26 @@ export function PostCard({
   onInterestClick,
 }: PostCardProps) {
   const authorName = p.author?.name || p.author_name || "Estudiante";
-  const authorPhoto = p.author?.profile_photo_url || p.photo_url;
-  const authorId = p.author?.user_id || p.user_id || "";
+  const authorPhoto = p.author?.profilePhotoUrl || p.author?.profile_photo_url || p.photo_url;
+  const authorId = p.author?.id || p.author?.user_id || p.userId || p.user_id || "";
   const courseName = p.course?.name || p.course_name || "Curso";
   const cycleNum = p.course?.cycle ?? p.cycle ?? 1;
+  const maxCapacityNum = p.maxCapacity ?? p.max_capacity;
+  const groupId = p.groupId ?? p.group_id;
   const isMine =
+    (Boolean(p.userId) && p.userId === currentUserId) ||
     (Boolean(p.user_id) && p.user_id === currentUserId) ||
+    (Boolean(p.author?.id) && p.author?.id === currentUserId) ||
     (Boolean(p.author?.user_id) && p.author?.user_id === currentUserId);
 
   return (
     <article className="post-card" key={p.id}>
       <div className="post-top">
         <Link className="person" to={authorId ? `/perfil/${authorId}` : "#"}>
-          <Avatar name={authorName} src={authorPhoto} />
+          <Avatar name={authorName} src={authorPhoto ?? undefined} />
           <div>
             <strong>{authorName}</strong>
-            <span>{date(p.created_at)}</span>
+            <span>{date(p.createdAt || p.created_at || "")}</span>
           </div>
         </Link>
         <ReportButton kind="publication" id={p.id} />
@@ -49,7 +53,7 @@ export function PostCard({
         <span className="course-tag">{courseName}</span>
         {p.status !== "published" && (
           <span className="tag warning">
-            {p.status === "hidden" ? "Oculta" : "En revisión"}
+            {p.status === "hidden" ? "Oculta por Moderación" : "Inactiva"}
           </span>
         )}
       </div>
@@ -61,10 +65,10 @@ export function PostCard({
           <BookOpen size={15} />
           Ciclo {cycleNum}
         </span>
-        {p.max_capacity ? (
+        {maxCapacityNum ? (
           <span>
             <Users size={15} />
-            Hasta {p.max_capacity} integrantes
+            Hasta {maxCapacityNum} integrantes
           </span>
         ) : null}
       </div>
@@ -100,11 +104,11 @@ export function PostCard({
               Borrar publicación
             </button>
           </>
-        ) : p.group_id ? (
+        ) : groupId ? (
           (() => {
-            if (groupStatus === "admin" || groupStatus === "member") {
+            if (groupStatus === "leader" || groupStatus === "admin" || groupStatus === "member") {
               return (
-                <Link className="text-button muted" to={`/grupos/${p.group_id}`}>
+                <Link className="text-button muted" to={`/grupos/${groupId}`}>
                   Ver grupo <ArrowUpRight size={15} />
                 </Link>
               );
