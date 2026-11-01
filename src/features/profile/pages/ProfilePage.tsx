@@ -12,7 +12,7 @@ import {
   ActionForm,
   ReportButton,
 } from "@/components/ui";
-import { Profile } from "../types";
+import { useUserProfileQuery } from "../hooks/useProfileQueries";
 import { ProfileCard, AvailabilitySchedule } from "../components";
 import { Review, ReviewEligibility } from "@/features/reviews/types";
 
@@ -21,7 +21,7 @@ export function ProfilePage() {
     { user } = useSession(),
     target = id || user!.id,
     own = target === user!.id;
-  const profile = useResource<Profile | null>(`/profiles/${target}`, null),
+  const profile = useUserProfileQuery(target),
     reviews = useResource<Review[]>(`/profiles/${target}/reviews`, []),
     eligible = useResource<ReviewEligibility>(
       `/profiles/${target}/review-eligibility`,
@@ -30,19 +30,14 @@ export function ProfilePage() {
     [rating, setRating] = useState(0),
     [comment, setComment] = useState("");
 
-  if (profile.loading) return <Loading />;
-  const fallbackProfile: Profile = {
-    user_id: target,
-    name: own ? user?.name || "Estudiante" : "Estudiante",
-    major: "Ingeniería de Sistemas",
-    academic_cycle: 5,
-    bio: "Estudiante de la Universidad de Lima",
-    skills: ["Trabajo en equipo", "Resolución de problemas"],
-    interests: ["Software", "Bases de datos"],
-    availability: [],
-    rating: 5,
-  };
-  const p = profile.data || fallbackProfile;
+  if (profile.isLoading) return <Loading />;
+  const p = profile.data;
+  if (!p)
+    return (
+      <Notice error>
+        {profile.error?.message || "No se pudo cargar el perfil"}
+      </Notice>
+    );
 
   return (
     <>
@@ -66,7 +61,7 @@ export function ProfilePage() {
       <div className="profile-layout">
         <ProfileCard profile={p} />
         <section className="stack">
-          <AvailabilitySchedule availability={p.availability} own={own} />
+          <AvailabilitySchedule availability={p.availabilities} own={own} />
           <div className="panel">
             <div className="section-title">
               <h2>Reseñas recibidas</h2>
