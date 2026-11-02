@@ -1,0 +1,133 @@
+/* Estilos del feature de reseñas (SPEC-05); el color de las estrellas es el de .rating */
+
+.rating-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #dc9b3e;
+}
+
+.rating-star {
+  position: relative;
+  display: inline-flex;
+}
+
+.rating-star-empty {
+  color: #e3e5ea;
+}
+
+.rating-star-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  overflow: hidden;
+  display: inline-flex;
+}
+
+.rating-star-fill svg {
+  flex-shrink: 0;
+  fill: currentColor;
+}
+
+.rating-star-button {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 8px;
+  background: transparent;
+  color: #d7dae0;
+  cursor: pointer;
+}
+
+.rating-star-button:hover,
+.rating-star-button:focus-visible {
+  background: var(--orange-soft);
+}
+
+.rating-star-button.active {
+  color: #dc9b3e;
+}
+
+.rating-star-button.active svg {
+  fill: currentColor;
+}
+
+.review-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.review-card .button-row {
+  margin-top: 6px;
+}
+
+/* Sin línea divisoria sobre la primera tarjeta cuando la lista no tiene resumen arriba */
+.review-list > .review:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.rating-summary {
+  display: grid;
+  grid-template-columns: minmax(120px, 160px) 1fr;
+  gap: 24px;
+  align-items: center;
+  padding-bottom: 18px;
+}
+
+.rating-average {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.rating-average strong {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.rating-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.rating-bars li {
+  display: grid;
+  grid-template-columns: 34px 1fr 24px;
+  align-items: center;
+  gap: 10px;
+}
+
+.rating-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #f0f1f4;
+  overflow: hidden;
+}
+
+.rating-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #dc9b3e;
+}
+
+.review-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding-top: 16px;
+}
+
+@media (max-width: 600px) {
+  .rating-summary {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
