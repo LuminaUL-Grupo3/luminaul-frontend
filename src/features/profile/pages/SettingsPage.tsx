@@ -69,7 +69,7 @@ export function SettingsPage() {
               )
                 return;
               try {
-                await api.request("/auth/account", "DELETE");
+                await api.request("/auth/me", "DELETE");
                 feedback.notify("Tu cuenta ha sido eliminada");
                 setUser(null);
               } catch (e) {
