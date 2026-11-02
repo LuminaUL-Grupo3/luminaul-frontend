@@ -1,56 +1,69 @@
 import { Link } from "react-router-dom";
 import { Crown, UserMinus } from "lucide-react";
 import { Avatar } from "@/components/ui";
-import { GroupMember } from "../types";
+import type { GroupMemberDto } from "../types/contracts";
 
 export interface GroupMembersListProps {
-  members: GroupMember[];
-  isAdmin: boolean;
-  currentUserId?: string;
-  onTransferAdmin: (userId: string, userName: string) => void;
-  onExpelMember: (userId: string, userName: string) => void;
+  members: GroupMemberDto[];
+  isLeader: boolean;
+  currentUserId: string;
+  busy: boolean;
+  onTransfer: (id: string, name: string) => void;
+  onKick: (id: string, name: string) => void;
 }
-
+/** Muestra únicamente miembros reales y expone acciones de liderazgo con nombres accesibles. */
 export function GroupMembersList({
   members,
-  isAdmin,
+  isLeader,
   currentUserId,
-  onTransferAdmin,
-  onExpelMember,
+  busy,
+  onTransfer,
+  onKick,
 }: GroupMembersListProps) {
   return (
     <section className="panel">
-      <h2>
-        Integrantes <span className="count">{members.length}</span>
-      </h2>
-      {members.map((m) => (
-        <div className="member-row" key={m.user_id}>
-          <Link to={`/perfil/${m.user_id}`} className="person">
-            <Avatar name={m.name} src={m.photo_url} />
+      <div className="section-title">
+        <h2>Integrantes</h2>
+        <span className="count">{members.length}</span>
+      </div>
+      {members.map((member) => (
+        <div className="member-row" key={member.userId}>
+          <Link to={`/perfil/${member.userId}`} className="person">
+            <Avatar
+              name={member.name}
+              src={member.profilePhotoUrl || undefined}
+            />
             <div>
-              <strong>{m.name}</strong>
+              <strong>
+                {member.name}
+                {member.userId === currentUserId ? " (tú)" : ""}
+              </strong>
               <span>
-                {m.role === "admin"
-                  ? "Administrador del grupo"
-                  : "Integrante"}
+                {member.role === "leader" ? "Líder del grupo" : "Integrante"}
               </span>
             </div>
           </Link>
-          {isAdmin && m.user_id !== currentUserId && (
+          {isLeader && member.userId !== currentUserId && (
             <div className="button-row">
               <button
-                title="Transferir administración"
+                type="button"
                 className="icon-button"
-                onClick={() => onTransferAdmin(m.user_id, m.name)}
+                disabled={busy}
+                aria-label={`Transferir liderazgo a ${member.name}`}
+                title="Transferir liderazgo"
+                onClick={() => onTransfer(member.userId, member.name)}
               >
-                <Crown size={18} />
+                <Crown size={17} />
               </button>
               <button
+                type="button"
                 className="icon-button danger"
+                disabled={busy}
+                aria-label={`Expulsar a ${member.name}`}
                 title="Expulsar integrante"
-                onClick={() => onExpelMember(m.user_id, m.name)}
+                onClick={() => onKick(member.userId, member.name)}
               >
-                <UserMinus size={18} />
+                <UserMinus size={17} />
               </button>
             </div>
           )}
