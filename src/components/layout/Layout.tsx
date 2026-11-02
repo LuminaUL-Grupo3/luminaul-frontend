@@ -5,9 +5,9 @@ import {
   Navigate,
   Outlet,
   useLocation,
+  useNavigate,
 } from "react-router-dom";
 import {
-  Sun,
   House,
   Search,
   Users,
@@ -27,6 +27,8 @@ import {
 } from "lucide-react";
 import { useSession } from "../../features/auth/hooks/useSession";
 import { Avatar, Loading, Notice } from "../ui";
+import { Brand } from "../brand/Brand";
+import { useFeedback } from "../../hooks/useFeedback";
 
 const nav = [
   ["/", "Inicio", House],
@@ -45,6 +47,8 @@ const personal = [
 ] as const;
 
 export function Layout() {
+  const feedback = useFeedback(),
+    navigate = useNavigate();
   const { user, loading, logout } = useSession(),
     [open, setOpen] = useState(false),
     [error, setError] = useState(""),
@@ -68,11 +72,8 @@ export function Layout() {
         >
           <Menu />
         </button>
-        <Link className="brand" to="/">
-          <span className="brand-icon">
-            <Sun size={24} />
-          </span>
-          Lumina<span>UL</span>
+        <Link className="app-brand" to="/" aria-label="LuminaUL, mi comunidad">
+          <Brand compact />
         </Link>
         <div className="topbar-center">
           <span className="live-dot" />
@@ -148,7 +149,26 @@ export function Layout() {
             <Settings size={18} />
             Configuración
           </Link>
-          <button onClick={() => logout().catch((e: unknown) => setError((e as Error).message))}>
+          <button
+            onClick={async () => {
+              if (
+                !(await feedback.confirm({
+                  title: "¿Cerrar tu sesión?",
+                  description:
+                    "Tus grupos y conversaciones seguirán aquí cuando vuelvas. Podrás ingresar nuevamente con tu correo institucional.",
+                  acceptLabel: "Cerrar sesión",
+                  cancelLabel: "Seguir en mi comunidad",
+                }))
+              )
+                return;
+              try {
+                await logout();
+                navigate("/", { replace: true });
+              } catch (e: unknown) {
+                setError((e as Error).message);
+              }
+            }}
+          >
             <LogOut size={18} />
             Cerrar sesión
           </button>

@@ -1,0 +1,73 @@
+@font-face {
+  font-family: "Space Grotesk";
+  src: url("/fonts/space-grotesk-bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("/fonts/instrument-serif-regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("/fonts/instrument-serif-italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+.lumina-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.lumina-mark {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  color: #e65323;
+  transition: transform 260ms ease;
+}
+a:hover .lumina-mark {
+  transform: rotate(-5deg);
+}
+.lumina-wordmark {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: -1.6px;
+  color: #292b27;
+}
+.lumina-wordmark > span {
+  color: #d64c1e;
+}
+.lumina-wordmark > i {
+  width: 5px;
+  height: 5px;
+  background: #628572;
+  border-radius: 50%;
+  margin-left: 3px;
+}
+.lumina-brand-compact .lumina-mark {
+  width: 36px;
+  height: 36px;
+}
+.lumina-brand-compact .lumina-wordmark {
+  font-size: 24px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lumina-mark {
+    transition: none;
+  }
+  a:hover .lumina-mark {
+    transform: none;
+  }
+}

@@ -9,7 +9,9 @@ Rama `SPEC04-grupos-chat-tiempo-real`, basada en el frontend `main` `739590b3579
 - `/solicitudes`: pendientes de los grupos liderados y decisiones conectadas al backend.
 - `/mensajes` y `/mensajes/:id`: bandeja, historial paginado y chat Socket.IO con ACK; presencia por usuario, escritura, reacciones, respuestas y lecturas.
 
-Se conserva el naranja, las fuentes, la disposición general y los componentes compartidos de main. Las mejoras se limitan a esta carpeta: cajas fluidas, estados de carga/error, microanimaciones, mensajes accesibles y adaptación móvil. No se modifican rutas, layout ni estilos globales. Los formularios y confirmaciones utilizan el diseño de la aplicación; no se usan `alert` ni `confirm` nativos. Se respeta `prefers-reduced-motion`.
+El chat conserva el naranja, las fuentes, la disposición general y los componentes compartidos de main: cajas fluidas, estados de carga/error, microanimaciones, mensajes accesibles y adaptación móvil. Los formularios y confirmaciones utilizan el diseño de la aplicación; no se usan `alert` ni `confirm` nativos. Se respeta `prefers-reduced-motion`.
+
+Por la ampliación solicitada después, la rama también incluye `features/welcome/`, un logo compartido en `components/brand/`, recursos locales y un marco visual nuevo del acceso. AppRoutes presenta LuminaUL en `/` a visitantes, mantiene allí el feed autenticado y añade `/nosotros`; Layout comparte el logo y confirma el logout mediante el diálogo del equipo. No cambia la lógica de autenticación. La guía `features/welcome/README.md` describe esta extensión, sus fuentes y las pruebas.
 
 ## Organización para entender el código
 
@@ -60,8 +62,12 @@ Resultado del 1 de noviembre de 2026: build aprobado y suite conjunta de 13 grup
 
 La suite conjunta se repitió después de adaptar el arranque: los 13 grupos volvieron a pasar contra PostgreSQL 16.15 nativo en Windows, sin necesitar contenedores.
 
+Con la presentación pública y el acceso renovado, la suite conjunta suma 17 grupos aprobados. Incluye registro, verificación OTP y login reales, menú móvil, pestañas por teclado, FAQ, cancelación del cierre de sesión y retorno público. También pasan las 30 pruebas unitarias y las 14 HTTP del repositorio con `BACKEND_URL`, `TEST_EMAIL` y `TEST_PASSWORD` configurados según la guía de presentación.
+
 ## Coordinación con el equipo
 
 Las tareas 4.1–4.4 corresponden a SPEC-04. El motor de moderación, las notificaciones de plataforma y las funcionalidades de las otras SPEC siguen siendo responsabilidad de sus módulos. El bridge `chat:message_hidden` está preparado; no implica que SPEC-06 esté terminada. No se incorporan adjuntos, encuestas, mensajes privados, edición ni mensajes fijados.
+
+SPEC-01/02/03 ya estaban en el main utilizado. Se incorporó además el ajuste de compatibilidad `859515b` de la rama publicada de SPEC-03; el backend integra su contraparte `415de10`. Ambos cambios se conservan como commits del equipo, sin reimplementar sus módulos.
 
 La entrega se ejecuta directamente con Node y PostgreSQL: esta rama retira `Dockerfile`, `.dockerignore` y el `nginx.conf` que solo utilizaba aquella imagen. No incorpora infraestructura de contenedores. El backend base tiene dos pendientes de integración documentados en su guía: lock incompleto para `npm ci` y generación de rutas absolutas de Swagger en Windows. La ejecución local utiliza los comandos alternativos comprobados. Las ramas requieren revisión e integración del equipo antes de desplegarse; subirlas no modifica main.

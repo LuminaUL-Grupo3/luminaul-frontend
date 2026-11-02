@@ -26,6 +26,7 @@ assert.equal(new URL(databaseUrl).pathname, "/luminaul_spec04_test");
 const api = "http://127.0.0.1:8005",
   web = "http://localhost:5176";
 const password = "LuminaSpec04!2026";
+const registrationEmail = `spec04.registro.${randomUUID()}@aloe.ulima.edu.pe`;
 const checks = [],
   clients = [],
   createdGroups = [],
@@ -748,6 +749,24 @@ try {
   }
 
   if (!process.argv.includes("--network-only")) {
+    const { runWelcomeBrowser } = await import(
+      "../../welcome/tests/welcome.browser.mjs"
+    );
+    const welcomeResults = await runWelcomeBrowser({
+      web,
+      password,
+      registrationEmail,
+      output,
+      verificationCode: async () => {
+        const row = await db.query(
+          "SELECT verification_token FROM users WHERE email=$1",
+          [registrationEmail],
+        );
+        assert.equal(row.rows.length, 1);
+        return row.rows[0].verification_token;
+      },
+    });
+    for (const value of welcomeResults) pass(value);
     const { runBrowser } = await import("./spec04.browser.mjs");
     const freshLeader = await login(leader.email);
     const result = await runBrowser({
@@ -782,6 +801,7 @@ try {
   try {
     for (const id of createdGroups)
       await db.query("DELETE FROM groups WHERE id=$1", [id]);
+    await db.query("DELETE FROM users WHERE email=$1", [registrationEmail]);
   } finally {
     await db.end();
   }

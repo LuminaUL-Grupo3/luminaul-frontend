@@ -1,6 +1,8 @@
 import { Routes, Route, Link, Navigate } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { Layout } from "@/components/layout";
+import { Loading } from "@/components/ui";
+import { LandingPage } from "@/features/welcome/LandingPage";
 import { AuthPage, useSession } from "@/features/auth";
 import { FeedPage, PostEditor } from "@/features/posts";
 import {
@@ -16,11 +18,7 @@ import {
   SettingsPage,
 } from "@/features/profile";
 import { MyReviewsPage } from "@/features/reviews";
-import {
-  AdminPage,
-  ModerationPage,
-  NotificationsPage,
-} from "@/features/admin";
+import { AdminPage, ModerationPage, NotificationsPage } from "@/features/admin";
 
 function AdminRoutePage() {
   const { user } = useSession();
@@ -38,9 +36,20 @@ function UnknownPage() {
   );
 }
 
+/** La raíz presenta LuminaUL a visitantes y conserva el feed para sesiones existentes. */
+function EntryRoute() {
+  const { user, loading } = useSession();
+  if (loading) return <Loading />;
+  return user ? <Layout /> : <LandingPage />;
+}
+
 export function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<EntryRoute />}>
+        <Route index element={<FeedPage />} />
+      </Route>
+      <Route path="/nosotros" element={<LandingPage />} />
       <Route path="/login" element={<AuthPage />} />
       <Route
         path="/registro"
@@ -59,7 +68,6 @@ export function AppRoutes() {
         element={<AuthPage key="reset" mode="reset" />}
       />
       <Route element={<Layout />}>
-        <Route index element={<FeedPage />} />
         <Route path="buscar" element={<FeedPage search />} />
         <Route path="mis-publicaciones" element={<FeedPage mine />} />
         <Route path="publicar" element={<PostEditor />} />
