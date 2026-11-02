@@ -62,8 +62,8 @@ const AdminPage = lazy(() =>
   import("@/features/admin").then((module) => ({ default: module.AdminDashboardPage })),
 );
 const ModerationPage = lazy(() =>
-  import("@/features/admin").then((module) => ({
-    default: module.ModerationPage,
+  import("@/features/moderation").then((module) => ({
+    default: module.MyReportsPage,
   })),
 );
 const NotificationsPage = lazy(() =>

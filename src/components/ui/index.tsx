@@ -278,8 +278,8 @@ export function ReportButton({
       {open && (
         <Modal title="Reportar contenido" close={() => setOpen(false)}>
           <ActionForm
-            path="/reports"
-            payload={() => ({ kind, content_id: id, reason })}
+            path="/moderation/reports"
+            payload={() => ({ targetType: kind, targetId: id, reason: reason.trim() })}
             label="Enviar reporte"
             done={() => {
               setOpen(false);
@@ -292,7 +292,7 @@ export function ReportButton({
                 onChange={(e) => setReason(e.target.value)}
                 required
                 minLength={3}
-                maxLength={500}
+                maxLength={255}
                 placeholder="Describe qué debemos revisar"
               />
             </Field>
