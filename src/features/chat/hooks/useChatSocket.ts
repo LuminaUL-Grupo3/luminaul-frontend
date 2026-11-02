@@ -91,6 +91,16 @@ export function useChatSocket(groupId: string, enabled: boolean) {
       if (event.groupId === groupId)
         setHiddenIds((previous) => new Set([...previous, event.messageId]));
     }
+    /** Una decisión persistida del administrador reemplaza el estado anterior, incluso al restaurar. */
+    function updated(value: GroupMessageDto) {
+      if (value.groupId !== groupId) return;
+      setHiddenIds((previous) => {
+        const next = new Set(previous);
+        next.delete(value.id);
+        return next;
+      });
+      message(value);
+    }
     /** Mantiene presencia de usuarios únicos, no un contador engañoso de pestañas. */
     function presence(event: PresenceEvent) {
       if (event.groupId === groupId) setOnlineIds(event.userIds);
@@ -153,7 +163,7 @@ export function useChatSocket(groupId: string, enabled: boolean) {
     socket.on("disconnect", disconnect);
     socket.on("connect_error", connectionError);
     socket.on("chat:new_message", message);
-    socket.on("chat:message_updated", message);
+    socket.on("chat:message_updated", updated);
     socket.on("chat:message_hidden", hidden);
     socket.on("chat:presence", presence);
     socket.on("chat:typing", type);
@@ -170,7 +180,7 @@ export function useChatSocket(groupId: string, enabled: boolean) {
       socket.off("disconnect", disconnect);
       socket.off("connect_error", connectionError);
       socket.off("chat:new_message", message);
-      socket.off("chat:message_updated", message);
+      socket.off("chat:message_updated", updated);
       socket.off("chat:message_hidden", hidden);
       socket.off("chat:presence", presence);
       socket.off("chat:typing", type);

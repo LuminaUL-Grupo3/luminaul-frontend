@@ -141,7 +141,7 @@ function ResolveReportModal({ decision, close }: { decision: Decision; close: ()
 
   return (
     <Modal
-      title={deleteContent ? `Eliminar ${label} reportada` : "Desestimar reporte"}
+      title={deleteContent ? `Eliminar ${label}` : "Desestimar reporte"}
       close={close}
     >
       <form className="form" onSubmit={submit}>

@@ -1,6 +1,6 @@
 # SPEC-04 — Interfaz de grupos y conversación
 
-Rama `SPEC04-grupos-chat-tiempo-real`, basada en el frontend `main` `739590b35798828a8de792bc28aac5a8a0514a3c` del 1 de noviembre de 2026. Se conecta a la rama del mismo nombre de `luminaul-new-backend`, no al backend anterior.
+Rama de integración `SPEC04-integracion-spec06`, basada en frontend main `7c7d431` y backend main `17cd0fd`, que ya incluyen SPEC-06 de Lourdes. Conserva la estructura modular del equipo y las pantallas públicas integradas.
 
 ## Qué cambia
 
@@ -68,12 +68,16 @@ Con la presentación pública, el acceso renovado y el main actualizado, la suit
 
 ## Coordinación con el equipo
 
-Las tareas 4.1–4.4 corresponden a SPEC-04. El motor de moderación, las notificaciones de plataforma y las funcionalidades de las otras SPEC siguen siendo responsabilidad de sus módulos. El bridge `chat:message_hidden` está preparado; no implica que SPEC-06 esté terminada. No se incorporan adjuntos, encuestas, mensajes privados, edición ni mensajes fijados.
+Las tareas 4.1–4.4 corresponden a SPEC-04. El motor léxico y los diálogos de SPEC-06 de Lourdes se reutilizan, junto con el panel y las notificaciones de SPEC-07. `ReportButton` carga su `ReportModal` para publicaciones, mensajes y reseñas; no mantiene un formulario paralelo. Los mensajes publicados de otros miembros muestran la acción de denuncia. No se incorporan adjuntos, encuestas, mensajes privados, edición ni mensajes fijados.
 
 SPEC-01/02/03 ya estaban en el main utilizado. Se incorporó además el ajuste de compatibilidad `859515b` de la rama publicada de SPEC-03; el backend integra su contraparte `415de10`. Después, el equipo fusionó SPEC-05 en main: esta rama incorpora el frontend main `1da721f` y el backend main `25df6c0`, conservando las reseñas originales del equipo. El runner verifica también que una membresía histórica de SPEC-04 permite una reseña válida en SPEC-05, con sus permisos y borrado lógico. No se reimplementan esos módulos.
 
-La entrega se ejecuta directamente con Node y PostgreSQL: esta rama retira `Dockerfile`, `.dockerignore` y el `nginx.conf` que solo utilizaba aquella imagen. No incorpora infraestructura de contenedores. El backend base tiene dos pendientes de integración documentados en su guía: lock incompleto para `npm ci` y generación de rutas absolutas de Swagger en Windows. La ejecución local utiliza los comandos alternativos comprobados. Las ramas requieren revisión e integración del equipo antes de desplegarse; subirlas no modifica main.
+La entrega se ejecuta directamente con Node y PostgreSQL, sin contenedores. El backend complementario conserva las correcciones de lock y rutas de Swagger para permitir `npm ci`, `npm run build` y el arranque compilado. Las ramas requieren revisión del equipo; subirlas no fusiona main.
 
 ## Revisión final
 
-Se incorporó el main del equipo que incluye SPEC-07 (frontend d9f9aa0, backend 8181e32), sin alterar sus módulos. La ruta de administración consume AdminDashboardPage y el backend reutiliza el único bus de eventos registrado por main. El acceso y registro se simplificaron: sin foto ni bloque promocional; la portada conserva propósito y funciones con textos breves. Se preparan pull requests de revisión; no se fusionan automáticamente.
+La prueba integrada adicional ejecuta el filtro real de SPEC-06, el historial propio y una apelación desde la pantalla del autor; el administrador aprueba desde su panel y dos chats abiertos recuperan el mensaje sin recargar. Luego se denuncia desde el chat, se consulta el reporte y se elimina desde el panel: ambos clientes y las citas retiran el texto inmediatamente. También comprueba privacidad frente a usuarios externos, permisos, notificaciones, auditoría y dos apelaciones concurrentes. Los usuarios aleatorios y sus datos se eliminan al finalizar, exclusivamente en la base local de pruebas.
+
+El proxy de Vite distingue la navegación HTML a `/admin` de las llamadas JSON a `/admin/...`, de modo que funciona también al abrir o recargar directamente esa pantalla. Para repetir solo el nuevo recorrido, pasar `--moderation-only` al runner. Los formularios de acceso continúan sin fotografías y la portada utiliza el campus real de Ulima.
+
+Resultado final del 2 de noviembre: **22 grupos de integración aprobados** contra el frontend compilado y PostgreSQL local, **44 pruebas del repositorio frontend** y **200 del backend**. Se revisaron las capturas del chat moderado y del panel de administración; no se incluyen en Git. La cuenta local `spec04.admin@aloe.ulima.edu.pe` permite probar `/admin` con la contraseña de demostración documentada en el backend, sin mostrarla en la interfaz ni crear cuentas en la nube.

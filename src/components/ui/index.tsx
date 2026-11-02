@@ -5,10 +5,17 @@ import {
   useId,
   ReactNode,
   FormEvent,
+  lazy,
+  Suspense,
 } from "react";
 import { X, LoaderCircle, ArrowRight, MessageCircle, Flag } from "lucide-react";
 import { api } from "../../config/api";
 import { useFeedback } from "../../hooks/useFeedback";
+
+// Carga el diálogo de SPEC-06 al abrirlo y evita un ciclo de importación con sus campos compartidos.
+const ModerationReportModal = lazy(() =>
+  import("@/features/moderation/components/ReportModal").then((module) => ({ default: module.ReportModal })),
+);
 
 export function Notice({
   children,
@@ -259,12 +266,13 @@ export function ActionForm({
 export function ReportButton({
   kind,
   id,
+  disabled = false,
 }: {
   kind: "publication" | "message" | "review";
   id: string;
+  disabled?: boolean;
 }) {
-  const [open, setOpen] = useState(false),
-    [reason, setReason] = useState("");
+  const [open, setOpen] = useState(false);
   return (
     <>
       <button
@@ -272,32 +280,14 @@ export function ReportButton({
         title="Reportar contenido"
         aria-label="Reportar contenido"
         onClick={() => setOpen(true)}
+        disabled={disabled}
       >
         <Flag size={16} />
       </button>
       {open && (
-        <Modal title="Reportar contenido" close={() => setOpen(false)}>
-          <ActionForm
-            path="/moderation/reports"
-            payload={() => ({ targetType: kind, targetId: id, reason: reason.trim() })}
-            label="Enviar reporte"
-            done={() => {
-              setOpen(false);
-              setReason("");
-            }}
-          >
-            <Field label="Motivo">
-              <textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                required
-                minLength={3}
-                maxLength={255}
-                placeholder="Describe qué debemos revisar"
-              />
-            </Field>
-          </ActionForm>
-        </Modal>
+        <Suspense fallback={<span role="status">Cargando formulario…</span>}>
+          <ModerationReportModal targetType={kind} targetId={id} close={() => setOpen(false)} />
+        </Suspense>
       )}
     </>
   );
