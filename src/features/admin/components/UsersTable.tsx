@@ -1,34 +1,51 @@
-import { useState } from "react";
+import { useDeferredValue, useState } from "react";
 import { RotateCcw } from "lucide-react";
-import { useResource } from "@/hooks/useResource";
-import {
-  Loading,
-  Notice,
-  Modal,
-  ActionForm,
-  Field,
-} from "@/components/ui";
-import { AdminUser } from "../types";
+import { Loading, Notice, Empty } from "@/components/ui";
+import { useAdminUsersQuery } from "../hooks/useAdminQueries";
+import { AdminAccountStatus, AdminUserListItemDto } from "../types";
+import { SuspendUserModal } from "./SuspendUserModal";
 
+const STATUS_LABELS: Record<AdminAccountStatus, string> = {
+  active: "Activo",
+  suspended: "Suspendido",
+  pending_verification: "Pendiente de verificación",
+  deleted: "Eliminado",
+};
+
+// HU 7.1: gestión de cuentas (la búsqueda se hace en el servidor)
 export function UsersTable() {
-  const rows = useResource<AdminUser[]>("/admin/users", []),
-    [search, setSearch] = useState(""),
-    [selected, setSelected] = useState<AdminUser | null>(null),
-    [reason, setReason] = useState("");
+  const [search, setSearch] = useState(""),
+    [status, setStatus] = useState(""),
+    [selected, setSelected] = useState<AdminUserListItemDto | null>(null);
+  const deferredSearch = useDeferredValue(search.trim());
+  const users = useAdminUsersQuery({ search: deferredSearch, status });
+  const items = users.data?.items ?? [];
 
   return (
     <>
-      <input
-        className="search-bar"
-        aria-label="Buscar usuario"
-        placeholder="Buscar por nombre o correo"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-      <Notice error>{rows.error}</Notice>
-      {rows.loading ? (
+      <div className="button-row">
+        <input
+          className="search-bar"
+          aria-label="Buscar usuario"
+          placeholder="Buscar por nombre o correo"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select
+          aria-label="Filtrar por estado"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="">Todos los estados</option>
+          <option value="active">Activos</option>
+          <option value="suspended">Suspendidos</option>
+          <option value="pending_verification">Pendientes de verificación</option>
+        </select>
+      </div>
+      <Notice error>{users.error?.message}</Notice>
+      {users.isLoading ? (
         <Loading />
-      ) : (
+      ) : items.length ? (
         <div className="panel table-wrap">
           <table>
             <thead>
@@ -39,87 +56,46 @@ export function UsersTable() {
               </tr>
             </thead>
             <tbody>
-              {rows.data
-                .filter((u) =>
-                  `${u.name} ${u.email}`
-                    .toLowerCase()
-                    .includes(search.toLowerCase()),
-                )
-                .map((u) => (
-                  <tr key={u.id}>
-                    <td>
-                      <strong>{u.name}</strong>
-                      <small>{u.email}</small>
-                    </td>
-                    <td>
-                      <span className="tag">
-                        {u.status === "active"
-                          ? "Activo"
-                          : u.status === "suspended"
-                            ? "Suspendido"
-                            : "Pendiente de verificación"}
-                      </span>
-                    </td>
-                    <td>
-                      {u.role === "student" &&
-                        ["active", "suspended"].includes(u.status) && (
-                          <button
-                            className="text-button"
-                            onClick={() => {
-                              setSelected(u);
-                              setReason("");
-                            }}
-                          >
-                            {u.status === "suspended" ? (
-                              <>
-                                <RotateCcw size={15} />
-                                Reactivar
-                              </>
-                            ) : (
-                              "Suspender"
-                            )}
-                          </button>
+              {items.map((u) => (
+                <tr key={u.id}>
+                  <td>
+                    <strong>{u.name}</strong>
+                    <small>{u.email}</small>
+                  </td>
+                  <td>
+                    <span className="tag">
+                      {u.role === "admin" ? "Administrador" : STATUS_LABELS[u.status]}
+                    </span>
+                    {u.suspensionReason && <small>{u.suspensionReason}</small>}
+                  </td>
+                  <td>
+                    {u.role === "student" && ["active", "suspended"].includes(u.status) && (
+                      <button className="text-button" onClick={() => setSelected(u)}>
+                        {u.status === "suspended" ? (
+                          <>
+                            <RotateCcw size={15} />
+                            Reactivar
+                          </>
+                        ) : (
+                          "Suspender"
                         )}
-                    </td>
-                  </tr>
-                ))}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
+      ) : (
+        <Empty title="No se encontraron usuarios" />
       )}
       {selected && (
-        <Modal
-          title={
-            selected.status === "suspended"
-              ? "Reactivar cuenta"
-              : "Suspender cuenta"
-          }
+        <SuspendUserModal
+          user={selected}
+          suspend={selected.status !== "suspended"}
           close={() => setSelected(null)}
-        >
-          <p>{selected.name}</p>
-          <ActionForm
-            path={`/admin/users/${selected.id}/status`}
-            payload={() => ({
-              suspended: selected.status !== "suspended",
-              reason,
-            })}
-            label="Confirmar decisión"
-            done={() => {
-              setSelected(null);
-              rows.reload();
-            }}
-          >
-            <Field label="Motivo">
-              <textarea
-                required
-                minLength={5}
-                maxLength={1000}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </Field>
-          </ActionForm>
-        </Modal>
+        />
       )}
     </>
   );
