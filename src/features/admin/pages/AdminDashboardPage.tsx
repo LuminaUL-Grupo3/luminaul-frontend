@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { ShieldCheck, Flag, Users } from "lucide-react";
 import { PageHeader } from "@/components/ui";
-import { ReportsTable, AppealsTable, UsersTable } from "../components";
+import { ReportsTable, AppealsTable, UsersTable, StatsCards } from "../components";
 
-export function AdminPage() {
+// Panel de administración (SPEC-07): métricas + reportes, apelaciones y cuentas
+export function AdminDashboardPage() {
   const [tab, setTab] = useState<"reports" | "appeals" | "users">("reports");
 
   return (
@@ -13,10 +14,11 @@ export function AdminPage() {
         title="Cuidemos la comunidad."
         description="Revisa reportes, escucha apelaciones y documenta cada decisión."
       />
+      <StatsCards />
       <div className="tabs">
         {(
           [
-            ["reports", "Reportes", Flag],
+            ["reports", "Historial de reportes", Flag],
             ["appeals", "Apelaciones", ShieldCheck],
             ["users", "Usuarios", Users],
           ] as const
@@ -31,13 +33,10 @@ export function AdminPage() {
           </button>
         ))}
       </div>
-      {tab === "reports" ? (
-        <ReportsTable />
-      ) : tab === "appeals" ? (
-        <AppealsTable />
-      ) : (
-        <UsersTable />
-      )}
+      {tab === "reports" ? <ReportsTable /> : tab === "appeals" ? <AppealsTable /> : <UsersTable />}
     </>
   );
 }
+
+// AppRoutes importa AdminPage
+export const AdminPage = AdminDashboardPage;

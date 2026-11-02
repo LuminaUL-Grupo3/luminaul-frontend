@@ -1,102 +1,116 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { date } from "@/config/api";
-import { useResource } from "@/hooks/useResource";
-import {
-  Loading,
-  Notice,
-  Empty,
-  Modal,
-  ActionForm,
-  Field,
-} from "@/components/ui";
-import { Appeal } from "../types";
+import { Loading, Notice, Empty } from "@/components/ui";
+import { useFeedback } from "@/hooks/useFeedback";
+import { useAdminAppealsQuery, useResolveAppealMutation } from "../hooks/useAdminQueries";
+import { AdminAppealDetailDto, AdminAppealStatus } from "../types";
+import { CONTENT_LABELS } from "./ReportsTable";
 
+const STATUS_LABELS: Record<AdminAppealStatus, string> = {
+  pending: "Pendiente",
+  approved: "Aprobada",
+  rejected: "Rechazada",
+};
+
+// HU 7.5 (historial de apelaciones) + HU 7.3 (aprobar o rechazar)
 export function AppealsTable() {
-  const rows = useResource<Appeal[]>("/admin/appeals", []),
-    [selected, setSelected] = useState<Appeal | null>(null),
-    [reason, setReason] = useState(""),
-    [approve, setApprove] = useState(true);
+  const feedback = useFeedback();
+  const [filter, setFilter] = useState<AdminAppealStatus | undefined>("pending");
+  const appeals = useAdminAppealsQuery(filter);
+  const mutation = useResolveAppealMutation();
+  const [error, setError] = useState("");
+
+  async function decide(appeal: AdminAppealDetailDto, approve: boolean) {
+    const accepted = await feedback.confirm({
+      title: approve ? "Aprobar apelación" : "Rechazar apelación",
+      description: approve
+        ? `Se restaurará el contenido de ${appeal.user.name} y se le notificará.`
+        : `El contenido de ${appeal.user.name} seguirá oculto y se le notificará.`,
+      acceptLabel: approve ? "Aprobar apelación" : "Rechazar apelación",
+    });
+    if (!accepted) return;
+    setError("");
+    try {
+      const result = await mutation.mutateAsync({
+        id: appeal.id,
+        payload: { status: approve ? "approved" : "rejected" },
+      });
+      feedback.notify(result.message);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
+  const items = appeals.data?.items ?? [];
 
   return (
     <>
-      <Notice error>{rows.error}</Notice>
-      {rows.loading ? (
+      <div className="button-row">
+        <button
+          className={`button small ${filter === "pending" ? "" : "secondary"}`}
+          onClick={() => setFilter("pending")}
+        >
+          Pendientes
+        </button>
+        <button
+          className={`button small ${filter === undefined ? "" : "secondary"}`}
+          onClick={() => setFilter(undefined)}
+        >
+          Todas
+        </button>
+      </div>
+      <Notice error>{error || appeals.error?.message}</Notice>
+      {appeals.isLoading ? (
         <Loading />
-      ) : rows.data.length ? (
+      ) : items.length ? (
         <div className="stack">
-          {rows.data.map((a) => (
+          {items.map((a) => (
             <article className="panel" key={a.id}>
               <div className="section-title">
-                <Link to={`/perfil/${a.user_id}`}>
-                  <h3>{a.author_name}</h3>
+                <Link to={`/perfil/${a.user.id}`}>
+                  <h3>{a.user.name}</h3>
                 </Link>
                 <span className="tag">
-                  {a.status === "pending"
-                    ? "Pendiente"
-                    : a.status === "approved"
-                      ? "Aprobada"
-                      : "Rechazada"}
+                  {CONTENT_LABELS[a.content.type] ?? a.content.type} · {STATUS_LABELS[a.status]}
                 </span>
               </div>
-              <small className="muted">{date(a.created_at)}</small>
+              <small className="muted">Apelada el {date(a.createdAt)}</small>
               <p>
-                <strong>Contenido apelado:</strong> {a.content}
+                <strong>Contenido apelado:</strong>{" "}
+                {a.content.text ?? <em className="muted">Contenido no disponible</em>}
               </p>
               <p>
-                <strong>Apelación:</strong> {a.justification}
+                <strong>Justificación:</strong> {a.justification}
               </p>
-              <p className="muted">Moderación original: {a.reason}</p>
-              {a.resolution && <p>Decisión: {a.resolution}</p>}
+              {a.content.detectedWords.length > 0 && (
+                <p className="muted">
+                  Palabras detectadas por el bot: {a.content.detectedWords.join(", ")}
+                </p>
+              )}
               {a.status === "pending" && (
-                <button
-                  className="button secondary small"
-                  onClick={() => {
-                    setSelected(a);
-                    setApprove(true);
-                    setReason("");
-                  }}
-                >
-                  Revisar apelación
-                </button>
+                <div className="button-row">
+                  <button
+                    className="button small"
+                    disabled={mutation.isPending}
+                    onClick={() => decide(a, true)}
+                  >
+                    Aprobar apelación
+                  </button>
+                  <button
+                    className="button secondary small danger"
+                    disabled={mutation.isPending}
+                    onClick={() => decide(a, false)}
+                  >
+                    Rechazar apelación
+                  </button>
+                </div>
               )}
             </article>
           ))}
         </div>
       ) : (
         <Empty title="No hay apelaciones" />
-      )}
-      {selected && (
-        <Modal title="Resolver apelación" close={() => setSelected(null)}>
-          <ActionForm
-            path={`/admin/appeals/${selected.id}/decision`}
-            payload={() => ({ approve, reason })}
-            label="Guardar decisión"
-            done={() => {
-              setSelected(null);
-              rows.reload();
-            }}
-          >
-            <Field label="Decisión">
-              <select
-                value={String(approve)}
-                onChange={(e) => setApprove(e.target.value === "true")}
-              >
-                <option value="true">Aprobar y restaurar contenido</option>
-                <option value="false">Rechazar apelación</option>
-              </select>
-            </Field>
-            <Field label="Justificación">
-              <textarea
-                required
-                minLength={5}
-                maxLength={1000}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </Field>
-          </ActionForm>
-        </Modal>
       )}
     </>
   );
