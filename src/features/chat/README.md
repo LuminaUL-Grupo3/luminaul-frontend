@@ -58,16 +58,18 @@ node src/features/chat/tests/run-integration.mjs
 
 El runner espera ambos repos en carpetas hermanas `frontend`/`backend`; si no, establecer `SPEC04_BACKEND_DIR` con la ruta del backend. Usa la base local exclusiva `luminaul_spec04_test` indicada por `SPEC04_TEST_DATABASE_URL` y servidores propios en 8005/5176. Sustituir la contraseña y el puerto del ejemplo por los de tu PostgreSQL instalado directamente. Requiere dependencias instaladas, backend compilado, PostgreSQL activo y Edge disponible (`BROWSER_CHANNEL=chrome` para Chrome). Los artefactos quedan en `analysis/spec04`, ignorados por Git.
 
+Con `SPEC04_PREVIEW=1`, después de `npm run build`, se comprueba el mismo recorrido contra `dist` servido con Vite Preview, incluida la reconexión mediante un corte de red controlado desde el navegador.
+
 Resultado del 1 de noviembre de 2026: build aprobado y suite conjunta de 13 grupos de comprobaciones aprobada. En navegador se probaron tres cuentas reales, solicitud/aprobación, mensajes únicos, presencia con dos pestañas, escritura, reacciones, lecturas, respuestas, desconexión, reconexión, moderación, expulsión, móvil de 390 px, movimiento reducido y ausencia de diálogos nativos. No se sustituyen respuestas de negocio por mocks.
 
 La suite conjunta se repitió después de adaptar el arranque: los 13 grupos volvieron a pasar contra PostgreSQL 16.15 nativo en Windows, sin necesitar contenedores.
 
-Con la presentación pública y el acceso renovado, la suite conjunta suma 17 grupos aprobados. Incluye registro, verificación OTP y login reales, menú móvil, pestañas por teclado, FAQ, cancelación del cierre de sesión y retorno público. También pasan las 30 pruebas unitarias y las 14 HTTP del repositorio con `BACKEND_URL`, `TEST_EMAIL` y `TEST_PASSWORD` configurados según la guía de presentación.
+Con la presentación pública, el acceso renovado y el main actualizado, la suite conjunta suma 18 grupos aprobados. Incluye registro, verificación OTP y login reales, menú móvil, pestañas por teclado, FAQ, cancelación del cierre de sesión, retorno público e integración de membresías históricas con reseñas. También pasan las 30 pruebas unitarias y las 14 HTTP del repositorio con `BACKEND_URL`, `TEST_EMAIL` y `TEST_PASSWORD` configurados según la guía de presentación.
 
 ## Coordinación con el equipo
 
 Las tareas 4.1–4.4 corresponden a SPEC-04. El motor de moderación, las notificaciones de plataforma y las funcionalidades de las otras SPEC siguen siendo responsabilidad de sus módulos. El bridge `chat:message_hidden` está preparado; no implica que SPEC-06 esté terminada. No se incorporan adjuntos, encuestas, mensajes privados, edición ni mensajes fijados.
 
-SPEC-01/02/03 ya estaban en el main utilizado. Se incorporó además el ajuste de compatibilidad `859515b` de la rama publicada de SPEC-03; el backend integra su contraparte `415de10`. Ambos cambios se conservan como commits del equipo, sin reimplementar sus módulos.
+SPEC-01/02/03 ya estaban en el main utilizado. Se incorporó además el ajuste de compatibilidad `859515b` de la rama publicada de SPEC-03; el backend integra su contraparte `415de10`. Después, el equipo fusionó SPEC-05 en main: esta rama incorpora el frontend main `1da721f` y el backend main `25df6c0`, conservando las reseñas originales del equipo. El runner verifica también que una membresía histórica de SPEC-04 permite una reseña válida en SPEC-05, con sus permisos y borrado lógico. No se reimplementan esos módulos.
 
 La entrega se ejecuta directamente con Node y PostgreSQL: esta rama retira `Dockerfile`, `.dockerignore` y el `nginx.conf` que solo utilizaba aquella imagen. No incorpora infraestructura de contenedores. El backend base tiene dos pendientes de integración documentados en su guía: lock incompleto para `npm ci` y generación de rutas absolutas de Swagger en Windows. La ejecución local utiliza los comandos alternativos comprobados. Las ramas requieren revisión e integración del equipo antes de desplegarse; subirlas no modifica main.

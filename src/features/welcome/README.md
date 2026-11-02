@@ -15,7 +15,7 @@ La propuesta parte del propósito, alcance y Product Vision Board del informe de
 
 Se respeta que la plataforma no procesa pagos ni realiza reservas oficiales de cubículos. Las vistas de ejemplo explican situaciones de uso; no muestran contadores, testimonios ni mensajes atribuidos a usuarios reales. No se promete que SPEC-05/06/07 esté terminada.
 
-El logo vectorial representa un libro abierto y un punto de luz, por el significado de LuminaUL descrito en Software I. `Brand.tsx` comparte el símbolo y la palabra en presentación, acceso y cabecera privada. `public/favicon.svg` utiliza el mismo emblema. No se usa el escudo oficial de la universidad.
+El logo vectorial representa un libro abierto y un punto de luz, por el significado de LuminaUL descrito en Software I. `Brand.tsx` comparte el símbolo y la palabra en presentación, acceso y cabecera privada. `public/favicon.svg` utiliza el mismo emblema. No se usa el escudo oficial de la universidad. Las pantallas se cargan por dominio con `React.lazy` y `Suspense`, para que la presentación no descargue todos los módulos privados al entrar.
 
 La presentación combina naranja, tonos crema y verde, titulares Space Grotesk y acentos Instrument Serif. Las fuentes se alojan en `public/fonts/`, con las licencias OFL de sus autores. El texto del resto de las pantallas conserva su tipografía del equipo. `welcome.css` limita los estilos de la presentación; `auth.css` los limita al marco `.auth-refresh`.
 
@@ -33,7 +33,11 @@ La imagen de estudio se utiliza de forma ilustrativa y representa un campus gen�
 
 ## Pruebas realizadas
 
-La suite real compartida con SPEC-04 ahora incluye cuatro grupos de comprobaciones de presentación/acceso: raíz pública y contenido, interacción por teclado y móvil, registro + OTP + login, y cierre de sesión con cancelación y protección de rutas. El resultado conjunto es de 17 grupos aprobados. No se reemplazan respuestas de negocio por mocks. El correo y el usuario de registro son fixtures aleatorios exclusivos de `luminaul_spec04_test`, eliminados al finalizar.
+La suite real compartida con SPEC-04 incluye cuatro grupos de comprobaciones de presentación/acceso: raíz pública y contenido, interacción por teclado y móvil, registro + OTP + login, y cierre de sesión con cancelación y protección de rutas. Se añade una comprobación de integración de reseñas con el historial de grupos del main actualizado. No se reemplazan respuestas de negocio por mocks. El correo y el usuario de registro son fixtures aleatorios exclusivos de `luminaul_spec04_test`, eliminados al finalizar junto con los grupos y la reseña de prueba.
+
+Resultado final del 1 de noviembre de 2026: build del frontend y compilación del backend aprobados, suite conjunta de 18 grupos de comprobaciones aprobada y 17 pruebas de SPEC-05 del equipo aprobadas. La suite de autenticación/publicaciones del backend pasó sus 22 pruebas durante la integración. Los módulos privados se cargan por separado y el build ya no emite el aviso de un único bloque superior a 500 kB.
+
+Para comprobar también el frontend compilado, ejecutar `npm run build` en frontend y, antes del runner, establecer `SPEC04_PREVIEW=1`. El runner servirá `dist` con Vite Preview en 5176. El corte y la restauración de red de la prueba se realizan desde Playwright sobre la conexión real, reenviando sus paquetes al backend; no se importa un archivo de desarrollo desde la página ni se exponen funciones internas de prueba.
 
 El runner obtiene el código OTP emitido por SPEC-01 leyendo únicamente esa base local de test; no hay un endpoint nuevo que revele códigos ni una excepción de autenticación para la demostración. **El transporte de correo de main sigue siendo `ConsoleMailSender`**: las entregas reales de email requieren el adaptador de correo del equipo de SPEC-01. En local, sus códigos se consultan en la consola del backend; las cuentas de demostración ya están verificadas.
 
@@ -50,7 +54,9 @@ Sin `TEST_EMAIL` y `TEST_PASSWORD`, la suite HTTP omite las comprobaciones posit
 
 ## Base integrada
 
-El main revisado ya contenía SPEC-01, SPEC-02 y SPEC-03. Se verificaron los PR fusionados de SPEC-03: frontend #17 y backend #6. Además, se incorporaron los ajustes posteriores publicados por el equipo: frontend `859515b` cambia la eliminación de cuenta a `/auth/me`; backend `415de10` conserva `/auth/me` y admite el alias `/auth/account`. Se preservan las autorías originales de esos commits mediante merge dentro de SPEC-04. No se integra la rama pendiente de SPEC-05 ni se crea un PR de SPEC-04.
+El main inicial ya contenía SPEC-01, SPEC-02 y SPEC-03. Se verificaron los PR fusionados de SPEC-03: frontend #17 y backend #6. Además, se incorporaron los ajustes publicados por el equipo: frontend `859515b` cambia la eliminación de cuenta a `/auth/me`; backend `415de10` conserva `/auth/me` y admite el alias `/auth/account`.
+
+Mientras se preparaba esta revisión, el equipo fusionó también SPEC-05 y los ajustes de SPEC-03: frontend main `1da721f7528e1320051d633efd32bc19354d27e6` (PR #23 y #24), backend main `25df6c06882a75a148b0f4921036b8766aeac2d4` (PR #11 y #12). Esos main se incorporaron mediante merge a SPEC-04, preservando los módulos y autorías del equipo. La prueba adicional comprueba publicación, consulta, permisos y borrado lógico de una reseña tras una expulsión de grupo. No se reimplementa SPEC-05 ni se abre un PR de SPEC-04.
 
 ## Prompt de la imagen
 

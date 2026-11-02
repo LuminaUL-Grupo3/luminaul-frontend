@@ -63,6 +63,16 @@ export async function runBrowser(context) {
       member = await session(student);
     const ownerPage = owner.page,
       otherPage = applicant.page;
+    let networkOffline = false,
+      ownerConnection;
+    // El proxy reenvía los paquetes al servidor real; solo permite interrumpir el transporte en la prueba.
+    await ownerPage.routeWebSocket(/\/socket\.io\//, (route) => {
+      if (networkOffline) {
+        void route.close({ code: 1001, reason: "Corte de red de prueba" });
+        return;
+      }
+      ownerConnection = { browser: route, server: route.connectToServer() };
+    });
     await ownerPage.goto(web + "/grupos");
     await ownerPage
       .getByRole("button", { name: "Crear grupo", exact: true })
@@ -261,14 +271,13 @@ export async function runBrowser(context) {
       "Navegador: escritura, presencia por pestañas, mensaje único, reacción persistida, respuesta y lectura",
     );
 
-    await ownerPage.evaluate(async () => {
-      const { getChatSocket } = await import(
-        "/src/features/chat/services/socketClient.ts"
-      );
-      const socket = getChatSocket();
-      socket.io.reconnection(false);
-      socket.io.engine.close();
-    });
+    networkOffline = true;
+    await owner.ctx.setOffline(true);
+    expect(ownerConnection).toBeTruthy();
+    await Promise.all([
+      ownerConnection.browser.close({ code: 1001 }),
+      ownerConnection.server.close({ code: 1001 }),
+    ]);
     await expect(
       ownerPage.getByRole("button", { name: "Enviar mensaje", exact: true }),
     ).toBeDisabled();
@@ -284,20 +293,14 @@ export async function runBrowser(context) {
       .getByRole("button", { name: "Enviar mensaje", exact: true })
       .click();
     await expect(messageRow(otherPage, offlineText)).toHaveCount(1);
-    await ownerPage.evaluate(async () => {
-      const { getChatSocket } = await import(
-        "/src/features/chat/services/socketClient.ts"
-      );
-      const socket = getChatSocket();
-      socket.io.reconnection(true);
-      socket.connect();
-    });
+    networkOffline = false;
+    await owner.ctx.setOffline(false);
     await expect(
       ownerPage.getByRole("textbox", { name: "Mensaje", exact: true }),
     ).toHaveValue(draft);
     await expect(
       ownerPage.getByRole("button", { name: "Enviar mensaje", exact: true }),
-    ).toBeEnabled();
+    ).toBeEnabled({ timeout: 15000 });
     await expect(messageRow(ownerPage, offlineText)).toHaveCount(1);
     await ownerPage
       .getByRole("button", { name: "Enviar mensaje", exact: true })

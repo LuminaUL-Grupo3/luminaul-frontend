@@ -30,6 +30,7 @@ const registrationEmail = `spec04.registro.${randomUUID()}@aloe.ulima.edu.pe`;
 const checks = [],
   clients = [],
   createdGroups = [],
+  createdReviews = [],
   children = [];
 const db = new Client({ connectionString: databaseUrl });
 await db.connect();
@@ -212,6 +213,7 @@ try {
     frontend,
     [
       "node_modules/vite/bin/vite.js",
+      ...(process.env.SPEC04_PREVIEW === "1" ? ["preview"] : []),
       "--configLoader",
       "runner",
       "--host",
@@ -221,7 +223,10 @@ try {
       "--strictPort",
     ],
     "frontend",
-    { NODE_ENV: "development" },
+    {
+      NODE_ENV:
+        process.env.SPEC04_PREVIEW === "1" ? "production" : "development",
+    },
   );
   await Promise.all([
     ready(api + "/health", server),
@@ -767,6 +772,82 @@ try {
       },
     });
     for (const value of welcomeResults) pass(value);
+    // SPEC-05 del main consume la membresía histórica que conserva SPEC-04 después de una expulsión.
+    const registered = await login(registrationEmail);
+    const reviewer = await login(leader.email);
+    const reviewGroup = await createGroup(
+      reviewer,
+      "Integración grupos y reseñas " + Date.now(),
+    );
+    await addMember(reviewGroup, reviewer, registered);
+    assert.equal(
+      (
+        await request(
+          `/groups/${reviewGroup.id}/members/${registered.id}`,
+          "DELETE",
+          undefined,
+          reviewer.token,
+        )
+      ).status,
+      200,
+    );
+    const eligibility = await request(
+      `/reviews/eligibility/${registered.id}`,
+      "GET",
+      undefined,
+      reviewer.token,
+    );
+    assert.equal(eligibility.status, 200);
+    assert.equal(eligibility.data.allowed, true);
+    const review = await request(
+      "/reviews",
+      "POST",
+      {
+        reviewedUserId: registered.id,
+        rating: 5,
+        comment: "Compartimos una práctica en el grupo de integración.",
+      },
+      reviewer.token,
+    );
+    assert.equal(review.status, 201, JSON.stringify(review.data));
+    createdReviews.push(review.data.id);
+    const summary = await request(`/reviews/user/${registered.id}`);
+    assert.equal(summary.status, 200);
+    assert.equal(summary.data.averageRating, 5);
+    assert.ok(summary.data.reviews.some((item) => item.id === review.data.id));
+    assert.equal(
+      (
+        await request(
+          `/reviews/${review.data.id}`,
+          "DELETE",
+          undefined,
+          registered.token,
+        )
+      ).status,
+      403,
+    );
+    assert.equal(
+      (
+        await request(
+          `/reviews/${review.data.id}`,
+          "DELETE",
+          undefined,
+          reviewer.token,
+        )
+      ).status,
+      200,
+    );
+    const remaining = await request(`/reviews/user/${registered.id}`);
+    assert.equal(remaining.data.totalReviews, 0);
+    const historicalReview = await db.query(
+      "SELECT status,deleted_at FROM reviews WHERE id=$1",
+      [review.data.id],
+    );
+    assert.equal(historicalReview.rows[0].status, "deleted");
+    assert.ok(historicalReview.rows[0].deleted_at);
+    pass(
+      "Integración del main: SPEC05 reconoce la membresía histórica de SPEC04 y conserva permisos y borrado lógico de reseñas",
+    );
     const { runBrowser } = await import("./spec04.browser.mjs");
     const freshLeader = await login(leader.email);
     const result = await runBrowser({
@@ -799,6 +880,8 @@ try {
 } finally {
   for (const socket of clients) socket.disconnect();
   try {
+    for (const id of createdReviews)
+      await db.query("DELETE FROM reviews WHERE id=$1", [id]);
     for (const id of createdGroups)
       await db.query("DELETE FROM groups WHERE id=$1", [id]);
     await db.query("DELETE FROM users WHERE email=$1", [registrationEmail]);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import {
   NavLink,
   Link,
@@ -177,7 +177,9 @@ export function Layout() {
       </aside>
       <main className="main-content" id="main-content">
         <Notice error>{error}</Notice>
-        <Outlet />
+        <Suspense fallback={<Loading />}>
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   );

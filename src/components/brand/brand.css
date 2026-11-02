@@ -71,3 +71,7 @@ a:hover .lumina-mark {
     transform: none;
   }
 }
+.app-brand {
+  display: inline-flex;
+  align-items: center;
+}

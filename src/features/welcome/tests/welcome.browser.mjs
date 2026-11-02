@@ -85,14 +85,11 @@ export async function runWelcomeBrowser({
       "Nuestro objetivo",
     ])
       await expect(page.getByText(label, { exact: true })).toHaveCount(1);
-    const faq = page
-      .locator("details")
-      .filter({
-        has: page.getByText(
-          "¿LuminaUL realiza pagos o reservas de cubículos?",
-          { exact: true },
-        ),
-      });
+    const faq = page.locator("details").filter({
+      has: page.getByText("¿LuminaUL realiza pagos o reservas de cubículos?", {
+        exact: true,
+      }),
+    });
     await faq.locator("summary").click();
     await expect(faq.locator("p")).toBeVisible();
     await expect(faq).toContainText(
@@ -216,8 +213,22 @@ export async function runWelcomeBrowser({
     await expect(page).toHaveURL(web + "/");
     await expect(page.locator(".app-shell")).toBeVisible();
     await expect(page.locator(".landing-page")).toHaveCount(0);
+    await page.goto(web + "/perfil");
+    await expect(
+      page.getByRole("heading", { name: "Mi perfil", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Reseñas recibidas", exact: true }),
+    ).toBeVisible();
+    await page.goto(web + "/mis-resenas");
+    await expect(
+      page.getByRole("heading", { name: "Reseñas que escribí", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Aún no escribiste reseñas", { exact: true }),
+    ).toBeVisible();
     results.push(
-      "Acceso real: validaciones, registro, OTP de SPEC01 e inicio de sesión conservan el feed autenticado",
+      "Acceso real: validaciones, registro, OTP de SPEC01, feed, perfil y reseñas integradas del main",
     );
 
     await page.goto(web + "/nosotros#proposito");

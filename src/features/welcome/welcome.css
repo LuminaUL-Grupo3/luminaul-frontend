@@ -810,10 +810,6 @@
   outline: 3px solid #d58c52;
   outline-offset: 6px;
 }
-.app-brand {
-  display: inline-flex;
-  align-items: center;
-}
 /* Textos de apoyo con contraste legible sobre los fondos crema de la presentación. */
 .welcome-image-caption,
 .welcome-tabs button > span,
