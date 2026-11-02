@@ -50,15 +50,18 @@ Abrir `http://localhost:5175/login`. Cuentas exclusivamente locales: `spec04.lid
 
 ```powershell
 npm run build
+$env:SPEC04_TEST_DATABASE_URL='postgresql://postgres:TU_CLAVE_POSTGRES@127.0.0.1:5432/luminaul_spec04_test'
 node src/features/chat/tests/run-integration.mjs
 ```
 
-El runner espera ambos repos en carpetas hermanas `frontend`/`backend`; si no, establecer `SPEC04_BACKEND_DIR` con la ruta del backend. Usa PostgreSQL aislado en localhost:55436 y servidores propios en 8005/5176. Requiere dependencias instaladas, backend compilado y Edge disponible (`BROWSER_CHANNEL=chrome` para Chrome). Los artefactos quedan en `analysis/spec04`, ignorados por Git.
+El runner espera ambos repos en carpetas hermanas `frontend`/`backend`; si no, establecer `SPEC04_BACKEND_DIR` con la ruta del backend. Usa la base local exclusiva `luminaul_spec04_test` indicada por `SPEC04_TEST_DATABASE_URL` y servidores propios en 8005/5176. Sustituir la contraseña y el puerto del ejemplo por los de tu PostgreSQL instalado directamente. Requiere dependencias instaladas, backend compilado, PostgreSQL activo y Edge disponible (`BROWSER_CHANNEL=chrome` para Chrome). Los artefactos quedan en `analysis/spec04`, ignorados por Git.
 
 Resultado del 1 de noviembre de 2026: build aprobado y suite conjunta de 13 grupos de comprobaciones aprobada. En navegador se probaron tres cuentas reales, solicitud/aprobación, mensajes únicos, presencia con dos pestañas, escritura, reacciones, lecturas, respuestas, desconexión, reconexión, moderación, expulsión, móvil de 390 px, movimiento reducido y ausencia de diálogos nativos. No se sustituyen respuestas de negocio por mocks.
+
+La suite conjunta se repitió después de adaptar el arranque: los 13 grupos volvieron a pasar contra PostgreSQL 16.15 nativo en Windows, sin necesitar contenedores.
 
 ## Coordinación con el equipo
 
 Las tareas 4.1–4.4 corresponden a SPEC-04. El motor de moderación, las notificaciones de plataforma y las funcionalidades de las otras SPEC siguen siendo responsabilidad de sus módulos. El bridge `chat:message_hidden` está preparado; no implica que SPEC-06 esté terminada. No se incorporan adjuntos, encuestas, mensajes privados, edición ni mensajes fijados.
 
-El backend base tiene dos pendientes de integración documentados en su guía: lock incompleto para `npm ci` y generación de rutas absolutas de Swagger en Windows. La ejecución local de esta rama utiliza los comandos alternativos comprobados sin cambiar archivos compartidos. Las ramas requieren revisión e integración del equipo antes de desplegarse; subirlas no modifica main.
+La entrega se ejecuta directamente con Node y PostgreSQL: esta rama retira `Dockerfile`, `.dockerignore` y el `nginx.conf` que solo utilizaba aquella imagen. No incorpora infraestructura de contenedores. El backend base tiene dos pendientes de integración documentados en su guía: lock incompleto para `npm ci` y generación de rutas absolutas de Swagger en Windows. La ejecución local utiliza los comandos alternativos comprobados. Las ramas requieren revisión e integración del equipo antes de desplegarse; subirlas no modifica main.
