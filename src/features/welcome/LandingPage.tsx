@@ -17,9 +17,8 @@ import {
 import { Brand } from "@/components/brand/Brand";
 import { useSession } from "@/features/auth";
 import { experiences, purpose, questions } from "./content";
+import { HeroGallery } from "./HeroGallery";
 import "./welcome.css";
-
-const CAMPUS_IMAGE = "/media/campus-ulima.webp";
 
 /** Entrada pública: presenta el propósito del producto sin exigir una sesión. */
 export function LandingPage() {
@@ -195,15 +194,7 @@ export function LandingPage() {
             </div>
           </div>
           <div className="welcome-hero-visual">
-            <div className="welcome-image-frame">
-              <img
-                src={CAMPUS_IMAGE}
-                width="1860"
-                height="900"
-                alt="Edificio F1 y jardines del campus de la Universidad de Lima"
-                fetchPriority="high"
-              />
-            </div>
+            <HeroGallery />
 
             <a
               href="#como-funciona"
@@ -211,16 +202,6 @@ export function LandingPage() {
               aria-label="Descubrir cómo aprender en comunidad"
             >
               <ArrowUpRight size={28} />
-            </a>
-            <a
-              className="welcome-image-caption"
-              href="https://www.ulima.edu.pe/campus"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <i />
-              CAMPUS · UNIVERSIDAD DE LIMA
-              <ArrowUpRight size={12} />
             </a>
             <svg
               className="welcome-doodle"
