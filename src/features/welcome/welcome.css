@@ -305,6 +305,7 @@
   font-size: 8px;
   letter-spacing: 1.4px;
   color: #7b8174;
+  text-decoration: none;
 }
 .welcome-doodle {
   position: absolute;
@@ -648,13 +649,15 @@
   letter-spacing: -0.8px;
   margin: 13px 0 0;
 }
-.welcome-values dl {
+.welcome-values ul {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 27px 34px;
   margin: 0;
+  padding: 0;
+  list-style: none;
 }
-.welcome-values dt {
+.welcome-values li {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -662,7 +665,7 @@
   font-weight: 650;
   margin-bottom: 6px;
 }
-.welcome-values dt svg {
+.welcome-values li svg {
   color: #7b916a;
 }
 .welcome-values dd {
@@ -1253,7 +1256,7 @@
   .welcome-values h3 {
     font-size: 25px;
   }
-  .welcome-values dl {
+  .welcome-values ul {
     grid-template-columns: 1fr;
     gap: 22px;
   }
@@ -1335,7 +1338,7 @@
 .welcome-purpose-number { display:none; }
 .welcome-values { margin-top:32px; padding-top:28px; }
 .welcome-values h3 { display:none; }
-.welcome-values dl { gap:18px; }
+.welcome-values ul { gap:18px; }
 .welcome-final { padding-block:42px; }
 .welcome-final h2 { margin-top:0; }
 .welcome-footer p:empty { display:none; }
