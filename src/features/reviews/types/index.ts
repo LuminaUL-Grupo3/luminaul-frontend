@@ -55,21 +55,3 @@ export const REVIEW_LIMITS = {
   MAX_RATING: 5,
   MAX_COMMENT_LENGTH: 1000,
 } as const;
-
-// Tipos que usa la sección de reseñas de ProfilePage (SPEC-02)
-export interface Review {
-  id: string;
-  reviewer_id: string;
-  reviewed_user_id: string;
-  rating: number;
-  comment: string;
-  author_name: string;
-  target_name: string;
-  created_at: string;
-  status: string;
-}
-
-export interface ReviewEligibility {
-  allowed: boolean;
-  reason: string;
-}
