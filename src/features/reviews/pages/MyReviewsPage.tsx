@@ -1,126 +1,65 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Pencil, Trash2 } from "lucide-react";
-import { api } from "@/config/api";
-import { useFeedback } from "@/hooks/useFeedback";
-import { useResource } from "@/hooks/useResource";
-import {
-  PageHeader,
-  Loading,
-  Notice,
-  Empty,
-  Modal,
-  Field,
-  ActionForm,
-} from "@/components/ui";
-import { Review } from "../types";
+import { Empty, Loading, Notice, PageHeader } from "@/components/ui";
+import { useMyReviewsQuery } from "../hooks/useReviewsQueries";
+import { DeleteReviewConfirmModal, ReviewCard, ReviewFormModal } from "../components";
+import { ReviewDto } from "../types";
 
+// "Reseñas que escribí" (GET /reviews/me): el alumno revisa, edita (HU 5.3) o elimina (HU 5.4)
+// sus reseñas. Tras cada cambio, las mutaciones invalidan la consulta y la lista se actualiza sola.
 export function MyReviewsPage() {
-  const feedback = useFeedback();
-  const reviews = useResource<Review[]>("/reviews/me", []),
-    [edit, setEdit] = useState<Review | null>(null),
-    [error, setError] = useState("");
+  const reviews = useMyReviewsQuery(),
+    [editing, setEditing] = useState<ReviewDto | null>(null),
+    [deleting, setDeleting] = useState<ReviewDto | null>(null),
+    written = reviews.data ?? [];
 
   return (
     <>
       <PageHeader
+        eyebrow="CALIFICACIONES ENTRE ESTUDIANTES"
         title="Reseñas que escribí"
-        description="Tu experiencia ayuda a otros estudiantes a conectar."
+        description="Tus opiniones sobre los compañeros con los que compartiste un grupo de estudio."
       />
-      <Notice error>{reviews.error || error}</Notice>
-      {reviews.loading ? (
+      <Notice error>{reviews.error?.message}</Notice>
+      {reviews.isLoading ? (
         <Loading />
-      ) : reviews.data.length ? (
-        <div className="stack">
-          {reviews.data.map((r) => (
-            <article className="panel" key={r.id}>
-              <Link to={`/perfil/${r.reviewed_user_id}`}>
-                <h3>{r.target_name}</h3>
-              </Link>
-              <span className="rating">{"★".repeat(r.rating)}</span>
-              <p>{r.comment}</p>
-              <span className="tag">
-                {r.status === "published" ? "Publicada" : "Moderada"}
-              </span>
-              <div className="button-row">
-                <button className="text-button" onClick={() => setEdit(r)}>
-                  <Pencil size={15} />
-                  Editar
-                </button>
-                <button
-                  className="text-button danger"
-                  onClick={async () => {
-                    if (
-                      !(await feedback.confirm({
-                        title: "¿Eliminar esta reseña?",
-                        description: `Tu reseña sobre ${r.target_name} dejará de mostrarse en su perfil.`,
-                        acceptLabel: "Eliminar reseña",
-                      }))
-                    )
-                      return;
-                    try {
-                      await api.request(`/reviews/${r.id}`, "DELETE");
-                      setError("");
-                      feedback.notify("Reseña eliminada con éxito");
-                      reviews.reload();
-                    } catch (e) {
-                      setError((e as Error).message);
-                    }
-                  }}
-                >
-                  <Trash2 size={15} />
-                  Eliminar
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
       ) : (
-        <Empty title="Aún no escribiste reseñas" />
+        <section className="panel">
+          {written.length ? (
+            <div className="review-list">
+              {written.map((review) => (
+                <ReviewCard
+                  key={review.id}
+                  review={review}
+                  showReviewedUser
+                  canModify
+                  canReport={false}
+                  onEdit={setEditing}
+                  onDelete={setDeleting}
+                />
+              ))}
+            </div>
+          ) : (
+            <Empty title="Aún no escribiste reseñas">
+              Puedes calificar a un compañero desde su perfil si estudiaron juntos en un grupo.
+            </Empty>
+          )}
+        </section>
       )}
-      {edit && (
-        <Modal title="Editar reseña" close={() => setEdit(null)}>
-          <ActionForm
-            path={`/reviews/${edit.id}`}
-            method="PUT"
-            payload={() => ({ rating: edit.rating, comment: edit.comment })}
-            label="Guardar cambios"
-            cancel={() => setEdit(null)}
-            validate={() =>
-              !edit.comment.trim()
-                ? "Debe ingresar un comentario"
-                : !Number.isInteger(edit.rating) ||
-                    edit.rating < 1 ||
-                    edit.rating > 5
-                  ? "Debe seleccionar una calificación entre 1 y 5"
-                  : ""
-            }
-            done={() => {
-              setEdit(null);
-              reviews.reload();
-            }}
-          >
-            <Field label="Calificación">
-              <input
-                type="number"
-                min={1}
-                max={5}
-                value={edit.rating}
-                onChange={(e) =>
-                  setEdit({ ...edit, rating: Number(e.target.value) })
-                }
-              />
-            </Field>
-            <Field label="Comentario">
-              <textarea
-                required
-                maxLength={2000}
-                value={edit.comment}
-                onChange={(e) => setEdit({ ...edit, comment: e.target.value })}
-              />
-            </Field>
-          </ActionForm>
-        </Modal>
+      {editing && (
+        <ReviewFormModal
+          reviewedUserId={editing.reviewedUserId}
+          reviewedUserName={editing.reviewedUser.name}
+          review={editing}
+          close={() => setEditing(null)}
+          onSaved={() => setEditing(null)}
+        />
+      )}
+      {deleting && (
+        <DeleteReviewConfirmModal
+          review={deleting}
+          close={() => setDeleting(null)}
+          onDeleted={() => setDeleting(null)}
+        />
       )}
     </>
   );
