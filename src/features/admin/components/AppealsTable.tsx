@@ -85,7 +85,7 @@ export function AppealsTable() {
               </p>
               {a.content.detectedWords.length > 0 && (
                 <p className="muted">
-                  Palabras detectadas por el bot: {a.content.detectedWords.join(", ")}
+                  Términos detectados: {a.content.detectedWords.join(", ")}
                 </p>
               )}
               {a.status === "pending" && (

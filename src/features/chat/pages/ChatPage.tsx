@@ -39,6 +39,11 @@ export function ChatPage() {
     );
     return ordered.map((message, index) => {
       const hidden = socket.hiddenIds.has(message.id);
+      // Las citas reflejan también las restauraciones y los borrados recibidos por Socket.IO.
+      const parent = message.replyTo ? map.get(message.replyTo.id) : undefined;
+      const reply = parent && message.replyTo
+        ? { ...message.replyTo, content: parent.status === "published" ? parent.content : null, status: parent.status }
+        : message.replyTo;
       const readBy = new Map(
         message.readBy.map((reader) => [reader.userId, reader]),
       );
@@ -56,9 +61,9 @@ export function ChatPage() {
         content: hidden ? "" : message.content,
         status: hidden ? ("hidden" as const) : message.status,
         replyTo:
-          message.replyTo && socket.hiddenIds.has(message.replyTo.id)
-            ? { ...message.replyTo, content: null, status: "hidden" as const }
-            : message.replyTo,
+          reply && socket.hiddenIds.has(reply.id)
+            ? { ...reply, content: null, status: "hidden" as const }
+            : reply,
         readBy: [...readBy.values()],
       };
     });

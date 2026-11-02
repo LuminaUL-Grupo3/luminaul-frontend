@@ -249,6 +249,47 @@
   display: block;
   animation: welcome-photo-in 900ms ease both;
 }
+.welcome-gallery img {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: none;
+  transition: opacity 800ms ease;
+}
+.welcome-gallery img.is-active { opacity: 1; }
+.welcome-gallery-pause, .welcome-gallery-dots {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  background: #23342be6;
+  border-radius: 999px;
+  color: white;
+}
+.welcome-gallery-pause {
+  top: 16px;
+  left: 16px;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  cursor: pointer;
+}
+.welcome-gallery-dots { left: 36px; bottom: 20px; padding: 2px 6px; }
+.welcome-gallery-dots button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.welcome-gallery-dots span { width: 7px; height: 7px; border-radius: 50%; background: #ffffff75; }
+.welcome-gallery-dots [aria-pressed="true"] span { background: white; }
+.welcome-gallery button:focus-visible { outline: 3px solid #f8a66e; outline-offset: 3px; }
+.welcome-image-caption a { display: inline-flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; }
 .welcome-image-label {
   position: absolute;
   left: -35px;

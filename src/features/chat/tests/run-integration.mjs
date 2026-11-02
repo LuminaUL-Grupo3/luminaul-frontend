@@ -232,6 +232,13 @@ try {
     ready(api + "/health", server),
     ready(web + "/login", vite),
   ]);
+  // Permite diagnosticar solo la integración nueva sin repetir los recorridos ya aprobados.
+  if (process.argv.includes("--moderation-only")) {
+    const { runModerationBrowser } = await import("./moderation.browser.mjs");
+    for (const value of await runModerationBrowser({
+      web, password, db, request, login, createGroup, addMember, connect, command, output,
+    })) pass(value);
+  } else {
   const [leader, student, outsider] = await Promise.all(
     [
       "spec04.lider@aloe.ulima.edu.pe",
@@ -865,6 +872,12 @@ try {
       trackGroup: (id) => createdGroups.push(id),
     });
     for (const value of result) pass(value);
+    const { runModerationBrowser } = await import("./moderation.browser.mjs");
+    const moderationResults = await runModerationBrowser({
+      web, password, db, request, login, createGroup, addMember, connect, command, output,
+    });
+    for (const value of moderationResults) pass(value);
+  }
   }
   await writeFile(
     resolve(output, "results.json"),

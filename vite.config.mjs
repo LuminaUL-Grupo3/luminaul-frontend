@@ -19,6 +19,13 @@ export default defineConfig({
       "^/(posts|courses|join-requests|groups|auth|profiles|availability|availabilities|reviews|reports|moderation|moderations|notifications|admin|users|chats|health)": {
         target: process.env.BACKEND_URL || "http://127.0.0.1:8000",
         changeOrigin: true,
+        // /admin es una pantalla React; /admin/... sigue perteneciendo a la API.
+        bypass(request) {
+          const pathname = request.url?.split("?")[0].replace(/\/$/, "");
+          if (request.method === "GET" && pathname === "/admin" && request.headers.accept?.includes("text/html")) {
+            return "/index.html";
+          }
+        },
       },
       "/api": process.env.BACKEND_URL || "http://127.0.0.1:8000",
       "/uploads": process.env.BACKEND_URL || "http://127.0.0.1:8000",

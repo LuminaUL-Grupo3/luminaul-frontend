@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Reply, CheckCheck, Check } from "lucide-react";
-import { Avatar } from "@/components/ui";
+import { Avatar, ReportButton } from "@/components/ui";
 import {
   reactionEmojis,
   type GroupMessageDto,
@@ -109,6 +109,7 @@ export function MessageItem({
         </div>
         {visible && (
           <div className="spec04-message-actions">
+            {!mine && <ReportButton kind="message" id={message.id} disabled={disabled} />}
             <button
               className="text-button"
               aria-label={`Responder a ${message.sender.name}`}

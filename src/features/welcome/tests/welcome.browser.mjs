@@ -56,11 +56,13 @@ export async function runWelcomeBrowser({
       "El conocimiento",
     );
     await expect(page).toHaveURL(web + "/");
+    // La selección manual pausa la rotación y hace estable la captura de la portada.
+    await page.getByRole("button", { name: "Ver foto: Campus · Universidad de Lima", exact: true }).click();
     await settled();
-    await expect(page.locator(".welcome-image-frame img")).toHaveAttribute(
+    await expect(page.locator(".welcome-image-frame img").first()).toHaveAttribute(
       "src", "/media/campus-ulima.webp",
     );
-    await expect(page.locator(".welcome-image-caption")).toHaveAttribute(
+    await expect(page.locator(".welcome-image-caption a")).toHaveAttribute(
       "href", "https://www.ulima.edu.pe/campus",
     );
     expect(
@@ -136,7 +138,7 @@ export async function runWelcomeBrowser({
     await expect(
       page.getByRole("button", { name: "Abrir menú de presentación" }),
     ).toHaveAttribute("aria-expanded", "false");
-    await expect(page.locator(".welcome-image-frame img")).toHaveCSS(
+    await expect(page.locator(".welcome-image-frame img").first()).toHaveCSS(
       "animation-name",
       "none",
     );
