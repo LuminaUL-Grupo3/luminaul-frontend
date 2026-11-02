@@ -1,53 +1,76 @@
 import { api } from "../../../config/api";
-import { Report, Appeal, AdminUser, Moderated, NoticeNotification } from "../types";
+import {
+  AdminAppealDetailDto,
+  AdminAppealStatus,
+  AdminReportDetailDto,
+  AdminReportStatus,
+  AdminStatsDto,
+  AdminUserListItemDto,
+  ChangeUserStatusRequest,
+  ChangeUserStatusResponse,
+  MarkNotificationReadResponse,
+  NotificationDto,
+  Paginated,
+  ResolveAppealRequest,
+  ResolveAppealResponse,
+  ResolveReportRequest,
+  ResolveReportResponse,
+} from "../types";
+
+// Arma el query string omitiendo los filtros vacíos
+function withQuery(path: string, params: Record<string, string | number | undefined>) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== "") query.set(key, String(value));
+  });
+  const text = query.toString();
+  return text ? `${path}?${text}` : path;
+}
+
+export interface UsersFilter {
+  search?: string;
+  status?: string;
+}
 
 export const adminService = {
-  async getReports(): Promise<Report[]> {
-    return api.request<Report[]>("/admin/reports");
+  getReports(status?: AdminReportStatus): Promise<Paginated<AdminReportDetailDto>> {
+    return api.request(withQuery("/admin/reports", { status, limit: 100 }));
   },
 
-  async getAppeals(): Promise<Appeal[]> {
-    return api.request<Appeal[]>("/admin/appeals");
+  resolveReport(reportId: string, payload: ResolveReportRequest): Promise<ResolveReportResponse> {
+    return api.request(`/admin/reports/${reportId}`, "PATCH", payload);
   },
 
-  async getUsers(): Promise<AdminUser[]> {
-    return api.request<AdminUser[]>("/admin/users");
+  getAppeals(status?: AdminAppealStatus): Promise<Paginated<AdminAppealDetailDto>> {
+    return api.request(withQuery("/admin/appeals", { status, limit: 100 }));
   },
 
-  async removeReportedPost(postId: string, reason: string): Promise<{ message: string }> {
-    return api.request<{ message: string }>(`/admin/posts/${postId}/remove`, "POST", { reason });
+  resolveAppeal(appealId: string, payload: ResolveAppealRequest): Promise<ResolveAppealResponse> {
+    return api.request(`/admin/appeals/${appealId}`, "PATCH", payload);
   },
 
-  async setUserStatus(userId: string, suspended: boolean, reason: string): Promise<{ message: string }> {
-    return api.request<{ message: string }>(`/admin/users/${userId}/status`, "POST", {
-      suspended,
-      reason,
-    });
+  getUsers(filter: UsersFilter): Promise<Paginated<AdminUserListItemDto>> {
+    return api.request(withQuery("/admin/users", { ...filter, limit: 100 }));
   },
 
-  async decideAppeal(appealId: string, approve: boolean, reason: string): Promise<{ message: string }> {
-    return api.request<{ message: string }>(`/admin/appeals/${appealId}/decision`, "POST", {
-      approve,
-      reason,
-    });
+  changeUserStatus(
+    userId: string,
+    payload: ChangeUserStatusRequest,
+  ): Promise<ChangeUserStatusResponse> {
+    return api.request(`/admin/users/${userId}/status`, "PATCH", payload);
   },
 
-  async getMyModerated(): Promise<Moderated[]> {
-    return api.request<Moderated[]>("/moderation/me");
+  getStats(): Promise<AdminStatsDto> {
+    return api.request("/admin/stats");
+  },
+};
+
+export const notificationsService = {
+  getMine(): Promise<NotificationDto[]> {
+    return api.request("/notifications/me");
   },
 
-  async submitAppeal(logId: string, justification: string): Promise<{ message: string }> {
-    return api.request<{ message: string }>("/appeals", "POST", {
-      moderation_log_id: logId,
-      justification,
-    });
-  },
-
-  async getNotifications(): Promise<NoticeNotification[]> {
-    return api.request<NoticeNotification[]>("/notifications");
-  },
-
-  async markNotificationsRead(): Promise<void> {
-    await api.request("/notifications/read", "POST");
+  markRead(id: string): Promise<MarkNotificationReadResponse> {
+    return api.request(`/notifications/${id}/read`, "PATCH");
   },
 };
