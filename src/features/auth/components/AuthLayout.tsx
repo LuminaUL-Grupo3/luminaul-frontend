@@ -1,66 +1,27 @@
-import { ReactNode } from "react";
-import { BookOpen, MessageCircle, Sun, Users } from "lucide-react";
+import { useEffect, type ReactNode } from "react";
+import { ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Brand } from "@/components/brand/Brand";
 import "../styles/auth.css";
 
-// Marco de las pantallas de acceso: historia a la izquierda y formulario a la derecha
-export function AuthLayout({
-  eyebrow,
-  title,
-  description,
-  children,
-}: {
-  eyebrow?: string;
-  title: string;
-  description?: ReactNode;
-  children: ReactNode;
+/** Acceso centrado, sin fotografía ni contenido promocional; conserva los formularios del equipo. */
+export function AuthLayout({ eyebrow, title, description, children }: {
+  eyebrow?: string; title: string; description?: ReactNode; children: ReactNode;
 }) {
-  return (
-    <div className="auth-layout">
-      <aside className="auth-story">
-        <div className="brand">
-          <span className="brand-icon">
-            <Sun size={24} />
-          </span>
-          Lumina<span>UL</span>
-        </div>
-        <div className="auth-story-content">
-          <h1>
-            Todo lo que necesitas para tu ciclo, en <em>una sola comunidad</em>.
-          </h1>
-          <p>
-            Conéctate con estudiantes de otros ciclos, organiza grupos de estudio y comparte
-            horas libres para aprender con confianza.
-          </p>
-          <div className="auth-features">
-            <span>
-              <BookOpen /> Cursos y asesorías con quienes ya llevaron la materia
-            </span>
-            <span>
-              <Users /> Grupos de estudio con horarios coordinados
-            </span>
-            <span>
-              <MessageCircle /> Chat en tiempo real con moderación comunitaria
-            </span>
-          </div>
-        </div>
-        <p className="auth-footnote">LuminaUL</p>
-        <span className="orbit" aria-hidden="true" />
-        <span className="orbit orbit-two" aria-hidden="true" />
-      </aside>
-      <main className="auth-main">
-        <div className="auth-form">
-          <div className="brand mobile-brand">
-            <span className="brand-icon">
-              <Sun size={24} />
-            </span>
-            Lumina<span>UL</span>
-          </div>
-          {eyebrow && <span className="eyebrow">{eyebrow}</span>}
-          <h2>{title}</h2>
-          {description && <p>{description}</p>}
-          {children}
-        </div>
-      </main>
-    </div>
-  );
+  useEffect(() => {
+    const previous = document.title;
+    document.title = title.replace(/[.!]$/, "") + " · LuminaUL";
+    return () => { document.title = previous; };
+  }, [title]);
+  return <div className="auth-layout auth-refresh">
+    <header className="auth-public-header">
+      <Link to="/" aria-label="LuminaUL, volver a la presentación"><Brand /></Link>
+      <Link to="/" className="auth-back"><ArrowLeft size={16} />Volver al inicio</Link>
+    </header>
+    <main className="auth-main"><div className="auth-form">
+      {eyebrow && <span className="eyebrow">{eyebrow}</span>}
+      <h1>{title}</h1>{description && <p>{description}</p>}{children}
+    </div></main>
+    <footer className="auth-public-footer"><span>© 2026 LuminaUL</span><Link to="/nosotros">Sobre LuminaUL</Link></footer>
+  </div>;
 }

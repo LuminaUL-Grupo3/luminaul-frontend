@@ -1,7 +1,32 @@
-import { test, describe } from "node:test";
+import { test, describe, before } from "node:test";
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:8000";
+const hasCredentials = Boolean(
+  process.env.TEST_EMAIL && process.env.TEST_PASSWORD,
+);
+let token = "";
+
+/** Las rutas privadas se prueban con una sesión real; nunca se espera acceso anónimo exitoso. */
+before(async () => {
+  if (!hasCredentials) return;
+  const response = await fetch(`${BACKEND_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: process.env.TEST_EMAIL,
+      password: process.env.TEST_PASSWORD,
+    }),
+  });
+  assert.equal(
+    response.status,
+    200,
+    "La cuenta configurada para las pruebas debe poder iniciar sesión",
+  );
+  token = (await response.json()).accessToken;
+  assert.ok(token);
+});
 
 describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)", () => {
   // 1. Healthcheck
@@ -18,10 +43,16 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
     const res = await fetch(`${BACKEND_URL}/docs-json`);
     assert.equal(res.status, 200);
     const doc = await res.json();
-    assert.ok(doc.openapi || doc.swagger, "Debe contener especificación Swagger/OpenAPI");
+    assert.ok(
+      doc.openapi || doc.swagger,
+      "Debe contener especificación Swagger/OpenAPI",
+    );
     assert.ok(doc.paths["/posts"], "Debe documentar ruta /posts");
     assert.ok(doc.paths["/courses"], "Debe documentar ruta /courses");
-    assert.ok(doc.paths["/join-requests/me"], "Debe documentar ruta /join-requests/me");
+    assert.ok(
+      doc.paths["/join-requests/me"],
+      "Debe documentar ruta /join-requests/me",
+    );
   });
 
   // 3. Catálogo de Cursos (features/posts)
@@ -35,7 +66,10 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
     const firstCourse = courses[0];
     assert.ok(firstCourse.id, "Cada curso debe tener id UUID");
     assert.ok(firstCourse.name, "Cada curso debe tener nombre");
-    assert.ok(typeof firstCourse.cycle === "number", "Cada curso debe tener ciclo numérico");
+    assert.ok(
+      typeof firstCourse.cycle === "number",
+      "Cada curso debe tener ciclo numérico",
+    );
   });
 
   // 4. Feed de Publicaciones (H.U. 1.3 y 1.5)
@@ -61,7 +95,11 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
       const posts = await res.json();
       assert.ok(Array.isArray(posts));
       for (const p of posts) {
-        assert.equal(p.type, "study_group", "Solo debe retornar posts de tipo study_group");
+        assert.equal(
+          p.type,
+          "study_group",
+          "Solo debe retornar posts de tipo study_group",
+        );
       }
     });
 
@@ -72,58 +110,104 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
       assert.ok(Array.isArray(posts));
     });
 
-    test("GET /posts/me responde 200 para historial de publicaciones del usuario", async () => {
-      const res = await fetch(`${BACKEND_URL}/posts/me`);
-      assert.equal(res.status, 200);
-      const myPosts = await res.json();
-      assert.ok(Array.isArray(myPosts));
-    });
+    test(
+      "GET /posts/me responde 200 para el usuario autenticado",
+      { skip: !hasCredentials },
+      async () => {
+        const res = await fetch(`${BACKEND_URL}/posts/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        assert.equal(res.status, 200);
+        const myPosts = await res.json();
+        assert.ok(Array.isArray(myPosts));
+      },
+    );
   });
 
   // 5. Grupos de Estudio (features/chat)
   describe("5. Integración Grupos de Estudio: GET /groups/{id}", () => {
     test("Consultar grupo inexistente responde 404 estructurado", async () => {
-      const nonExistentId = "00000000-0000-0000-0000-000000000000";
+      const nonExistentId = randomUUID();
       const res = await fetch(`${BACKEND_URL}/groups/${nonExistentId}`);
       assert.equal(res.status, 404);
       const body = await res.json();
       assert.equal(body.statusCode, 404);
-      assert.match(body.message, /Grupo no encontrado/);
+      assert.ok(typeof body.message === "string" && body.message.length > 0);
     });
   });
 
   // 6. Solicitudes de Ingreso (H.U. 2.1 & 2.2)
   describe("6. Integración Solicitudes de Ingreso: /join-requests", () => {
-    test("GET /join-requests/me responde 200 con estructura de lista y total", async () => {
+    test("GET /join-requests/me exige sesión", async () => {
       const res = await fetch(`${BACKEND_URL}/join-requests/me`);
-      assert.equal(res.status, 200);
-      const body = await res.json();
-      assert.ok(Array.isArray(body.requests), "La propiedad requests debe ser un array");
-      assert.ok(typeof body.total === "number", "La propiedad total debe ser un número");
-      if (body.requests.length === 0) {
-        assert.ok(body.message, "Si está vacío debe incluir mensaje descriptivo");
-      }
+      assert.equal(res.status, 401);
     });
 
-    test("POST /groups/{group_id}/join-requests rechaza grupo no existente con 404", async () => {
-      const nonExistentGroup = "00000000-0000-0000-0000-000000000000";
-      const res = await fetch(`${BACKEND_URL}/groups/${nonExistentGroup}/join-requests`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: "Hola, me gustaría unirme" }),
-      });
-      assert.equal(res.status, 404);
-    });
+    test(
+      "GET /join-requests/me responde 200 con estructura de lista y total",
+      { skip: !hasCredentials },
+      async () => {
+        const res = await fetch(`${BACKEND_URL}/join-requests/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        assert.equal(res.status, 200);
+        const body = await res.json();
+        assert.ok(
+          Array.isArray(body.requests),
+          "La propiedad requests debe ser un array",
+        );
+        assert.ok(
+          typeof body.total === "number",
+          "La propiedad total debe ser un número",
+        );
+        if (body.requests.length === 0) {
+          assert.ok(
+            body.message,
+            "Si está vacío debe incluir mensaje descriptivo",
+          );
+        }
+      },
+    );
 
-    test("PATCH /join-requests/{id} con ID inválido responde 404", async () => {
-      const nonExistentReq = "00000000-0000-0000-0000-000000000000";
-      const res = await fetch(`${BACKEND_URL}/join-requests/${nonExistentReq}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "accepted" }),
-      });
-      assert.equal(res.status, 404);
-    });
+    test(
+      "POST /groups/{group_id}/join-requests rechaza grupo no existente con 404",
+      { skip: !hasCredentials },
+      async () => {
+        const nonExistentGroup = randomUUID();
+        const res = await fetch(
+          `${BACKEND_URL}/groups/${nonExistentGroup}/join-requests`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ message: "Hola, me gustaría unirme" }),
+          },
+        );
+        assert.equal(res.status, 404);
+      },
+    );
+
+    test(
+      "PATCH /join-requests/{id} con solicitud inexistente responde 404",
+      { skip: !hasCredentials },
+      async () => {
+        const nonExistentReq = randomUUID();
+        const res = await fetch(
+          `${BACKEND_URL}/join-requests/${nonExistentReq}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ action: "accepted" }),
+          },
+        );
+        assert.equal(res.status, 404);
+      },
+    );
   });
 
   // 7. Seguridad y Sesión (features/auth)

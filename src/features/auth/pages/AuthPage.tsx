@@ -15,16 +15,7 @@ interface PendingVerification {
   codeJustSent: boolean;
 }
 
-const COPY = {
-  login: {
-    title: "INICIO DE SESIÓN",
-    description: "Ingresa con tu correo institucional",
-  },
-  register: {
-    title: "REGISTRO",
-    description: "Crea tu cuenta institucional",
-  },
-} as const;
+const COPY = { login: { title: "Inicia sesión." }, register: { title: "Crea tu cuenta." } } as const;
 
 // Contenedor de acceso: alterna entre inicio de sesión y registro, y abre VerifyEmailModal.
 // Los modos recover/reset se conservan porque AppRoutes los usa; delegan en ResetPasswordPage.
@@ -35,11 +26,15 @@ export function AuthPage({ mode = "login" }: { mode?: AuthMode }) {
   const emailParam = params.get("email") ?? "";
   // /verificar?email=... abre el modal directamente
   const [pending, setPending] = useState<PendingVerification | null>(
-    mode === "verify" && emailParam ? { email: emailParam, codeJustSent: false } : null,
+    mode === "verify" && emailParam
+      ? { email: emailParam, codeJustSent: false }
+      : null,
   );
 
   if (mode === "recover" || mode === "reset") {
-    return <ResetPasswordPage initialStep={mode === "reset" ? "reset" : "request"} />;
+    return (
+      <ResetPasswordPage initialStep={mode === "reset" ? "reset" : "request"} />
+    );
   }
   if (user) return <Navigate to={AUTH_ROUTES.home} replace />;
 
@@ -47,13 +42,16 @@ export function AuthPage({ mode = "login" }: { mode?: AuthMode }) {
 
   function onVerified(email: string) {
     setPending(null);
-    navigate(`${AUTH_ROUTES.login}?email=${encodeURIComponent(email)}&verificada=1`, {
-      replace: true,
-    });
+    navigate(
+      `${AUTH_ROUTES.login}?email=${encodeURIComponent(email)}&verificada=1`,
+      {
+        replace: true,
+      },
+    );
   }
 
   return (
-    <AuthLayout title={COPY[view].title} description={COPY[view].description}>
+    <AuthLayout title={COPY[view].title}>
       {mode === "verify" && !emailParam && (
         <Notice>Inicia sesión con tu cuenta para verificarla.</Notice>
       )}
@@ -64,20 +62,26 @@ export function AuthPage({ mode = "login" }: { mode?: AuthMode }) {
       {view === "login" ? (
         <LoginForm
           initialEmail={emailParam}
-          onPendingVerification={(email) => setPending({ email, codeJustSent: false })}
+          onPendingVerification={(email) =>
+            setPending({ email, codeJustSent: false })
+          }
         />
       ) : (
-        <RegisterForm onRegistered={(email) => setPending({ email, codeJustSent: true })} />
+        <RegisterForm
+          onRegistered={(email) => setPending({ email, codeJustSent: true })}
+        />
       )}
 
       <p className="auth-switch">
         {view === "login" ? (
           <>
-            ¿Aún no tienes cuenta? <Link to={AUTH_ROUTES.register}>Regístrate aquí</Link>
+            ¿No tienes cuenta?{" "}
+            <Link to={AUTH_ROUTES.register}>Regístrate</Link>
           </>
         ) : (
           <>
-            ¿Ya estás registrado? <Link to={AUTH_ROUTES.login}>Inicia sesión</Link>
+            ¿Ya tienes cuenta?{" "}
+            <Link to={AUTH_ROUTES.login}>Inicia sesión</Link>
           </>
         )}
       </p>

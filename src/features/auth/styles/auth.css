@@ -1,3 +1,33 @@
+/* Acceso mínimo, compartido con los formularios de SPEC-01. */
+.auth-layout.auth-refresh { display:flex; flex-direction:column; align-items:center; min-height:100svh; padding:0 36px; background:#fcfaf5; color:#2c352e; }
+.auth-refresh .auth-public-header { width:100%; max-width:1100px; min-height:88px; display:flex; align-items:center; justify-content:space-between; gap:20px; border-bottom:1px solid #e9e6db; }
+.auth-back { display:inline-flex; align-items:center; gap:9px; font-size:12px; color:#69725f; }
+.auth-back:hover { color:#c7471f; }
+.auth-refresh .auth-main { flex:1; width:100%; min-height:0; display:flex; align-items:center; justify-content:center; padding:42px 0; }
+.auth-refresh .auth-form { position:relative; width:100%; max-width:420px; padding:36px 34px 28px; border:1px solid #e8e5dc; border-radius:16px; background:#fffefd; box-shadow:0 10px 38px #41371d06; animation:auth-enter 350ms ease both; }
+.auth-refresh .auth-form::before { content:""; position:absolute; top:0; left:34px; width:36px; height:3px; background:#d86635; border-radius:0 0 3px 3px; }
+.auth-refresh .auth-form>h1 { font-family:"Instrument Serif",Georgia,serif; font-weight:400; font-size:46px; line-height:1.08; letter-spacing:-1px; color:#333c32; margin:0 0 27px; }
+.auth-refresh .auth-form>.eyebrow { display:block; margin-bottom:16px; color:#8c603d; font-size:9px; letter-spacing:1px; }
+.auth-refresh .auth-form>p { color:#68735f; font-size:12px; line-height:1.8; }
+.auth-refresh .auth-form .form { gap:18px; }
+.auth-refresh .auth-form .field>span { font-size:12px; font-weight:600; color:#535e4c; margin-bottom:8px; }
+.auth-refresh .auth-form input { min-height:46px; padding:12px 13px; border:1px solid #dfe3d7; border-radius:8px; background:#fffefa; color:#35402e; font-size:14px; }
+.auth-refresh .auth-form input::placeholder { color:#727c67; }
+.auth-refresh .auth-form input:focus { outline:2px solid #e5ad7c80; outline-offset:2px; border-color:#d39a65; box-shadow:0 0 0 4px #f8ecd9; }
+.auth-refresh .auth-form .password-input input { padding-right:44px; }
+.auth-refresh .auth-form .password-input>button { top:8px; right:5px; color:#728166; }
+.auth-refresh .auth-form .field>small { color:#68735f; font-size:10px; }
+.auth-refresh .auth-form .forgot { font-size:11px; margin-top:-5px; color:#a35e36; }
+.auth-refresh .auth-form .button.full { min-height:48px; background:#c7471f; border:1px solid #bd411c; border-radius:8px; font-size:13px; box-shadow:none; }
+.auth-refresh .auth-form .button.full:hover:not(:disabled) { background:#b43d19; transform:translateY(-2px); }
+.auth-refresh .auth-form .auth-switch { border-top:1px solid #eeeee6; margin:24px 0 0; padding-top:20px; font-size:11px; color:#68735f; text-align:center; }
+.auth-refresh .auth-switch a { color:#c14d23; }
+.auth-refresh .auth-form .notice { font-size:12px; border-radius:8px; }
+.auth-public-footer { width:100%; max-width:1100px; min-height:65px; display:flex; align-items:center; justify-content:space-between; gap:20px; border-top:1px solid #e9e6db; color:#69725f; font-size:10px; }
+@keyframes auth-enter { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+@media(max-width:760px) { .auth-layout.auth-refresh { padding-inline:22px; } .auth-refresh .auth-public-header { min-height:77px; } .auth-refresh .auth-public-header .lumina-mark { width:35px; height:35px; } .auth-refresh .auth-public-header .lumina-wordmark { font-size:23px; } .auth-back { font-size:10px; gap:6px; } .auth-refresh .auth-main { padding:30px 0; } .auth-refresh .auth-form { padding:30px 25px 25px; } .auth-refresh .auth-form input { font-size:16px; } .auth-refresh .auth-form>h1 { font-size:43px; } }
+@media(prefers-reduced-motion:reduce) { .auth-refresh *, .auth-refresh *::before { animation:none!important; transition:none!important; } }
+
 /* Estilos propios de features/auth; el resto viene de styles.css (auth-layout, field, button) */
 
 .otp-input {

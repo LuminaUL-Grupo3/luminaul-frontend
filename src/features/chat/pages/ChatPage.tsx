@@ -1,138 +1,129 @@
-import { useEffect, useRef, useState } from "react";
+import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { io, Socket } from "socket.io-client";
-import { api } from "@/config/api";
 import { useSession } from "@/features/auth";
-import { useResource } from "@/hooks/useResource";
-import { PageHeader } from "@/components/ui";
-import { Chat, Message } from "../types";
-import { ChatList, ChatWindow } from "../components";
+import { PageHeader, Notice } from "@/components/ui";
+import {
+  useMyGroupsQuery,
+  useGroupDetailQuery,
+  useChatMessagesQuery,
+} from "../hooks/useGroupQueries";
+import { useChatSocket } from "../hooks/useChatSocket";
+import { ChatList } from "../components/ChatList";
+import { ChatWindow } from "../components/ChatWindow";
+import type { GroupMessageDto } from "../types/contracts";
+import "../styles/chat.css";
 
+/** Une el historial REST con eventos reales sin duplicar ACKs ni resucitar contenido moderado. */
 export function ChatPage() {
-  const { id } = useParams(),
+  const { id = "" } = useParams(),
     navigate = useNavigate(),
     { user } = useSession();
-  const chats = useResource<Chat[]>("/chats", []),
-    [messages, setMessages] = useState<Message[]>([]),
-    [error, setError] = useState(""),
-    [connected, setConnected] = useState(false),
-    [loading, setLoading] = useState(false),
-    [more, setMore] = useState(false);
-  const socket = useRef<Socket | null>(null),
-    active = useRef(id);
-  active.current = id;
-
-  async function history(group: string) {
-    setLoading(true);
-    try {
-      const rows = await api.request<Message[]>(
-        `/groups/${group}/messages?limit=50`,
+  const groups = useMyGroupsQuery(),
+    detail = useGroupDetailQuery(id);
+  const enabled = detail.data?.myStatus === "active";
+  const socket = useChatSocket(id, enabled),
+    history = useChatMessagesQuery(id, enabled && !socket.revoked);
+  const messages = useMemo(() => {
+    if (socket.revoked) return [];
+    const map = new Map<string, GroupMessageDto>();
+    for (const message of history.data?.pages.flat() || [])
+      map.set(message.id, message);
+    for (const message of Object.values(socket.live))
+      map.set(message.id, message);
+    const ordered = [...map.values()].sort(
+      (a, b) =>
+        a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id),
+    );
+    const indexes = new Map(
+      ordered.map((message, index) => [message.id, index]),
+    );
+    return ordered.map((message, index) => {
+      const hidden = socket.hiddenIds.has(message.id);
+      const readBy = new Map(
+        message.readBy.map((reader) => [reader.userId, reader]),
       );
-      if (active.current === group) {
-        setMessages((previous) =>
-          [
-            ...new Map(
-              [...rows, ...previous.filter((m) => m.group_id === group)].map(
-                (m) => [m.id, m],
-              ),
-            ).values(),
-          ].sort(
-            (a, b) =>
-              a.created_at.localeCompare(b.created_at) ||
-              a.id.localeCompare(b.id),
-          ),
-        );
-        setMore(rows.length === 50);
-        await api.request(`/groups/${group}/read`, "POST");
-      }
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    if (!id) return;
-    history(id);
-    const s = io({ path: "/socket.io", withCredentials: true });
-    socket.current = s;
-    s.on("connect", () => {
-      setConnected(true);
-      s.emit("join", id);
+      for (const reader of Object.values(socket.reads))
+        if (
+          reader.userId !== message.senderId &&
+          (indexes.get(reader.messageId) ?? -1) >= index
+        )
+          readBy.set(reader.userId, {
+            userId: reader.userId,
+            name: reader.name,
+          });
+      return {
+        ...message,
+        content: hidden ? "" : message.content,
+        status: hidden ? ("hidden" as const) : message.status,
+        replyTo:
+          message.replyTo && socket.hiddenIds.has(message.replyTo.id)
+            ? { ...message.replyTo, content: null, status: "hidden" as const }
+            : message.replyTo,
+        readBy: [...readBy.values()],
+      };
     });
-    s.on("disconnect", () => setConnected(false));
-    s.on("message", (m: Message) => {
-      if (m.group_id === id) {
-        setMessages((previous) =>
-          [
-            ...new Map([...previous, m].map((item) => [item.id, item])).values(),
-          ].sort(
-            (a, b) =>
-              a.created_at.localeCompare(b.created_at) ||
-              a.id.localeCompare(b.id),
-          ),
-        );
-        api.request(`/groups/${id}/read`, "POST").catch(() => {});
-      }
-    });
-    return () => {
-      s.disconnect();
-    };
-  }, [id]);
-
-  async function sendMessage(content: string) {
-    if (!id) return;
-    try {
-      const sent = await api.request<Message>(
-        `/groups/${id}/messages`,
-        "POST",
-        { content },
-      );
-      setMessages((previous) =>
-        [
-          ...new Map([...previous, sent].map((item) => [item.id, item])).values(),
-        ].sort(
-          (a, b) =>
-            a.created_at.localeCompare(b.created_at) ||
-            a.id.localeCompare(b.id),
-        ),
-      );
-    } catch (e) {
-      setError((e as Error).message);
-      throw e;
-    }
-  }
-
-  const selected = chats.data.find((c) => c.id === id);
+  }, [
+    history.data,
+    socket.live,
+    socket.hiddenIds,
+    socket.reads,
+    socket.revoked,
+  ]);
 
   return (
-    <>
+    <div className="spec04">
       <PageHeader
         eyebrow="COMUNICACIÓN EN TIEMPO REAL"
         title="Mensajes"
-        description="Conversa con los integrantes de tus grupos de estudio."
+        description="Un espacio para conversar, aprender y avanzar en grupo."
       />
-      <div className="chat-layout">
+      <div className={`chat-layout ${id ? "has-conversation" : ""}`}>
         <ChatList
-          chats={chats.data}
-          loading={chats.loading}
+          chats={groups.data || []}
+          loading={groups.isPending}
+          error={groups.error?.message}
           selectedId={id}
           onSelectChat={(groupId) => navigate(`/mensajes/${groupId}`)}
+          onRetry={() => void groups.refetch()}
         />
-        <ChatWindow
-          groupId={id}
-          groupName={selected?.name}
-          connected={connected}
-          messages={messages}
-          loading={loading}
-          more={more}
-          error={error}
-          userId={user?.id}
-          onLoadMore={() => id && history(id)}
-          onSendMessage={sendMessage}
-        />
+        {id && (detail.isError || (!detail.isPending && !enabled)) ? (
+          <section className="chat-main">
+            <Notice error>
+              {detail.error?.message ||
+                "Necesitas pertenecer a este grupo para acceder a su conversación."}
+            </Notice>
+            <button
+              className="button secondary"
+              onClick={() => navigate(`/grupos/${id}`)}
+            >
+              Ver grupo
+            </button>
+          </section>
+        ) : (
+          <ChatWindow
+            key={id}
+            group={detail.data}
+            groupId={id}
+            userId={user?.id || ""}
+            connected={socket.joined}
+            revoked={socket.revoked}
+            messages={messages}
+            loading={Boolean(id) && (detail.isPending || history.isPending)}
+            more={Boolean(history.hasNextPage)}
+            loadingMore={history.isFetchingNextPage}
+            error={socket.error || history.error?.message}
+            onlineIds={socket.onlineIds}
+            typingNames={socket.typingNames}
+            onLoadMore={async () => {
+              await history.fetchNextPage();
+            }}
+            onSendMessage={socket.send}
+            onTyping={socket.notifyTyping}
+            onReaction={socket.react}
+            onRead={socket.markRead}
+          />
+        )}
       </div>
-    </>
+    </div>
   );
 }

@@ -1,26 +1,85 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Link, Navigate } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { Layout } from "@/components/layout";
+import { Loading } from "@/components/ui";
 import { AuthPage, useSession } from "@/features/auth";
-import { FeedPage, PostEditor } from "@/features/posts";
-import {
-  GroupsPage,
-  GroupDetailPage,
-  RequestsPage,
-  ChatPage,
-} from "@/features/chat";
-import {
-  ProfilePage,
-  EditProfilePage,
-  AvailabilityPage,
-  SettingsPage,
-} from "@/features/profile";
-import { MyReviewsPage } from "@/features/reviews";
-import {
-  AdminPage,
-  ModerationPage,
-  NotificationsPage,
-} from "@/features/admin";
+
+// Cada dominio se descarga cuando se visita, manteniendo ligera la entrada pública.
+const LandingPage = lazy(() =>
+  import("@/features/welcome/LandingPage").then((module) => ({
+    default: module.LandingPage,
+  })),
+);
+const FeedPage = lazy(() =>
+  import("@/features/posts").then((module) => ({ default: module.FeedPage })),
+);
+const PostEditor = lazy(() =>
+  import("@/features/posts").then((module) => ({ default: module.PostEditor })),
+);
+const GroupsPage = lazy(() =>
+  import("@/features/chat").then((module) => ({ default: module.GroupsPage })),
+);
+const GroupDetailPage = lazy(() =>
+  import("@/features/chat").then((module) => ({
+    default: module.GroupDetailPage,
+  })),
+);
+const RequestsPage = lazy(() =>
+  import("@/features/chat").then((module) => ({
+    default: module.RequestsPage,
+  })),
+);
+const ChatPage = lazy(() =>
+  import("@/features/chat").then((module) => ({ default: module.ChatPage })),
+);
+const ProfilePage = lazy(() =>
+  import("@/features/profile").then((module) => ({
+    default: module.ProfilePage,
+  })),
+);
+const EditProfilePage = lazy(() =>
+  import("@/features/profile").then((module) => ({
+    default: module.EditProfilePage,
+  })),
+);
+const AvailabilityPage = lazy(() =>
+  import("@/features/profile").then((module) => ({
+    default: module.AvailabilityPage,
+  })),
+);
+const SettingsPage = lazy(() =>
+  import("@/features/profile").then((module) => ({
+    default: module.SettingsPage,
+  })),
+);
+const MyReviewsPage = lazy(() =>
+  import("@/features/reviews").then((module) => ({
+    default: module.MyReviewsPage,
+  })),
+);
+const AdminPage = lazy(() =>
+  import("@/features/admin").then((module) => ({ default: module.AdminDashboardPage })),
+);
+const ModerationPage = lazy(() =>
+  import("@/features/admin").then((module) => ({
+    default: module.ModerationPage,
+  })),
+);
+const NotificationsPage = lazy(() =>
+  import("@/features/admin").then((module) => ({
+    default: module.NotificationsPage,
+  })),
+);
+
+/** Muestra una carga accesible mientras llega únicamente el código de la presentación. */
+function PresentationRoute() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <LandingPage />
+    </Suspense>
+  );
+}
 
 function AdminRoutePage() {
   const { user } = useSession();
@@ -38,9 +97,20 @@ function UnknownPage() {
   );
 }
 
+/** La raíz presenta LuminaUL a visitantes y conserva el feed para sesiones existentes. */
+function EntryRoute() {
+  const { user, loading } = useSession();
+  if (loading) return <Loading />;
+  return user ? <Layout /> : <PresentationRoute />;
+}
+
 export function AppRoutes() {
   return (
     <Routes>
+      <Route path="/" element={<EntryRoute />}>
+        <Route index element={<FeedPage />} />
+      </Route>
+      <Route path="/nosotros" element={<PresentationRoute />} />
       <Route path="/login" element={<AuthPage />} />
       <Route
         path="/registro"
@@ -59,7 +129,6 @@ export function AppRoutes() {
         element={<AuthPage key="reset" mode="reset" />}
       />
       <Route element={<Layout />}>
-        <Route index element={<FeedPage />} />
         <Route path="buscar" element={<FeedPage search />} />
         <Route path="mis-publicaciones" element={<FeedPage mine />} />
         <Route path="publicar" element={<PostEditor />} />
