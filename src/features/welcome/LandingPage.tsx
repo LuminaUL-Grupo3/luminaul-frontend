@@ -6,14 +6,11 @@ import {
   ArrowUpRight,
   BookOpen,
   CalendarDays,
-  Check,
   HeartHandshake,
   Lightbulb,
   Menu,
-  MessageCircle,
   Plus,
   ShieldCheck,
-  Sparkles,
   Users,
   X,
 } from "lucide-react";
@@ -22,7 +19,7 @@ import { useSession } from "@/features/auth";
 import { experiences, purpose, questions } from "./content";
 import "./welcome.css";
 
-const STUDY_IMAGE = "/media/estudio-en-comunidad.webp";
+const CAMPUS_IMAGE = "/media/campus-ulima.webp";
 
 /** Entrada pública: presenta el propósito del producto sin exigir una sesión. */
 export function LandingPage() {
@@ -152,7 +149,6 @@ export function LandingPage() {
           </Link>
         </div>
       </header>
-
       <main id="presentacion">
         <section
           className="welcome-hero welcome-container"
@@ -197,19 +193,18 @@ export function LandingPage() {
                 <ArrowDown size={17} />
               </a>
             </div>
-            
           </div>
           <div className="welcome-hero-visual">
             <div className="welcome-image-frame">
               <img
-                src={STUDY_IMAGE}
-                width="1536"
-                height="1024"
-                alt="Tres estudiantes comparten apuntes y aprenden juntos en un patio universitario"
+                src={CAMPUS_IMAGE}
+                width="1860"
+                height="900"
+                alt="Edificio F1 y jardines del campus de la Universidad de Lima"
                 fetchPriority="high"
               />
             </div>
-            
+
             <a
               href="#como-funciona"
               className="welcome-photo-sticker"
@@ -217,10 +212,16 @@ export function LandingPage() {
             >
               <ArrowUpRight size={28} />
             </a>
-            <span className="welcome-image-caption">
+            <a
+              className="welcome-image-caption"
+              href="https://www.ulima.edu.pe/campus"
+              target="_blank"
+              rel="noreferrer"
+            >
               <i />
-              APRENDE EN COMUNIDAD.
-            </span>
+              CAMPUS · UNIVERSIDAD DE LIMA
+              <ArrowUpRight size={12} />
+            </a>
             <svg
               className="welcome-doodle"
               viewBox="0 0 60 65"
@@ -236,7 +237,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        
+
 
         <section
           className="welcome-experience welcome-container"
@@ -254,7 +255,6 @@ export function LandingPage() {
                 <br />a <em>«lo vemos juntos».</em>
               </h2>
             </div>
-            
           </div>
           <div
             className="welcome-tabs"
@@ -295,7 +295,7 @@ export function LandingPage() {
             <div className="welcome-experience-copy" key={experience.id}>
               <h3>{experience.title}</h3>
               <p>{experience.description}</p>
-              
+
               <Link
                 className="welcome-text-link"
                 to={user ? experience.route : "/registro"}
@@ -304,7 +304,6 @@ export function LandingPage() {
                 <ArrowRight size={18} />
               </Link>
             </div>
-            
           </div>
         </section>
 
@@ -321,7 +320,6 @@ export function LandingPage() {
                 <br />
                 que <em>dar. Y algo que aprender.</em>
               </h2>
-              
             </div>
             <div className="welcome-purpose-grid">
               {purpose.map((item) => (
@@ -331,7 +329,6 @@ export function LandingPage() {
                     <ArrowUpRight size={19} />
                   </span>
                   <span className="welcome-eyebrow">{item.label}</span>
-                  
                   <p>{item.text}</p>
                 </article>
               ))}
@@ -345,36 +342,24 @@ export function LandingPage() {
                   queremos encontrarnos.
                 </h3>
               </div>
-              <dl>
-                <div>
-                  <dt>
-                    <HeartHandshake size={20} />
-                    Colaboración
-                  </dt>
-                  
-                </div>
-                <div>
-                  <dt>
-                    <Users size={20} />
-                    Respeto
-                  </dt>
-                  
-                </div>
-                <div>
-                  <dt>
-                    <ShieldCheck size={20} />
-                    Confianza
-                  </dt>
-                  
-                </div>
-                <div>
-                  <dt>
-                    <Lightbulb size={20} />
-                    Empatía
-                  </dt>
-                  
-                </div>
-              </dl>
+              <ul>
+                <li>
+                  <HeartHandshake size={20} />
+                  Colaboración
+                </li>
+                <li>
+                  <Users size={20} />
+                  Respeto
+                </li>
+                <li>
+                  <ShieldCheck size={20} />
+                  Confianza
+                </li>
+                <li>
+                  <Lightbulb size={20} />
+                  Empatía
+                </li>
+              </ul>
             </div>
           </div>
         </section>
@@ -410,7 +395,6 @@ export function LandingPage() {
             ))}
           </div>
         </section>
-
         <section className="welcome-final welcome-container" data-reveal>
           <div className="welcome-final-pattern" aria-hidden="true" />
           <span className="welcome-eyebrow">

@@ -57,6 +57,12 @@ export async function runWelcomeBrowser({
     );
     await expect(page).toHaveURL(web + "/");
     await settled();
+    await expect(page.locator(".welcome-image-frame img")).toHaveAttribute(
+      "src", "/media/campus-ulima.webp",
+    );
+    await expect(page.locator(".welcome-image-caption")).toHaveAttribute(
+      "href", "https://www.ulima.edu.pe/campus",
+    );
     expect(
       await page.evaluate(() =>
         document.fonts.check('700 20px "Space Grotesk"'),
@@ -145,6 +151,7 @@ export async function runWelcomeBrowser({
     ]) {
       await page.goto(web + route);
       await expect(page.locator(".auth-form h1")).toBeVisible();
+      await expect(page.locator("img")).toHaveCount(0);
       await settled();
       await noOverflow();
       await page.screenshot({

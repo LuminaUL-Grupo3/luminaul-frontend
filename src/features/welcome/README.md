@@ -1,6 +1,6 @@
 # Presentación pública e identidad de LuminaUL
 
-Esta ampliación se incorpora en `SPEC04-grupos-chat-tiempo-real` para revisión del equipo. Se entrega mediante pull request para revisión, sin fusionar ni modificar main. La presentación, el logo y el aspecto del acceso fueron solicitados expresamente además del alcance original de grupos y chat.
+La presentación, el logo y el aspecto del acceso fueron solicitados expresamente además del alcance original de grupos y chat. La primera entrega se integró en main mediante el PR #26; `SPEC04-ajustes-integracion-final` contiene únicamente los ajustes posteriores para revisión del equipo.
 
 ## Recorrido
 
@@ -19,7 +19,7 @@ El logo vectorial representa un libro abierto y un punto de luz, por el signific
 
 La presentación combina naranja, tonos crema y verde, titulares Space Grotesk y acentos Instrument Serif. Las fuentes se alojan en `public/fonts/`, con las licencias OFL de sus autores. El texto del resto de las pantallas conserva su tipografía del equipo. `welcome.css` limita los estilos de la presentación; `auth.css` los limita al marco `.auth-refresh`.
 
-La imagen de estudio se utiliza de forma ilustrativa y representa un campus genérico. Archivo consumido por la web: `public/media/estudio-en-comunidad.webp` (1536 × 1024, aproximadamente 202 KiB). Se conserva el contenido de la imagen original y se cambia únicamente su codificación para reducir la descarga. El archivo de partida se obtuvo con la herramienta integrada de imágenes; no se incorporan dependencias de generación al proyecto.
+La portada utiliza una fotografía real del edificio F1 y los jardines del campus de la Universidad de Lima, publicada en su [página oficial del campus](https://www.ulima.edu.pe/campus). Archivo local: `public/media/campus-ulima.webp` (1860 × 900, aproximadamente 319 KiB), conservado sin alteraciones visuales. [Archivo de origen](https://www.ulima.edu.pe/sites/default/files/styles/webp/public/hub/banner/Adaptaci%C3%B3n-Im%C3%A1genes-Web-Ulima-11.jpg.webp?itok=uqC4qAYS). Crédito: Universidad de Lima; los derechos corresponden a su titular, sin atribuirle una licencia abierta ni un respaldo institucional a LuminaUL. La imagen enlaza a la fuente en su pie. Se elimina la ilustración anterior del proyecto. **Los formularios de acceso, registro y recuperación no incluyen fotografías ni paneles promocionales.**
 
 ## Interacciones y accesibilidad
 
@@ -58,12 +58,6 @@ El main inicial ya contenía SPEC-01, SPEC-02 y SPEC-03. Se verificaron los PR f
 
 Mientras se preparaba esta revisión, el equipo fusionó también SPEC-05 y los ajustes de SPEC-03: frontend main `1da721f7528e1320051d633efd32bc19354d27e6` (PR #23 y #24), backend main `25df6c06882a75a148b0f4921036b8766aeac2d4` (PR #11 y #12). Esos main se incorporaron mediante merge a SPEC-04, preservando los módulos y autorías del equipo. La prueba adicional comprueba publicación, consulta, permisos y borrado lógico de una reseña tras una expulsión de grupo. No se reimplementa SPEC-05 y se prepara un PR de SPEC-04 para revisión.
 
-## Prompt de la imagen
-
-Herramienta: generación integrada `image_gen`, imagen nueva, fondo opaco. Prompt final:
-
-Use case: photorealistic-natural. Asset type: editorial hero photograph for LuminaUL, a student collaboration website from a university software project in Lima, Peru. Primary request: A beautiful candid scene of three Latin American university students in their early twenties learning together around a laptop and open notebooks at an outdoor wooden study table in a contemporary sunlit campus courtyard. One student is explaining a diagram in a notebook, the others listen and smile naturally; believable hands and relaxed poses. Scene: warm pale concrete architecture softly out of focus, a small amount of green foliage, a calm urban campus atmosphere; this is a fictional illustrative campus, not a photograph of any named university. Style: premium natural editorial photography, gentle film texture, true-to-life skin and clothing, no excessive retouching. Composition: landscape 3:2 frame, medium wide shot, students grouped centrally with comfortable headroom, enough table visible in lower third; faces and hands well composed for a website crop. Lighting: soft warm daylight, bright cream and apricot highlights, subtle terracotta/orange clothing accents, deep natural green details, inviting and thoughtful mood. Constraints: image only, no text, no captions, no logos, no visible branded laptop marks, no watermark, no UI, no decorative graphic overlays.
-
 ## Revisión final
 
-Se incorporó el main del equipo que incluye SPEC-07 (frontend d9f9aa0, backend 8181e32), sin alterar sus módulos. La ruta de administración consume AdminDashboardPage y el backend reutiliza el único bus de eventos registrado por main. El acceso y registro se simplificaron: sin foto ni bloque promocional; la portada conserva propósito y funciones con textos breves. Se preparan pull requests de revisión; no se fusionan automáticamente.
+La revisión posterior al PR #26 parte del frontend main 1d8539f y del backend main 3a9d545, que incluye la reorganización modular de Lau. SPEC-04 conserva sus contratos y reutiliza el único bus de eventos registrado por main. La portada utiliza la fotografía real de Ulima con enlace de crédito; el acceso y registro permanecen sin fotos. Los ajustes complementarios se entregan en PR para revisión, sin fusionarlos automáticamente.
