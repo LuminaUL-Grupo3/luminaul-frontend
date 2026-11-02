@@ -1,6 +1,6 @@
 # Presentación pública e identidad de LuminaUL
 
-Esta ampliación se incorpora en `SPEC04-grupos-chat-tiempo-real` para revisión del equipo. No abre un pull request ni modifica main. La presentación, el logo y el aspecto del acceso fueron solicitados expresamente además del alcance original de grupos y chat.
+Esta ampliación se incorpora en `SPEC04-grupos-chat-tiempo-real` para revisión del equipo. Se entrega mediante pull request para revisión, sin fusionar ni modificar main. La presentación, el logo y el aspecto del acceso fueron solicitados expresamente además del alcance original de grupos y chat.
 
 ## Recorrido
 
@@ -56,10 +56,14 @@ Sin `TEST_EMAIL` y `TEST_PASSWORD`, la suite HTTP omite las comprobaciones posit
 
 El main inicial ya contenía SPEC-01, SPEC-02 y SPEC-03. Se verificaron los PR fusionados de SPEC-03: frontend #17 y backend #6. Además, se incorporaron los ajustes publicados por el equipo: frontend `859515b` cambia la eliminación de cuenta a `/auth/me`; backend `415de10` conserva `/auth/me` y admite el alias `/auth/account`.
 
-Mientras se preparaba esta revisión, el equipo fusionó también SPEC-05 y los ajustes de SPEC-03: frontend main `1da721f7528e1320051d633efd32bc19354d27e6` (PR #23 y #24), backend main `25df6c06882a75a148b0f4921036b8766aeac2d4` (PR #11 y #12). Esos main se incorporaron mediante merge a SPEC-04, preservando los módulos y autorías del equipo. La prueba adicional comprueba publicación, consulta, permisos y borrado lógico de una reseña tras una expulsión de grupo. No se reimplementa SPEC-05 ni se abre un PR de SPEC-04.
+Mientras se preparaba esta revisión, el equipo fusionó también SPEC-05 y los ajustes de SPEC-03: frontend main `1da721f7528e1320051d633efd32bc19354d27e6` (PR #23 y #24), backend main `25df6c06882a75a148b0f4921036b8766aeac2d4` (PR #11 y #12). Esos main se incorporaron mediante merge a SPEC-04, preservando los módulos y autorías del equipo. La prueba adicional comprueba publicación, consulta, permisos y borrado lógico de una reseña tras una expulsión de grupo. No se reimplementa SPEC-05 y se prepara un PR de SPEC-04 para revisión.
 
 ## Prompt de la imagen
 
 Herramienta: generación integrada `image_gen`, imagen nueva, fondo opaco. Prompt final:
 
 Use case: photorealistic-natural. Asset type: editorial hero photograph for LuminaUL, a student collaboration website from a university software project in Lima, Peru. Primary request: A beautiful candid scene of three Latin American university students in their early twenties learning together around a laptop and open notebooks at an outdoor wooden study table in a contemporary sunlit campus courtyard. One student is explaining a diagram in a notebook, the others listen and smile naturally; believable hands and relaxed poses. Scene: warm pale concrete architecture softly out of focus, a small amount of green foliage, a calm urban campus atmosphere; this is a fictional illustrative campus, not a photograph of any named university. Style: premium natural editorial photography, gentle film texture, true-to-life skin and clothing, no excessive retouching. Composition: landscape 3:2 frame, medium wide shot, students grouped centrally with comfortable headroom, enough table visible in lower third; faces and hands well composed for a website crop. Lighting: soft warm daylight, bright cream and apricot highlights, subtle terracotta/orange clothing accents, deep natural green details, inviting and thoughtful mood. Constraints: image only, no text, no captions, no logos, no visible branded laptop marks, no watermark, no UI, no decorative graphic overlays.
+
+## Revisión final
+
+Se incorporó el main del equipo que incluye SPEC-07 (frontend d9f9aa0, backend 8181e32), sin alterar sus módulos. La ruta de administración consume AdminDashboardPage y el backend reutiliza el único bus de eventos registrado por main. El acceso y registro se simplificaron: sin foto ni bloque promocional; la portada conserva propósito y funciones con textos breves. Se preparan pull requests de revisión; no se fusionan automáticamente.

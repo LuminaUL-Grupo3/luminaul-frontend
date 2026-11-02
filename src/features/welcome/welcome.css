@@ -1321,3 +1321,21 @@
     transform: none;
   }
 }
+
+/* Presentación resumida: una idea por bloque, sin vistas de ejemplo repetidas. */
+.welcome-hero { padding-block:54px; }
+.welcome-hero-copy>p { max-width:390px; }
+.welcome-experience { padding-block:65px; }
+.welcome-experience-panel { grid-template-columns:1fr; min-height:0; }
+.welcome-experience-copy { max-width:760px; }
+.welcome-experience-copy h3 { max-width:620px; }
+.welcome-purpose { padding-block:60px; }
+.welcome-purpose-grid { margin-top:35px; }
+.welcome-purpose-grid .welcome-eyebrow { font-size:12px; margin-bottom:12px; }
+.welcome-purpose-number { display:none; }
+.welcome-values { margin-top:32px; padding-top:28px; }
+.welcome-values h3 { display:none; }
+.welcome-values dl { gap:18px; }
+.welcome-final { padding-block:42px; }
+.welcome-final h2 { margin-top:0; }
+.welcome-footer p:empty { display:none; }

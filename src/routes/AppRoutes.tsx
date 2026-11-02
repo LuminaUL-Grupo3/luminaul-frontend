@@ -59,7 +59,7 @@ const MyReviewsPage = lazy(() =>
   })),
 );
 const AdminPage = lazy(() =>
-  import("@/features/admin").then((module) => ({ default: module.AdminPage })),
+  import("@/features/admin").then((module) => ({ default: module.AdminDashboardPage })),
 );
 const ModerationPage = lazy(() =>
   import("@/features/admin").then((module) => ({

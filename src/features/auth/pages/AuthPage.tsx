@@ -15,18 +15,7 @@ interface PendingVerification {
   codeJustSent: boolean;
 }
 
-const COPY = {
-  login: {
-    title: "Qué bueno verte.",
-    description:
-      "Tu comunidad te espera. Ingresa con tu correo institucional para continuar.",
-  },
-  register: {
-    title: "Tu comunidad empieza aquí.",
-    description:
-      "Crea tu cuenta con tu correo institucional y comparte lo que te mueve a aprender.",
-  },
-} as const;
+const COPY = { login: { title: "Inicia sesión." }, register: { title: "Crea tu cuenta." } } as const;
 
 // Contenedor de acceso: alterna entre inicio de sesión y registro, y abre VerifyEmailModal.
 // Los modos recover/reset se conservan porque AppRoutes los usa; delegan en ResetPasswordPage.
@@ -62,7 +51,7 @@ export function AuthPage({ mode = "login" }: { mode?: AuthMode }) {
   }
 
   return (
-    <AuthLayout title={COPY[view].title} description={COPY[view].description}>
+    <AuthLayout title={COPY[view].title}>
       {mode === "verify" && !emailParam && (
         <Notice>Inicia sesión con tu cuenta para verificarla.</Notice>
       )}
@@ -86,12 +75,12 @@ export function AuthPage({ mode = "login" }: { mode?: AuthMode }) {
       <p className="auth-switch">
         {view === "login" ? (
           <>
-            ¿Aún no tienes cuenta?{" "}
-            <Link to={AUTH_ROUTES.register}>Regístrate aquí</Link>
+            ¿No tienes cuenta?{" "}
+            <Link to={AUTH_ROUTES.register}>Regístrate</Link>
           </>
         ) : (
           <>
-            ¿Ya estás registrado?{" "}
+            ¿Ya tienes cuenta?{" "}
             <Link to={AUTH_ROUTES.login}>Inicia sesión</Link>
           </>
         )}

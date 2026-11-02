@@ -197,16 +197,7 @@ export function LandingPage() {
                 <ArrowDown size={17} />
               </a>
             </div>
-            <div className="welcome-hero-note">
-              <span className="welcome-note-icon">
-                <HeartHandshake size={19} />
-              </span>
-              <p>
-                Lo que tú sabes puede ser
-                <br />
-                <strong>justo lo que alguien necesita.</strong>
-              </p>
-            </div>
+            
           </div>
           <div className="welcome-hero-visual">
             <div className="welcome-image-frame">
@@ -218,16 +209,7 @@ export function LandingPage() {
                 fetchPriority="high"
               />
             </div>
-            <div className="welcome-image-label">
-              <span>
-                <Sparkles size={19} />
-              </span>
-              <div>
-                El siguiente paso,
-                <br />
-                <strong>mejor en compañía.</strong>
-              </div>
-            </div>
+            
             <a
               href="#como-funciona"
               className="welcome-photo-sticker"
@@ -237,7 +219,7 @@ export function LandingPage() {
             </a>
             <span className="welcome-image-caption">
               <i />
-              UNA COMUNIDAD. MUCHAS FORMAS DE APRENDER.
+              APRENDE EN COMUNIDAD.
             </span>
             <svg
               className="welcome-doodle"
@@ -254,24 +236,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <div className="welcome-principles">
-          <div className="welcome-container">
-            <span>
-              <BookOpen size={18} />
-              Comparte lo que sabes
-            </span>
-            <i />
-            <span>
-              <Users size={18} />
-              Encuentra con quién aprender
-            </span>
-            <i />
-            <span>
-              <MessageCircle size={18} />
-              Haz que las ideas conversen
-            </span>
-          </div>
-        </div>
+        
 
         <section
           className="welcome-experience welcome-container"
@@ -289,11 +254,7 @@ export function LandingPage() {
                 <br />a <em>«lo vemos juntos».</em>
               </h2>
             </div>
-            <p>
-              Encontrarse es el primer paso.
-              <br />
-              Nosotros hacemos que sea más sencillo.
-            </p>
+            
           </div>
           <div
             className="welcome-tabs"
@@ -334,14 +295,7 @@ export function LandingPage() {
             <div className="welcome-experience-copy" key={experience.id}>
               <h3>{experience.title}</h3>
               <p>{experience.description}</p>
-              <ul>
-                {experience.points.map((point) => (
-                  <li key={point}>
-                    <Check size={16} />
-                    {point}
-                  </li>
-                ))}
-              </ul>
+              
               <Link
                 className="welcome-text-link"
                 to={user ? experience.route : "/registro"}
@@ -350,98 +304,7 @@ export function LandingPage() {
                 <ArrowRight size={18} />
               </Link>
             </div>
-            <div
-              className={`welcome-preview welcome-preview-${experience.id}`}
-              aria-label="Ejemplo ilustrativo de la comunidad"
-            >
-              <span className="welcome-preview-label">
-                ASÍ PUEDE EMPEZAR UNA CONEXIÓN
-              </span>
-              {selected === 0 ? (
-                <>
-                  <span className="welcome-preview-icon">
-                    <BookOpen size={26} />
-                  </span>
-                  <span className="welcome-chip">Matemática básica</span>
-                  <h4>
-                    ¿Resolvemos esa
-                    <br />
-                    práctica juntos?
-                  </h4>
-                  <p>
-                    Una publicación puede conectar
-                    <br />a quienes tienen el mismo objetivo.
-                  </p>
-                  <div className="welcome-preview-bottom">
-                    <span>Compartir también es aprender.</span>
-                    <ArrowUpRight size={19} />
-                  </div>
-                </>
-              ) : selected === 1 ? (
-                <>
-                  <div
-                    className="welcome-group-illustration"
-                    aria-hidden="true"
-                  >
-                    <span>
-                      <BookOpen size={24} />
-                    </span>
-                    <span>
-                      <Lightbulb size={24} />
-                    </span>
-                    <span>
-                      <MessageCircle size={24} />
-                    </span>
-                  </div>
-                  <span className="welcome-chip">Un curso en común</span>
-                  <h4>
-                    Diferentes ideas.
-                    <br />
-                    Un mismo grupo.
-                  </h4>
-                  <p>
-                    Solicita ingreso, conoce a tus compañeros
-                    <br />y empieza la conversación.
-                  </p>
-                  <div className="welcome-preview-bottom">
-                    <span>Tu próximo grupo empieza aquí.</span>
-                    <Users size={20} />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="welcome-mini-calendar" aria-hidden="true">
-                    <span>L</span>
-                    <span>M</span>
-                    <span>M</span>
-                    <span>J</span>
-                    <span>V</span>
-                    {Array.from({ length: 10 }, (_, index) => (
-                      <i
-                        className={
-                          [1, 3, 6, 8].includes(index) ? "available" : ""
-                        }
-                        key={index}
-                      />
-                    ))}
-                  </div>
-                  <span className="welcome-chip">Espacio para coincidir</span>
-                  <h4>
-                    Un rato libre.
-                    <br />
-                    Una idea compartida.
-                  </h4>
-                  <p>
-                    Haz visible tu disponibilidad
-                    <br />y encuentra un momento para aprender.
-                  </p>
-                  <div className="welcome-preview-bottom">
-                    <span>Organizarse también puede ser fácil.</span>
-                    <CalendarDays size={20} />
-                  </div>
-                </>
-              )}
-            </div>
+            
           </div>
         </section>
 
@@ -458,11 +321,7 @@ export function LandingPage() {
                 <br />
                 que <em>dar. Y algo que aprender.</em>
               </h2>
-              <p>
-                LuminaUL nace de una convicción sencilla: el conocimiento
-                <br className="welcome-desktop-break" /> puede iluminar el
-                camino de alguien más.
-              </p>
+              
             </div>
             <div className="welcome-purpose-grid">
               {purpose.map((item) => (
@@ -472,7 +331,7 @@ export function LandingPage() {
                     <ArrowUpRight size={19} />
                   </span>
                   <span className="welcome-eyebrow">{item.label}</span>
-                  <h3>{item.title}</h3>
+                  
                   <p>{item.text}</p>
                 </article>
               ))}
@@ -492,28 +351,28 @@ export function LandingPage() {
                     <HeartHandshake size={20} />
                     Colaboración
                   </dt>
-                  <dd>Aprender sumando lo que cada uno sabe.</dd>
+                  
                 </div>
                 <div>
                   <dt>
                     <Users size={20} />
                     Respeto
                   </dt>
-                  <dd>Escuchar otras ideas y cuidar el espacio común.</dd>
+                  
                 </div>
                 <div>
                   <dt>
                     <ShieldCheck size={20} />
                     Confianza
                   </dt>
-                  <dd>Conocernos y coordinar con responsabilidad.</dd>
+                  
                 </div>
                 <div>
                   <dt>
                     <Lightbulb size={20} />
                     Empatía
                   </dt>
-                  <dd>Recordar que todos empezamos con una pregunta.</dd>
+                  
                 </div>
               </dl>
             </div>
@@ -574,7 +433,7 @@ export function LandingPage() {
           <Link to="/nosotros" aria-label="LuminaUL, presentación">
             <Brand compact />
           </Link>
-          <p>Estudiantes que acompañan a estudiantes.</p>
+          <p></p>
         </div>
         <div>
           <a href="#proposito">Nuestro propósito</a>

@@ -4,19 +4,19 @@ export const purpose = [
     label: "Nuestra misión",
     number: "01",
     title: "Acercar a quienes quieren aprender.",
-    text: "Conectar a estudiantes de la Universidad de Lima para compartir conocimientos, encontrar apoyo académico y formar grupos de estudio en una comunidad cercana y de confianza.",
+    text: "Conectar estudiantes para compartir conocimientos y encontrar apoyo académico.",
   },
   {
     label: "Nuestra visión",
     number: "02",
     title: "Una comunidad que crece junta.",
-    text: "Que pedir ayuda y compartir lo que sabemos sea parte natural de la vida universitaria: un campus donde cada estudiante pueda encontrar compañía para seguir aprendiendo.",
+    text: "Una comunidad donde aprender juntos sea parte de la vida universitaria.",
   },
   {
     label: "Nuestro objetivo",
     number: "03",
     title: "Hacer más fácil encontrarse.",
-    text: "Reunir publicaciones académicas, perfiles, disponibilidad y conversaciones en un mismo espacio, para que coordinar una sesión de estudio deje de ser lo más difícil del curso.",
+    text: "Facilitar el encuentro y la coordinación de grupos de estudio.",
   },
 ] as const;
 
@@ -49,7 +49,7 @@ export const experiences = [
     label: "Encuentra apoyo",
     title: "Esa duda puede ser el inicio de algo bueno.",
     description:
-      "Explora publicaciones por curso y encuentra a compañeros con quienes resolver una práctica, repasar un tema o compartir lo que ya aprendiste.",
+      "Encuentra publicaciones por curso y compañeros con quienes estudiar.",
     points: [
       "Publicaciones de asesoría y grupos de estudio",
       "Búsqueda por curso y filtros",
@@ -63,7 +63,7 @@ export const experiences = [
     label: "Arma tu grupo",
     title: "Mejor cuando cada uno aporta algo.",
     description:
-      "Crea tu espacio de estudio o encuentra uno que vaya contigo. Envía una solicitud, conoce al grupo y organiza la próxima sesión desde su conversación.",
+      "Crea un grupo o solicita ingreso a uno que te interese.",
     points: [
       "Grupos con curso, modalidad y cupos",
       "Solicitudes revisadas por el líder",
@@ -77,7 +77,7 @@ export const experiences = [
     label: "Haz que coincida",
     title: "Un espacio en tu horario. Una oportunidad de aprender.",
     description:
-      "Comparte tu disponibilidad y consulta la de tus compañeros. Pasen del «¿cuándo puedes?» a una conversación para organizarse mejor.",
+      "Comparte tus horas libres y coordina con tus compañeros.",
     points: [
       "Disponibilidad organizada por día",
       "Perfiles con intereses y habilidades",
