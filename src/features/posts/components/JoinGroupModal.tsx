@@ -32,11 +32,11 @@ export function JoinGroupModal({
           onClose();
         }}
       >
-        <Field label="Preséntate al grupo">
+        <Field label="Preséntate al grupo" hint={`${message.length}/255 caracteres`}>
           <textarea
             required
             minLength={1}
-            maxLength={1000}
+            maxLength={255}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Cuéntales qué te gustaría aprender…"
