@@ -92,11 +92,17 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             />
           </Field>
           <Field label="Ciclo académico">
-            <input
-              maxLength={20}
+            <select
               value={academicCycle}
               onChange={(e) => setAcademicCycle(e.target.value)}
-            />
+            >
+              <option value="">Selecciona tu ciclo</option>
+              {Array.from({ length: 10 }, (_, i) => (
+                <option key={i + 1} value={String(i + 1)}>
+                  Ciclo {i + 1}
+                </option>
+              ))}
+            </select>
           </Field>
         </div>
         <Field label="Habilidades" hint="Separa con comas.">
