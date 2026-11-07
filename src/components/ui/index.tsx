@@ -175,6 +175,52 @@ export function Modal({
   );
 }
 
+type ConstrainedField = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+
+// Nombre visible del campo: el texto del <Field> que lo envuelve, o su aria-label
+function fieldName(field: ConstrainedField): string {
+  const label = field.closest("label.field")?.querySelector(":scope > span")?.textContent;
+  return (label || field.getAttribute("aria-label") || "Este campo").trim();
+}
+
+// Traduce las restricciones HTML (required, minLength, min, max, type…) a un mensaje en
+// español. Reemplaza los globos nativos del navegador, que salen en el idioma del sistema.
+function constraintMessage(field: ConstrainedField): string {
+  const name = `"${fieldName(field)}"`;
+  const { validity } = field;
+  const length = field.value.length;
+  // minLength/maxLength se revisan a mano: el navegador no siempre marca tooShort en inputs
+  // controlados por React
+  const minLength = "minLength" in field ? field.minLength : -1;
+  const maxLength = "maxLength" in field ? field.maxLength : -1;
+  if (validity.valueMissing) return `Debes completar ${name}`;
+  if (length > 0 && minLength > 0 && length < minLength)
+    return `${name} debe tener al menos ${minLength} caracteres`;
+  if (maxLength > 0 && length > maxLength)
+    return `${name} no puede superar los ${maxLength} caracteres`;
+  if (validity.badInput || validity.typeMismatch || validity.patternMismatch)
+    return `${name} no tiene un formato válido`;
+  if (validity.rangeUnderflow && "min" in field) return `${name} debe ser como mínimo ${field.min}`;
+  if (validity.rangeOverflow && "max" in field) return `${name} debe ser como máximo ${field.max}`;
+  if (validity.stepMismatch) return `${name} no tiene un valor válido`;
+  return "";
+}
+
+function firstConstraintError(form: HTMLFormElement): { field: ConstrainedField; message: string } | null {
+  for (const element of Array.from(form.elements)) {
+    if (
+      !(element instanceof HTMLInputElement ||
+        element instanceof HTMLTextAreaElement ||
+        element instanceof HTMLSelectElement) ||
+      element.disabled
+    )
+      continue;
+    const message = constraintMessage(element);
+    if (message) return { field: element, message };
+  }
+  return null;
+}
+
 export function ActionForm({
   path,
   method = "POST",
@@ -202,12 +248,22 @@ export function ActionForm({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [message, setMessage] = useState("");
-  async function submit(e: FormEvent) {
+  async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (busy) return;
+    // Mismo formato que el inicio de sesión: un solo mensaje, debajo de los campos.
+    // La validación propia del formulario (validate) tiene prioridad sobre la genérica.
     const validationError = validate?.();
     if (validationError) {
+      setMessage("");
       setError(validationError);
+      return;
+    }
+    const constraint = firstConstraintError(e.currentTarget);
+    if (constraint) {
+      setMessage("");
+      setError(constraint.message);
+      constraint.field.focus();
       return;
     }
     setBusy(true);
@@ -239,7 +295,7 @@ export function ActionForm({
     }
   }
   return (
-    <form className="form" onSubmit={submit} noValidate={Boolean(validate)}>
+    <form className="form" onSubmit={submit} noValidate>
       {title && <h3>{title}</h3>}
       {children}
       <Notice error>{error}</Notice>
