@@ -13,7 +13,7 @@ try{
   await page.goto(base+route);await expect(page.locator('main h1').first()).toBeVisible();await expect(page.locator('.loading')).toHaveCount(0);results.push(`Navegación ${route}`);
   if(route==='/perfil')await page.screenshot({path:'analysis/validation/profile-desktop.png',fullPage:true});
  }
- const groups=await (await ctx.request.get(base+'/api/v1/groups')).json(),group=groups.find(g=>g.name==='Círculo de Software II').id;
+ const groups=await (await ctx.request.get(base+'/api/groups')).json(),group=groups.find(g=>g.name==='Círculo de Software II').id;
  const ana=await login('ana.demo@aloe.ulima.edu.pe');await page.goto(`${base}/mensajes/${group}`);await ana.page.goto(`${base}/mensajes/${group}`);
  await expect(page.getByText('Conectado en tiempo real',{exact:true})).toBeVisible();await expect(ana.page.getByText('Conectado en tiempo real',{exact:true})).toBeVisible();
  const text=`Prueba de navegador ${Date.now()}: chat conectado.`;await page.getByLabel('Mensaje',{exact:true}).fill(text);await page.getByRole('button',{name:'Enviar mensaje',exact:true}).click();await expect(ana.page.getByText(text,{exact:true}).last()).toBeVisible();await ana.page.reload();await expect(ana.page.getByText(text,{exact:true}).last()).toBeVisible();results.push('Chat real entre dos navegadores, persistente al recargar');

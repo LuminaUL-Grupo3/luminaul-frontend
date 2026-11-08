@@ -76,13 +76,13 @@ page.on("dialog", async (dialog) => {
 });
 await page.route(
   (url) =>
-    url.pathname.startsWith("/api/v1") ||
+    url.pathname.startsWith("/api") ||
     /^\/(api|posts|courses|groups|profiles|reviews|join-requests|auth|availability|availabilities|notifications|moderation|admin|chats|requests)(\/|$)/.test(
       url.pathname,
     ),
   async (route) => {
     const request = route.request(),
-      path = new URL(request.url()).pathname.replace(/^\/api(\/v1)?/, "");
+      path = new URL(request.url()).pathname.replace(/^\/api/, "");
     let data = [];
     if (request.method() !== "GET") {
       const body = request.postDataJSON ? request.postDataJSON() : null;
