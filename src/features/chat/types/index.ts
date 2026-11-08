@@ -14,14 +14,15 @@ export interface Group {
   description: string;
   benefits: string;
   requirements: string;
-  admin_id: string;
+  leader_id?: string;
+  admin_id?: string;
   max_capacity: number;
   member_count: number;
   role: string;
   members: Member[];
 }
 
-export type GroupMembershipStatus = "admin" | "member" | "pending" | "none";
+export type GroupMembershipStatus = "leader" | "admin" | "member" | "pending" | "none";
 
 export interface GroupDetail {
   id: string;
@@ -33,8 +34,10 @@ export interface GroupDetail {
   meeting_shift: string | null;
   max_capacity: number | null;
   member_count: number;
-  admin_id: string;
-  admin: { user_id: string; name: string; profile_photo_url: string | null };
+  leader_id?: string;
+  admin_id?: string;
+  leader?: { user_id: string; name: string; profile_photo_url: string | null };
+  admin?: { user_id: string; name: string; profile_photo_url: string | null };
   my_status: GroupMembershipStatus;
   created_at: string;
 }
@@ -101,6 +104,7 @@ export interface RespondJoinRequestResponse {
 export interface JoinRequest {
   id: string;
   group_id?: string;
+  user_id?: string;
   requester_id?: string;
   requester_name?: string;
   group_name?: string;
