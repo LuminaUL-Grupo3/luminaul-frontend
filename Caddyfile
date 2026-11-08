@@ -1,0 +1,31 @@
+(app_routes) {
+	encode gzip
+
+	# API REST + Swagger (/api/docs) -> backend:8000
+	handle /api* {
+		reverse_proxy backend:8000
+	}
+
+	# WebSocket del chat Socket.IO -> backend:8000
+	handle /socket.io* {
+		reverse_proxy backend:8000
+	}
+
+	# SPA React 19: archivo estático o fallback a index.html
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+# HTTPS con TLS autofirmado interno (Caddy Local CA)
+:443, localhost {
+	tls internal
+	import app_routes
+}
+
+# HTTP para compatibilidad y acceso local
+:80 {
+	import app_routes
+}
