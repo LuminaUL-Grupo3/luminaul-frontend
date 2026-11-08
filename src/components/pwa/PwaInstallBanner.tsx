@@ -56,7 +56,6 @@ export function PwaInstallBanner() {
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
 
     // 4. Detección de iOS Safari (Apple no soporta beforeinstallprompt)
-    const ua = window.navigator.userAgent.toLowerCase();
     const isIos = /iphone|ipad|ipod/.test(ua);
     const isSafari = ua.includes("safari") && !ua.includes("crios") && !ua.includes("fxios");
 
