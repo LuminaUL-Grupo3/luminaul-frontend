@@ -1,0 +1,37 @@
+{
+  "name": "LuminaUL · El conocimiento se comparte",
+  "short_name": "LuminaUL",
+  "description": "Comunidad estudiantil de la Universidad de Lima para conformación de grupos de estudio, tutorías y coordinación académica.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fcfaf5",
+  "theme_color": "#e65323",
+  "orientation": "portrait-primary",
+  "categories": [
+    "education",
+    "social",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
