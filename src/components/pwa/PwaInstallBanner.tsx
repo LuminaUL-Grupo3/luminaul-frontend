@@ -186,3 +186,4 @@ export function PwaInstallBanner() {
     </div>
   );
 }
+
