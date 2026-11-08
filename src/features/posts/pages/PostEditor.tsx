@@ -12,6 +12,7 @@ import {
   Layers,
   X,
   Eye,
+  Link2,
 } from "lucide-react";
 import { api } from "@/config/api";
 import { useResource } from "@/hooks/useResource";
@@ -19,6 +20,16 @@ import { PageHeader, Loading, Notice, Modal, Field } from "@/components/ui";
 
 import { Course, Publication } from "../types";
 import "./PostEditor.css";
+
+export interface MyGroupSummary {
+  id: string;
+  name: string;
+  description?: string | null;
+  courseCode?: string;
+  myRole?: string | null;
+  maxCapacity?: number;
+  currentMembers?: number;
+}
 
 // Formatea de manera uniforme los nombres de cursos a Title Case profesional
 export function formatCourseName(rawName: string): string {
@@ -78,12 +89,15 @@ export function PostEditor() {
   const navigate = useNavigate();
 
   const courses = useResource<Course[]>("/courses", []);
+  const myGroups = useResource<MyGroupSummary[]>("/groups/me", []);
   const [selectedCycle, setSelectedCycle] = useState<number | null>(null);
   const [courseSearch, setCourseSearch] = useState("");
+  const [groupMode, setGroupMode] = useState<"new" | "existing">("new");
 
   const [form, setForm] = useState({
     course_id: "",
     type: "study_group",
+    group_id: "",
     description: "",
     benefits: "",
     requirements: "",
@@ -105,14 +119,19 @@ export function PostEditor() {
       .then((p) => {
         if (active) {
           const courseId = p.course?.id || p.course_id || "";
+          const existingGroupId = p.groupId || p.group_id || "";
           setForm({
             course_id: courseId,
             type: p.type,
+            group_id: existingGroupId,
             description: p.description,
             benefits: p.benefits || "",
             requirements: p.requirements || "",
             max_capacity: Math.min(8, Math.max(2, p.max_capacity ?? 5)),
           });
+          if (existingGroupId) {
+            setGroupMode("existing");
+          }
           setLoaded(true);
         }
       })
@@ -121,6 +140,11 @@ export function PostEditor() {
       active = false;
     };
   }, [id]);
+
+  const selectedGroup = useMemo(() => {
+    if (!form.group_id || !myGroups.data.length) return null;
+    return myGroups.data.find((g) => g.id === form.group_id) || null;
+  }, [myGroups.data, form.group_id]);
 
   // Sincronizar ciclo seleccionado si el curso ya está fijado
   useEffect(() => {
@@ -179,6 +203,10 @@ export function PostEditor() {
       errorsMap.requirements =
         "Especifica los requisitos o conocimientos previos necesarios.";
     }
+    if (form.type === "study_group" && groupMode === "existing" && !form.group_id) {
+      errorsMap.group_id =
+        "Selecciona un grupo de estudio existente de la lista para vincular.";
+    }
 
     if (Object.keys(errorsMap).length > 0) {
       setFieldErrors(errorsMap);
@@ -191,13 +219,23 @@ export function PostEditor() {
     setFieldErrors({});
 
     try {
+      const payload: Record<string, unknown> = {
+        course_id: form.course_id,
+        type: form.type,
+        description: form.description,
+        benefits: form.benefits,
+        requirements: form.requirements,
+        max_capacity: Math.min(8, Math.max(2, form.max_capacity)),
+      };
+
+      if (form.type === "study_group" && groupMode === "existing" && form.group_id) {
+        payload.group_id = form.group_id;
+      }
+
       await api.request(
         id ? `/posts/${id}` : "/posts",
         id ? "PUT" : "POST",
-        {
-          ...form,
-          max_capacity: Math.min(8, Math.max(2, form.max_capacity)),
-        },
+        payload,
       );
       setDirty(false);
       navigate("/mis-publicaciones", {
@@ -327,6 +365,126 @@ export function PostEditor() {
                   </div>
                 </div>
               </Field>
+
+              {/* Modalidad de Grupo de Estudio (Crear nuevo vs Vincular existente) */}
+              {form.type === "study_group" && (
+                <Field
+                  label="Modalidad del Grupo de Estudio"
+                  hint="Elige si deseas auto-crear una sala nueva o adjuntar un grupo que ya lideras."
+                >
+                  <div
+                    className="group-mode-toggle"
+                    role="radiogroup"
+                    aria-label="Modalidad del grupo de estudio"
+                  >
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={groupMode === "new"}
+                      className={`group-mode-btn ${
+                        groupMode === "new" ? "active" : ""
+                      }`}
+                      onClick={() => {
+                        setGroupMode("new");
+                        set("group_id", "");
+                      }}
+                    >
+                      <Sparkles size={18} />
+                      <div>
+                        <strong style={{ display: "block" }}>
+                          Crear nuevo grupo
+                        </strong>
+                        <span style={{ fontSize: 12, color: "#64748b" }}>
+                          Auto-generado para el curso seleccionado
+                        </span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={groupMode === "existing"}
+                      className={`group-mode-btn ${
+                        groupMode === "existing" ? "active" : ""
+                      }`}
+                      onClick={() => setGroupMode("existing")}
+                    >
+                      <Link2 size={18} />
+                      <div>
+                        <strong style={{ display: "block" }}>
+                          Vincular grupo existente
+                        </strong>
+                        <span style={{ fontSize: 12, color: "#64748b" }}>
+                          Usa un grupo que ya tienes activo
+                        </span>
+                      </div>
+                    </button>
+                  </div>
+
+                  {groupMode === "existing" && (
+                    <div className="group-select-container">
+                      {myGroups.data.length === 0 ? (
+                        <div className="empty-groups-notice">
+                          <AlertCircle size={16} />
+                          <span>
+                            Aún no perteneces a ningún grupo de estudio. Elige
+                            "Crear nuevo grupo" para generarlo automáticamente.
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          <select
+                            aria-label="Seleccionar grupo existente"
+                            className={`existing-group-select ${
+                              fieldErrors.group_id ? "input-error" : ""
+                            }`}
+                            value={form.group_id}
+                            onChange={(e) => {
+                              const selectedId = e.target.value;
+                              set("group_id", selectedId);
+                              const grp = myGroups.data.find(
+                                (g) => g.id === selectedId,
+                              );
+                              if (grp && typeof grp.maxCapacity === "number") {
+                                set(
+                                  "max_capacity",
+                                  Math.min(8, Math.max(2, grp.maxCapacity)),
+                                );
+                              }
+                            }}
+                          >
+                            <option value="">
+                              -- Selecciona un grupo existente --
+                            </option>
+                            {myGroups.data.map((g) => (
+                              <option key={g.id} value={g.id}>
+                                {g.name}{" "}
+                                {g.myRole === "leader" ? "(Líder)" : "(Miembro)"}{" "}
+                                • {g.currentMembers ?? 1} miembros
+                              </option>
+                            ))}
+                          </select>
+                          {fieldErrors.group_id && (
+                            <div className="field-error-message">
+                              <AlertCircle size={15} />
+                              <span>{fieldErrors.group_id}</span>
+                            </div>
+                          )}
+                          {selectedGroup && (
+                            <div className="selected-group-card">
+                              <Users size={16} />
+                              <span>
+                                Vinculado a: <strong>{selectedGroup.name}</strong>{" "}
+                                • Capacidad: {selectedGroup.maxCapacity ?? 6} integrantes
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </Field>
+              )}
 
               {/* 2. Categorización Dinámica de Cursos por Ciclo */}
               <Field
@@ -731,6 +889,20 @@ export function PostEditor() {
                     {selectedCourse?.cycle && (
                       <span className="tag">Ciclo {selectedCourse.cycle}</span>
                     )}
+                    {form.type === "study_group" &&
+                      groupMode === "existing" &&
+                      selectedGroup && (
+                        <span
+                          className="tag"
+                          style={{
+                            background: "#e0f2fe",
+                            color: "#0369a1",
+                            border: "1px solid #bae6fd",
+                          }}
+                        >
+                          Vinculado: {selectedGroup.name}
+                        </span>
+                      )}
                   </div>
 
                   <p className="post-description" style={{ marginTop: 12 }}>
