@@ -16,6 +16,17 @@ export function PwaInstallBanner() {
   const [dismissed, setDismissed] = useState(true);
 
   useEffect(() => {
+    // 0. Solo mostrar en dispositivos móviles (celular o tablet táctil)
+    const ua = window.navigator.userAgent.toLowerCase();
+    const isMobileUserAgent = /android|iphone|ipad|ipod|mobile|touch/.test(ua);
+    const isSmallTouchScreen =
+      window.matchMedia("(max-width: 820px)").matches &&
+      window.matchMedia("(pointer: coarse)").matches;
+
+    if (!isMobileUserAgent && !isSmallTouchScreen) {
+      return;
+    }
+
     // 1. Si ya se ejecuta en modo standalone (instalada), no mostrar nada
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
