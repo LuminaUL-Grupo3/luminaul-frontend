@@ -220,16 +220,16 @@ export function PostEditor() {
 
     try {
       const payload: Record<string, unknown> = {
-        course_id: form.course_id,
+        courseId: form.course_id,
         type: form.type,
         description: form.description,
         benefits: form.benefits,
         requirements: form.requirements,
-        max_capacity: Math.min(8, Math.max(2, form.max_capacity)),
+        maxCapacity: Math.min(8, Math.max(2, form.max_capacity)),
       };
 
       if (form.type === "study_group" && groupMode === "existing" && form.group_id) {
-        payload.group_id = form.group_id;
+        payload.groupId = form.group_id;
       }
 
       await api.request(
