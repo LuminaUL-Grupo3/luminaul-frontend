@@ -100,3 +100,4 @@ try {
   preview.kill();
   process.exit(process.exitCode || 0);
 }
+
