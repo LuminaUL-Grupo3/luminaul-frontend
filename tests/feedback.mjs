@@ -82,7 +82,7 @@ await page.route(
     ),
   async (route) => {
     const request = route.request(),
-      path = new URL(request.url()).pathname.replace(/^\/api\/v1/, "");
+      path = new URL(request.url()).pathname.replace(/^\/api(\/v1)?/, "");
     let data = [];
     if (request.method() !== "GET") {
       const body = request.postDataJSON ? request.postDataJSON() : null;

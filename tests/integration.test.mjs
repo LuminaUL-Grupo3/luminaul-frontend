@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:8000";
+const API_URL = `${BACKEND_URL}/api`;
 const hasCredentials = Boolean(
   process.env.TEST_EMAIL && process.env.TEST_PASSWORD,
 );
@@ -11,7 +12,7 @@ let token = "";
 /** Las rutas privadas se prueban con una sesión real; nunca se espera acceso anónimo exitoso. */
 before(async () => {
   if (!hasCredentials) return;
-  const response = await fetch(`${BACKEND_URL}/auth/login`, {
+  const response = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -31,7 +32,7 @@ before(async () => {
 describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)", () => {
   // 1. Healthcheck
   test("1. Backend Health Check: GET /health responde 200 y status ok", async () => {
-    const res = await fetch(`${BACKEND_URL}/health`);
+    const res = await fetch(`${API_URL}/health`);
     assert.equal(res.status, 200, "El servicio de salud debe responder 200 OK");
     const data = await res.json();
     assert.equal(data.status, "ok");
@@ -40,24 +41,24 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
 
   // 2. Swagger / Documentación
   test("2. Especificación OpenAPI: GET /docs-json responde 200 con rutas válidas", async () => {
-    const res = await fetch(`${BACKEND_URL}/docs-json`);
+    const res = await fetch(`${API_URL}/docs-json`);
     assert.equal(res.status, 200);
     const doc = await res.json();
     assert.ok(
       doc.openapi || doc.swagger,
       "Debe contener especificación Swagger/OpenAPI",
     );
-    assert.ok(doc.paths["/posts"], "Debe documentar ruta /posts");
-    assert.ok(doc.paths["/courses"], "Debe documentar ruta /courses");
+    assert.ok(doc.paths["/api/posts"], "Debe documentar ruta /posts");
+    assert.ok(doc.paths["/api/courses"], "Debe documentar ruta /courses");
     assert.ok(
-      doc.paths["/join-requests/me"],
+      doc.paths["/api/join-requests/me"],
       "Debe documentar ruta /join-requests/me",
     );
   });
 
   // 3. Catálogo de Cursos (features/posts)
   test("3. Catálogo de Cursos: GET /courses retorna lista de cursos reales con ciclo", async () => {
-    const res = await fetch(`${BACKEND_URL}/courses`);
+    const res = await fetch(`${API_URL}/courses`);
     assert.equal(res.status, 200);
     const courses = await res.json();
     assert.ok(Array.isArray(courses), "Debe retornar un array");
@@ -75,14 +76,14 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
   // 4. Feed de Publicaciones (H.U. 1.3 y 1.5)
   describe("4. Integración Feed de Publicaciones: GET /posts y Filtros", () => {
     test("GET /posts responde 200 con array de publicaciones", async () => {
-      const res = await fetch(`${BACKEND_URL}/posts`);
+      const res = await fetch(`${API_URL}/posts`);
       assert.equal(res.status, 200);
       const posts = await res.json();
       assert.ok(Array.isArray(posts), "El feed debe responder un array");
     });
 
     test("GET /posts con paginación (limit y offset) valida parámetros en backend", async () => {
-      const res = await fetch(`${BACKEND_URL}/posts?limit=5&offset=0`);
+      const res = await fetch(`${API_URL}/posts?limit=5&offset=0`);
       assert.equal(res.status, 200);
       const posts = await res.json();
       assert.ok(Array.isArray(posts));
@@ -90,7 +91,7 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
     });
 
     test("GET /posts filtrando por tipo 'study_group'", async () => {
-      const res = await fetch(`${BACKEND_URL}/posts?type=study_group`);
+      const res = await fetch(`${API_URL}/posts?type=study_group`);
       assert.equal(res.status, 200);
       const posts = await res.json();
       assert.ok(Array.isArray(posts));
@@ -104,7 +105,7 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
     });
 
     test("GET /posts filtrando por ciclo académico", async () => {
-      const res = await fetch(`${BACKEND_URL}/posts?cycle=2`);
+      const res = await fetch(`${API_URL}/posts?cycle=2`);
       assert.equal(res.status, 200);
       const posts = await res.json();
       assert.ok(Array.isArray(posts));
@@ -114,7 +115,7 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
       "GET /posts/me responde 200 para el usuario autenticado",
       { skip: !hasCredentials },
       async () => {
-        const res = await fetch(`${BACKEND_URL}/posts/me`, {
+        const res = await fetch(`${API_URL}/posts/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         assert.equal(res.status, 200);
@@ -128,7 +129,7 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
   describe("5. Integración Grupos de Estudio: GET /groups/{id}", () => {
     test("Consultar grupo inexistente responde 404 estructurado", async () => {
       const nonExistentId = randomUUID();
-      const res = await fetch(`${BACKEND_URL}/groups/${nonExistentId}`);
+      const res = await fetch(`${API_URL}/groups/${nonExistentId}`);
       assert.equal(res.status, 404);
       const body = await res.json();
       assert.equal(body.statusCode, 404);
@@ -139,7 +140,7 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
   // 6. Solicitudes de Ingreso (H.U. 2.1 & 2.2)
   describe("6. Integración Solicitudes de Ingreso: /join-requests", () => {
     test("GET /join-requests/me exige sesión", async () => {
-      const res = await fetch(`${BACKEND_URL}/join-requests/me`);
+      const res = await fetch(`${API_URL}/join-requests/me`);
       assert.equal(res.status, 401);
     });
 
@@ -147,7 +148,7 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
       "GET /join-requests/me responde 200 con estructura de lista y total",
       { skip: !hasCredentials },
       async () => {
-        const res = await fetch(`${BACKEND_URL}/join-requests/me`, {
+        const res = await fetch(`${API_URL}/join-requests/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         assert.equal(res.status, 200);
@@ -175,7 +176,7 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
       async () => {
         const nonExistentGroup = randomUUID();
         const res = await fetch(
-          `${BACKEND_URL}/groups/${nonExistentGroup}/join-requests`,
+          `${API_URL}/groups/${nonExistentGroup}/join-requests`,
           {
             method: "POST",
             headers: {
@@ -195,7 +196,7 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
       async () => {
         const nonExistentReq = randomUUID();
         const res = await fetch(
-          `${BACKEND_URL}/join-requests/${nonExistentReq}`,
+          `${API_URL}/join-requests/${nonExistentReq}`,
           {
             method: "PATCH",
             headers: {
@@ -213,7 +214,7 @@ describe("Pruebas de Integración con el Backend en Vivo (NestJS + PostgreSQL)",
   // 7. Seguridad y Sesión (features/auth)
   describe("7. Integración Seguridad y Sesión: /auth/logout", () => {
     test("POST /auth/logout sin token rechaza con 401 'Falta el token de autenticación'", async () => {
-      const res = await fetch(`${BACKEND_URL}/auth/logout`, {
+      const res = await fetch(`${API_URL}/auth/logout`, {
         method: "POST",
       });
       assert.equal(res.status, 401);
