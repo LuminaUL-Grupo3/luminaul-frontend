@@ -422,3 +422,119 @@ select.input-error:focus {
   }
 }
 
+/* ==========================================================================
+   Selector de Modo de Grupo (Crear nuevo vs Vincular existente)
+   ========================================================================== */
+
+.group-mode-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 640px) {
+  .group-mode-toggle {
+    grid-template-columns: 1fr;
+  }
+}
+
+.group-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color, #e2e8f0);
+  background: var(--card-bg, #ffffff);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: left;
+}
+
+.group-mode-btn:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+  transform: translateY(-1px);
+}
+
+.group-mode-btn.active {
+  border-color: #0f172a;
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px #0f172a;
+}
+
+.group-mode-btn svg {
+  flex-shrink: 0;
+  color: #64748b;
+}
+
+.group-mode-btn.active svg {
+  color: #0f172a;
+}
+
+.group-select-container {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.existing-group-select {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-color, #cbd5e1);
+  background: #ffffff;
+  font-size: 14px;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.existing-group-select:focus {
+  border-color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+}
+
+.empty-groups-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #fefce8;
+  border: 1px solid #fef08a;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #854d0e;
+}
+
+.empty-groups-notice svg {
+  flex-shrink: 0;
+  color: #ca8a04;
+}
+
+.selected-group-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #f0fdf4;
+  border-radius: 8px;
+  border: 1px solid #bbf7d0;
+  font-size: 13px;
+  color: #166534;
+}
+
+.selected-group-card svg {
+  flex-shrink: 0;
+  color: #15803d;
+}
+
+
