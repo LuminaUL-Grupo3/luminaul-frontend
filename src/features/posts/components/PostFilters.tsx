@@ -79,6 +79,7 @@ export function PostFilters({
               Ciclo {i + 1}
             </option>
           ))}
+          <option value="11">Cursos Electivos</option>
         </select>
         <SlidersHorizontal size={17} />
       </div>

@@ -5,12 +5,9 @@ import {
   BookOpen,
   Users,
   GraduationCap,
-  Search,
   CheckCircle2,
   AlertCircle,
   Sparkles,
-  Layers,
-  X,
   Eye,
   Link2,
 } from "lucide-react";
@@ -99,7 +96,6 @@ export function PostEditor() {
   }>("/profiles/me", { name: "" });
 
   const [selectedCycle, setSelectedCycle] = useState<number | null>(null);
-  const [courseSearch, setCourseSearch] = useState("");
   const [groupMode, setGroupMode] = useState<"new" | "existing">("new");
 
   const [postAuthor, setPostAuthor] = useState<{
@@ -226,19 +222,6 @@ export function PostEditor() {
     }
     return Array.from(set).sort((a, b) => a - b);
   }, [courses.data]);
-
-  // Cursos filtrados dinámicamente por ciclo y término de búsqueda
-  const filteredCourses = useMemo(() => {
-    return courses.data.filter((c) => {
-      const matchesCycle = selectedCycle === null || c.cycle === selectedCycle;
-      const formatted = formatCourseName(c.name);
-      const matchesSearch =
-        !courseSearch.trim() ||
-        formatted.toLowerCase().includes(courseSearch.toLowerCase().trim()) ||
-        c.name.toLowerCase().includes(courseSearch.toLowerCase().trim());
-      return matchesCycle && matchesSearch;
-    });
-  }, [courses.data, selectedCycle, courseSearch]);
 
   const selectedCourse = useMemo(() => {
     return courses.data.find((c) => c.id === form.course_id);
@@ -524,6 +507,70 @@ export function PostEditor() {
                     </button>
                   </div>
 
+                  {groupMode === "new" && (
+                    <div className="group-capacity-inline" style={{ marginTop: 12 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: 6,
+                        }}
+                      >
+                        <label
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: "#334155",
+                          }}
+                        >
+                          Capacidad Máxima del Grupo
+                        </label>
+                        <span style={{ fontSize: 12, color: "#64748b" }}>
+                          Mín. 2 y máx. 8 integrantes
+                        </span>
+                      </div>
+                      <div className="capacity-control-box">
+                        <div className="capacity-slider-wrap">
+                          <input
+                            type="range"
+                            min={2}
+                            max={8}
+                            step={1}
+                            value={form.max_capacity}
+                            onChange={(e) => {
+                              const val = Math.min(8, Math.max(2, Number(e.target.value)));
+                              set("max_capacity", val);
+                            }}
+                            aria-label="Capacidad del grupo"
+                          />
+                          <input
+                            type="number"
+                            min={2}
+                            max={8}
+                            value={form.max_capacity}
+                            onChange={(e) => {
+                              const val = Math.min(8, Math.max(2, Number(e.target.value)));
+                              set("max_capacity", val);
+                            }}
+                            style={{ width: 80, textAlign: "center" }}
+                            aria-label="Número de integrantes"
+                          />
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: "#64748b",
+                          marginTop: 6,
+                          display: "block",
+                        }}
+                      >
+                        Mínimo 2 y máximo 8 integrantes (incluye al líder/creador).
+                      </span>
+                    </div>
+                  )}
+
                   {groupMode === "existing" && (
                     <div className="group-select-container">
                       {myGroups.data.length === 0 ? (
@@ -589,99 +636,17 @@ export function PostEditor() {
                 </Field>
               )}
 
-              {/* 2. Categorización Dinámica de Cursos por Ciclo */}
+              {/* 2. Asignatura o Curso */}
               <Field
                 label="2. Asignatura o Curso"
-                hint="Filtra por ciclo académico o busca por el nombre de la materia."
+                hint="Selecciona la materia correspondiente a la publicación."
               >
                 <div
                   className={`courses-category-box ${
                     fieldErrors.course_id ? "has-error" : ""
                   }`}
                 >
-                  {/* Pestañas de Ciclos */}
-                  <div className="cycle-pills-label">
-                    <span>
-                      <Layers
-                        size={14}
-                        style={{
-                          display: "inline",
-                          verticalAlign: "middle",
-                          marginRight: 4,
-                        }}
-                      />
-                      Filtrar por Ciclo Académico:
-                    </span>
-                    {selectedCycle !== null && (
-                      <button
-                        type="button"
-                        className="button small secondary"
-                        onClick={() => setSelectedCycle(null)}
-                      >
-                        Ver todos
-                      </button>
-                    )}
-                  </div>
-
-                  <div
-                    className="cycle-pills-list"
-                    role="tablist"
-                    aria-label="Ciclos académicos"
-                  >
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={selectedCycle === null}
-                      className={`cycle-pill-btn ${
-                        selectedCycle === null ? "active" : ""
-                      }`}
-                      onClick={() => setSelectedCycle(null)}
-                    >
-                      Todos los ciclos ({courses.data.length})
-                    </button>
-                    {availableCycles.map((cycleNum) => {
-                      const countInCycle = courses.data.filter(
-                        (c) => c.cycle === cycleNum,
-                      ).length;
-                      return (
-                        <button
-                          key={cycleNum}
-                          type="button"
-                          role="tab"
-                          aria-selected={selectedCycle === cycleNum}
-                          className={`cycle-pill-btn ${
-                            selectedCycle === cycleNum ? "active" : ""
-                          }`}
-                          onClick={() => setSelectedCycle(cycleNum)}
-                        >
-                          Ciclo {cycleNum} ({countInCycle})
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Buscador Rápido de Materias */}
-                  <div className="course-quick-search">
-                    <Search size={16} />
-                    <input
-                      type="text"
-                      placeholder="Buscar asignatura por nombre (ej: Cálculo, Redes, Software)..."
-                      value={courseSearch}
-                      onChange={(e) => setCourseSearch(e.target.value)}
-                    />
-                    {courseSearch && (
-                      <button
-                        type="button"
-                        className="clear-btn"
-                        onClick={() => setCourseSearch("")}
-                        aria-label="Limpiar búsqueda"
-                      >
-                        <X size={16} />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Selector Estructurado nativo con Optgroups para Accesibilidad y Tests */}
+                  {/* Selector Estructurado nativo con Optgroups */}
                   <select
                     required
                     aria-label="Curso"
@@ -705,7 +670,11 @@ export function PostEditor() {
                       return (
                         <optgroup
                           key={cycleNum}
-                          label={`Ciclo ${cycleNum} (${groupCourses.length} cursos)`}
+                          label={
+                            cycleNum === 11
+                              ? `Cursos Electivos (${groupCourses.length} cursos)`
+                              : `Ciclo ${cycleNum} (${groupCourses.length} cursos)`
+                          }
                         >
                           {groupCourses.map((c) => (
                             <option key={c.id} value={c.id}>
@@ -716,39 +685,6 @@ export function PostEditor() {
                       );
                     })}
                   </select>
-
-                  {/* Lista completa de cursos en chips dinámicos sin truncar */}
-                  {filteredCourses.length > 0 && (
-                    <div
-                      className="course-chips-container"
-                      aria-label="Sugerencias de asignaturas"
-                    >
-                      {filteredCourses.map((c) => {
-                        const isChosen = form.course_id === c.id;
-                        return (
-                          <button
-                            key={c.id}
-                            type="button"
-                            className={`course-chip-btn ${
-                              isChosen ? "selected" : ""
-                            }`}
-                            onClick={() => {
-                              set("course_id", c.id);
-                              if (typeof c.cycle === "number")
-                                setSelectedCycle(c.cycle);
-                            }}
-                          >
-                            <span>{formatCourseName(c.name)}</span>
-                            {c.cycle && (
-                              <span className="course-chip-cycle">
-                                C{c.cycle}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
 
                   {/* Banner de Confirmación del Curso Seleccionado */}
                   {selectedCourse && (
@@ -762,7 +698,9 @@ export function PostEditor() {
                               className="selected-course-tag"
                               style={{ marginLeft: 8 }}
                             >
-                              Ciclo {selectedCourse.cycle}
+                              {selectedCourse.cycle === 11
+                                ? "Curso Electivo"
+                                : `Ciclo ${selectedCourse.cycle}`}
                             </span>
                           )}
                         </div>
@@ -855,67 +793,6 @@ export function PostEditor() {
                 </Field>
               </div>
 
-              {/* 4. Capacidad del Grupo (Solo configurable al crear un grupo nuevo) */}
-              {form.type === "study_group" && groupMode === "new" ? (
-                <Field
-                  label="4. Capacidad Máxima del Grupo"
-                  hint="Mínimo 2 y máximo 8 integrantes (incluye al líder/creador)."
-                >
-                  <div className="capacity-control-box">
-                    <div className="capacity-slider-wrap">
-                      <input
-                        type="range"
-                        min={2}
-                        max={8}
-                        step={1}
-                        value={form.max_capacity}
-                        onChange={(e) => {
-                          const val = Math.min(8, Math.max(2, Number(e.target.value)));
-                          set("max_capacity", val);
-                        }}
-                      />
-                      <input
-                        type="number"
-                        min={2}
-                        max={8}
-                        value={form.max_capacity}
-                        onChange={(e) => {
-                          const val = Math.min(8, Math.max(2, Number(e.target.value)));
-                          set("max_capacity", val);
-                        }}
-                        style={{ width: 80, textAlign: "center" }}
-                      />
-                    </div>
-                    <div className="capacity-badge">
-                      <Users size={16} />
-                      <span>{form.max_capacity} integrantes (máx. 8)</span>
-                    </div>
-                  </div>
-                </Field>
-              ) : form.type === "tutoring" ? (
-                <div
-                  className="capacity-control-box"
-                  style={{ background: "#f0fdf4", borderColor: "#bbf7d0" }}
-                >
-                  <GraduationCap size={22} style={{ color: "#15803d" }} />
-                  <div>
-                    <strong
-                      style={{
-                        color: "#166534",
-                        display: "block",
-                        fontSize: 14,
-                      }}
-                    >
-                      Modalidad de Asesoría Directa
-                    </strong>
-                    <span style={{ color: "#15803d", fontSize: 13 }}>
-                      Las asesorías académicas se coordinan de forma individual o
-                      flexible sin requerir cupos grupales estrictos.
-                    </span>
-                  </div>
-                </div>
-              ) : null}
-
               {/* Botones de Acción */}
               <div className="button-row" style={{ marginTop: 20 }}>
                 <button className="button" disabled={busy || !isOwner}>
@@ -1005,7 +882,11 @@ export function PostEditor() {
                         : "Selecciona un curso"}
                     </span>
                     {activeCourse?.cycle && (
-                      <span className="tag">Ciclo {activeCourse.cycle}</span>
+                      <span className="tag">
+                        {activeCourse.cycle === 11
+                          ? "Electivo"
+                          : `Ciclo ${activeCourse.cycle}`}
+                      </span>
                     )}
                     {form.type === "study_group" &&
                       groupMode === "existing" &&
@@ -1035,7 +916,9 @@ export function PostEditor() {
                   <div className="post-details" style={{ marginTop: 12 }}>
                     <span>
                       <BookOpen size={15} />
-                      Ciclo {activeCourse?.cycle ?? "—"}
+                      {activeCourse?.cycle === 11
+                        ? "Electivo"
+                        : `Ciclo ${activeCourse?.cycle ?? "—"}`}
                     </span>
                     {form.type === "study_group" ? (
                       <span>
@@ -1109,31 +992,6 @@ export function PostEditor() {
                     </div>
                   )}
                 </article>
-              </div>
-
-              {/* Tarjeta Informativa de Ayuda */}
-              <div className="info-card" style={{ marginTop: 8 }}>
-                <BookOpen size={24} />
-                <h4
-                  style={{
-                    margin: "8px 0 4px",
-                    fontSize: 15,
-                    fontWeight: 700,
-                  }}
-                >
-                  Consejo para tu publicación
-                </h4>
-                <p
-                  style={{
-                    fontSize: 13,
-                    color: "#64748b",
-                    margin: 0,
-                    lineHeight: 1.4,
-                  }}
-                >
-                  Al categorizar por ciclo ayudas a compañeros de tu mismo avance
-                  académico a encontrarte más rápido en el buscador.
-                </p>
               </div>
             </aside>
           </div>
