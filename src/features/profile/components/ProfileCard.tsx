@@ -1,3 +1,4 @@
+import { Mail } from "lucide-react";
 import { Avatar } from "@/components/ui";
 import { StudentProfileDto } from "../types";
 
@@ -22,7 +23,17 @@ export function ProfileCard({ profile }: ProfileCardProps) {
         large
       />
       <h2>{profile.name}</h2>
-      {academicInfo && <p>{academicInfo}</p>}
+      {profile.email && (
+        <a
+          className="profile-email"
+          href={`mailto:${profile.email}`}
+          title={`Correo institucional: ${profile.email}`}
+        >
+          <Mail size={13} />
+          <span>{profile.email}</span>
+        </a>
+      )}
+      {academicInfo && <p className="academic-info">{academicInfo}</p>}
       <p className="bio">{profile.bio || "Todavía no agregó una descripción."}</p>
       <h4>Habilidades</h4>
       <div className="tags">

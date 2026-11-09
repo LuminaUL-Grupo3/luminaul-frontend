@@ -23,7 +23,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   const { user, setUser } = useSession();
   const feedback = useFeedback();
   const updateProfile = useUpdateProfileMutation(),
-    [name, setName] = useState(profile.name),
     [bio, setBio] = useState(profile.bio || ""),
     [major, setMajor] = useState(profile.major || ""),
     [academicCycle, setAcademicCycle] = useState(profile.academicCycle || ""),
@@ -38,7 +37,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     setError("");
     try {
       const updated = await updateProfile.mutateAsync({
-        name,
         bio: emptyToNull(bio),
         major: emptyToNull(major),
         academicCycle: emptyToNull(academicCycle),
@@ -56,15 +54,18 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   return (
     <div className="panel narrow">
       <div className="photo-edit">
-        <Avatar large name={name} src={photoUrl.trim() || undefined} />
+        <Avatar large name={profile.name} src={photoUrl.trim() || undefined} />
       </div>
       <form className="form" onSubmit={submit}>
-        <Field label="Nombre completo">
+        <Field
+          label="Nombre completo"
+          hint="El nombre registrado institucionalmente no se puede modificar."
+        >
           <input
-            required
-            maxLength={150}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            disabled
+            readOnly
+            value={profile.name}
+            title="El nombre completo institucional no se puede modificar"
           />
         </Field>
         <Field label="URL de la foto de perfil">
