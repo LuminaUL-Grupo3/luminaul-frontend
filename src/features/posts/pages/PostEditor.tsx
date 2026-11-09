@@ -90,9 +90,25 @@ export function PostEditor() {
 
   const courses = useResource<Course[]>("/courses", []);
   const myGroups = useResource<MyGroupSummary[]>("/groups/me", []);
+  const myProfile = useResource<{
+    userId?: string;
+    user_id?: string;
+    name?: string;
+    profilePhotoUrl?: string | null;
+    profile_photo_url?: string | null;
+  }>("/profiles/me", { name: "" });
+
   const [selectedCycle, setSelectedCycle] = useState<number | null>(null);
   const [courseSearch, setCourseSearch] = useState("");
   const [groupMode, setGroupMode] = useState<"new" | "existing">("new");
+
+  const [postAuthor, setPostAuthor] = useState<{
+    name: string;
+    profilePhotoUrl?: string | null;
+  } | null>(null);
+  const [postUserId, setPostUserId] = useState<string>("");
+  const [loadedCourse, setLoadedCourse] = useState<Course | null>(null);
+  const [loadedGroupName, setLoadedGroupName] = useState<string>("");
 
   const [form, setForm] = useState({
     course_id: "",
@@ -117,34 +133,78 @@ export function PostEditor() {
     api
       .request<Publication>(`/posts/${id}`)
       .then((p) => {
-        if (active) {
-          const courseId = p.course?.id || p.course_id || "";
-          const existingGroupId = p.groupId || p.group_id || "";
-          setForm({
-            course_id: courseId,
-            type: p.type,
-            group_id: existingGroupId,
-            description: p.description,
-            benefits: p.benefits || "",
-            requirements: p.requirements || "",
-            max_capacity: Math.min(8, Math.max(2, p.max_capacity ?? 5)),
+        if (!active) return;
+        const courseId = p.courseId || p.course?.id || p.course_id || "";
+        const existingGroupId = p.groupId || p.group_id || "";
+        setForm({
+          course_id: courseId,
+          type: p.type,
+          group_id: existingGroupId,
+          description: p.description,
+          benefits: p.benefits || "",
+          requirements: p.requirements || "",
+          max_capacity: Math.min(8, Math.max(2, p.maxCapacity ?? p.max_capacity ?? 5)),
+        });
+
+        if (existingGroupId) {
+          setGroupMode("existing");
+        }
+
+        const authorUserId = p.userId || p.user_id || p.author?.id || p.author?.user_id || "";
+        if (authorUserId) {
+          setPostUserId(authorUserId);
+        }
+
+        if (p.author) {
+          setPostAuthor({
+            name: p.author.name || p.author_name || "",
+            profilePhotoUrl:
+              p.author.profilePhotoUrl ||
+              p.author.profile_photo_url ||
+              p.photo_url ||
+              null,
           });
-          if (existingGroupId) {
-            setGroupMode("existing");
+        } else if (p.author_name) {
+          setPostAuthor({
+            name: p.author_name,
+            profilePhotoUrl: p.photo_url || null,
+          });
+        }
+
+        if (p.course) {
+          setLoadedCourse(p.course);
+          if (typeof p.course.cycle === "number") {
+            setSelectedCycle(p.course.cycle);
           }
-          setLoaded(true);
+        }
+
+        if (p.group_name) {
+          setLoadedGroupName(p.group_name);
         }
       })
-      .catch((e) => setError(e.message));
+      .catch((e) => setError((e as Error).message))
+      .finally(() => {
+        if (active) setLoaded(true);
+      });
+
     return () => {
       active = false;
     };
   }, [id]);
 
   const selectedGroup = useMemo(() => {
-    if (!form.group_id || !myGroups.data.length) return null;
-    return myGroups.data.find((g) => g.id === form.group_id) || null;
-  }, [myGroups.data, form.group_id]);
+    if (!form.group_id) return null;
+    const found = myGroups.data.find((g) => g.id === form.group_id);
+    if (found) return found;
+    if (loadedGroupName) {
+      return {
+        id: form.group_id,
+        name: loadedGroupName,
+        maxCapacity: form.max_capacity,
+      };
+    }
+    return null;
+  }, [myGroups.data, form.group_id, loadedGroupName, form.max_capacity]);
 
   // Sincronizar ciclo seleccionado si el curso ya está fijado
   useEffect(() => {
@@ -184,8 +244,34 @@ export function PostEditor() {
     return courses.data.find((c) => c.id === form.course_id);
   }, [courses.data, form.course_id]);
 
+  const activeCourse = selectedCourse || loadedCourse;
+
+  const currentUserId = myProfile.data?.userId || myProfile.data?.user_id;
+  const isOwner = !id || !postUserId || !currentUserId || postUserId === currentUserId;
+
+  const displayAuthorName =
+    postAuthor?.name ||
+    myProfile.data?.name ||
+    "Estudiante";
+
+  const displayAuthorPhoto =
+    postAuthor?.profilePhotoUrl ||
+    myProfile.data?.profilePhotoUrl ||
+    null;
+
+  const authorInitials = useMemo(() => {
+    if (!displayAuthorName) return "U";
+    const parts = displayAuthorName.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
+  }, [displayAuthorName]);
+
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (!isOwner) {
+      setError("No tienes permiso para modificar esta publicación porque pertenece a otro usuario.");
+      return;
+    }
     const errorsMap: Record<string, string> = {};
 
     if (!form.course_id) {
@@ -225,11 +311,19 @@ export function PostEditor() {
         description: form.description,
         benefits: form.benefits,
         requirements: form.requirements,
-        maxCapacity: Math.min(8, Math.max(2, form.max_capacity)),
       };
 
-      if (form.type === "study_group" && groupMode === "existing" && form.group_id) {
-        payload.groupId = form.group_id;
+      if (form.type === "study_group") {
+        if (groupMode === "new") {
+          payload.maxCapacity = Math.min(8, Math.max(2, form.max_capacity));
+        } else if (groupMode === "existing" && form.group_id) {
+          payload.groupId = form.group_id;
+          if (selectedGroup?.maxCapacity) {
+            payload.maxCapacity = selectedGroup.maxCapacity;
+          }
+        }
+      } else {
+        payload.maxCapacity = Math.min(8, Math.max(2, form.max_capacity));
       }
 
       await api.request(
@@ -269,11 +363,20 @@ export function PostEditor() {
   return (
     <>
       <PageHeader
-        eyebrow="COMPARTE TU CONOCIMIENTO"
+        eyebrow={id ? `PUBLICACIÓN DE ${displayAuthorName.toUpperCase()}` : "COMPARTE TU CONOCIMIENTO"}
         title={id ? "Editar publicación" : "Crear publicación"}
-        description="Publica una iniciativa de estudio o asesoría para colaborar con estudiantes de tu ciclo y carrera."
+        description={
+          id
+            ? `Editando la publicación de ${displayAuthorName}. Actualiza los objetivos, temas a repasar y detalles de la convocatoria.`
+            : "Publica una iniciativa de estudio o asesoría para colaborar con estudiantes de tu ciclo y carrera."
+        }
       />
       {error && <Notice error>{error}</Notice>}
+      {!isOwner && (
+        <Notice error>
+          Esta publicación pertenece a otro usuario ({displayAuthorName}). Solo el autor original puede guardar cambios.
+        </Notice>
+      )}
       {!loaded ? (
         <Loading />
       ) : (
@@ -752,8 +855,8 @@ export function PostEditor() {
                 </Field>
               </div>
 
-              {/* 4. Capacidad del Grupo (Máximo 8 integrantes según requerimiento) */}
-              {form.type === "study_group" ? (
+              {/* 4. Capacidad del Grupo (Solo configurable al crear un grupo nuevo) */}
+              {form.type === "study_group" && groupMode === "new" ? (
                 <Field
                   label="4. Capacidad Máxima del Grupo"
                   hint="Mínimo 2 y máximo 8 integrantes (incluye al líder/creador)."
@@ -789,7 +892,7 @@ export function PostEditor() {
                     </div>
                   </div>
                 </Field>
-              ) : (
+              ) : form.type === "tutoring" ? (
                 <div
                   className="capacity-control-box"
                   style={{ background: "#f0fdf4", borderColor: "#bbf7d0" }}
@@ -811,11 +914,11 @@ export function PostEditor() {
                     </span>
                   </div>
                 </div>
-              )}
+              ) : null}
 
               {/* Botones de Acción */}
               <div className="button-row" style={{ marginTop: 20 }}>
-                <button className="button" disabled={busy}>
+                <button className="button" disabled={busy || !isOwner}>
                   {busy ? "Guardando…" : id ? "Guardar cambios" : "Publicar ahora"}
                   <ArrowUpRight size={18} />
                 </button>
@@ -849,26 +952,41 @@ export function PostEditor() {
                 >
                   <div className="post-top">
                     <div className="person">
-                      <div
-                        className="avatar"
-                        style={{
-                          width: 38,
-                          height: 38,
-                          borderRadius: "50%",
-                          background: "#0f172a",
-                          color: "#fff",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontWeight: 700,
-                          fontSize: 14,
-                        }}
-                      >
-                        Tú
-                      </div>
+                      {displayAuthorPhoto ? (
+                        <img
+                          src={displayAuthorPhoto}
+                          alt={displayAuthorName}
+                          style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <div
+                          className="avatar"
+                          style={{
+                            width: 38,
+                            height: 38,
+                            borderRadius: "50%",
+                            background: "#0f172a",
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontWeight: 700,
+                            fontSize: 14,
+                          }}
+                        >
+                          {authorInitials}
+                        </div>
+                      )}
                       <div>
-                        <strong>Tu Nombre (Perfil)</strong>
-                        <span>Publicado ahora</span>
+                        <strong>{displayAuthorName}</strong>
+                        <span>
+                          {id ? "Autor de la publicación" : "Tu perfil (Vista previa)"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -882,12 +1000,12 @@ export function PostEditor() {
                       {form.type === "tutoring" ? "Asesoría" : "Grupo de Estudio"}
                     </span>
                     <span className="course-tag">
-                      {selectedCourse
-                        ? formatCourseName(selectedCourse.name)
+                      {activeCourse
+                        ? formatCourseName(activeCourse.name)
                         : "Selecciona un curso"}
                     </span>
-                    {selectedCourse?.cycle && (
-                      <span className="tag">Ciclo {selectedCourse.cycle}</span>
+                    {activeCourse?.cycle && (
+                      <span className="tag">Ciclo {activeCourse.cycle}</span>
                     )}
                     {form.type === "study_group" &&
                       groupMode === "existing" &&
@@ -917,12 +1035,14 @@ export function PostEditor() {
                   <div className="post-details" style={{ marginTop: 12 }}>
                     <span>
                       <BookOpen size={15} />
-                      Ciclo {selectedCourse?.cycle ?? "—"}
+                      Ciclo {activeCourse?.cycle ?? "—"}
                     </span>
                     {form.type === "study_group" ? (
                       <span>
                         <Users size={15} />
-                        Hasta {form.max_capacity} integrantes (máx. 8)
+                        {groupMode === "existing" && selectedGroup
+                          ? `Capacidad: ${selectedGroup.maxCapacity ?? form.max_capacity} integrantes`
+                          : `Hasta ${form.max_capacity} integrantes (máx. 8)`}
                       </span>
                     ) : (
                       <span>
