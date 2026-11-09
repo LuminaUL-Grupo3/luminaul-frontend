@@ -18,7 +18,6 @@ import {
   Calendar,
   Star,
   Shield,
-  Bell,
   Settings,
   LogOut,
   Plus,
@@ -29,6 +28,7 @@ import { useSession } from "../../features/auth/hooks/useSession";
 import { Avatar, Loading, Notice } from "../ui";
 import { Brand } from "../brand/Brand";
 import { useFeedback } from "../../hooks/useFeedback";
+import { NotificationsBell } from "../../features/admin/components/NotificationsBell";
 
 const nav = [
   ["/", "Inicio", House],
@@ -80,13 +80,8 @@ export function Layout() {
           Un espacio para aprender juntos
         </div>
         <div className="topbar-right">
-          <Link
-            className="icon-button"
-            title="Notificaciones"
-            to="/notificaciones"
-          >
-            <Bell size={21} />
-          </Link>
+          {/* SPEC-07: campana con el contador de notificaciones sin leer */}
+          <NotificationsBell />
           <div className="topbar-divider" />
           <Link className="person" to="/perfil">
             <Avatar name={user.name} />
