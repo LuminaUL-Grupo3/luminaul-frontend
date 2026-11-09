@@ -63,7 +63,7 @@ export function PostCard({
       <div className="post-details">
         <span>
           <BookOpen size={15} />
-          Ciclo {cycleNum}
+          {cycleNum === 11 ? "Electivo" : `Ciclo ${cycleNum}`}
         </span>
         {maxCapacityNum ? (
           <span>
