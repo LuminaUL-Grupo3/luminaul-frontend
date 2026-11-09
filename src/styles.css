@@ -137,6 +137,17 @@ select:focus {
   box-shadow: 0 0 0 3px #ed72231a;
   transform: translateY(-1px);
 }
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background: #f4f5f8;
+  color: #717784;
+  cursor: not-allowed;
+  border-color: #dce0e6;
+  opacity: 0.85;
+  transform: none;
+  box-shadow: none;
+}
 textarea {
   resize: vertical;
   min-height: 95px;

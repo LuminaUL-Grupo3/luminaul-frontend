@@ -29,8 +29,10 @@ export function ProfilePage() {
         title={own ? "Mi perfil" : p.name}
         description={
           own
-            ? "Lo que sabes puede ser el comienzo de algo compartido."
-            : undefined
+            ? p.email
+              ? `${p.email} — Lo que sabes puede ser el comienzo de algo compartido.`
+              : "Lo que sabes puede ser el comienzo de algo compartido."
+            : p.email || undefined
         }
         action={
           own ? (

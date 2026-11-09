@@ -95,7 +95,7 @@ export function AvailabilitySchedule({
                               aria-label={`Editar franja de ${day.label}, ${range}`}
                               onClick={() => onEdit(slot)}
                             >
-                              <Pencil size={13} />
+                              <Pencil size={11} />
                             </button>
                           )}
                           {onDelete && (
@@ -105,7 +105,7 @@ export function AvailabilitySchedule({
                               aria-label={`Eliminar franja de ${day.label}, ${range}`}
                               onClick={() => onDelete(slot)}
                             >
-                              <Trash2 size={13} />
+                              <Trash2 size={11} />
                             </button>
                           )}
                         </div>

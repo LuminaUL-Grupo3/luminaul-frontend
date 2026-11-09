@@ -40,7 +40,6 @@ export interface StudentProfileDto {
 }
 
 export interface UpdateProfileRequest {
-  name?: string;
   bio?: string | null;
   major?: string | null;
   academicCycle?: string | null;
