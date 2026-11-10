@@ -1,7 +1,8 @@
 # ==========================================
 # STAGE 1: Compilación de la Aplicación Web (Vite + React)
 # ==========================================
-FROM node:22-alpine AS build
+ARG NODE_VERSION=24-alpine
+FROM node:${NODE_VERSION} AS build
 
 WORKDIR /app
 
