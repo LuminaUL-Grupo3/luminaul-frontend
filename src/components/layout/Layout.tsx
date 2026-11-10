@@ -25,6 +25,8 @@ import {
   X,
 } from "lucide-react";
 import { useSession } from "../../features/auth/hooks/useSession";
+// Import directo del hook: el index de profile arrastraría sus páginas, que se cargan con lazy
+import { useMyProfileQuery } from "../../features/profile/hooks/useProfileQueries";
 import { Avatar, Loading, Notice } from "../ui";
 import { Brand } from "../brand/Brand";
 import { useFeedback } from "../../hooks/useFeedback";
@@ -52,7 +54,9 @@ export function Layout() {
   const { user, loading, logout } = useSession(),
     [open, setOpen] = useState(false),
     [error, setError] = useState(""),
-    location = useLocation();
+    location = useLocation(),
+    // SPEC-02: la foto del perfil se refleja en la barra superior en cuanto se edita
+    myProfile = useMyProfileQuery(Boolean(user));
 
   useEffect(() => setOpen(false), [location.pathname]);
 
@@ -84,7 +88,10 @@ export function Layout() {
           <NotificationsBell />
           <div className="topbar-divider" />
           <Link className="person" to="/perfil">
-            <Avatar name={user.name} />
+            <Avatar
+              name={user.name}
+              src={myProfile.data?.profilePhotoUrl || undefined}
+            />
             <span className="topbar-name">
               {user.name.split(" ")[0]}
               <small>

@@ -5,7 +5,7 @@ import { useSession } from "@/features/auth";
 import { useFeedback } from "@/hooks/useFeedback";
 import { Avatar, Notice, Field } from "@/components/ui";
 import { useUpdateProfileMutation } from "../hooks/useProfileQueries";
-import { StudentProfileDto } from "../types";
+import { PROFILE_MAJOR, StudentProfileDto } from "../types";
 
 const parseList = (value: string) =>
   value
@@ -24,7 +24,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   const feedback = useFeedback();
   const updateProfile = useUpdateProfileMutation(),
     [bio, setBio] = useState(profile.bio || ""),
-    [major, setMajor] = useState(profile.major || ""),
     [academicCycle, setAcademicCycle] = useState(profile.academicCycle || ""),
     [photoUrl, setPhotoUrl] = useState(profile.profilePhotoUrl || ""),
     [skills, setSkills] = useState(profile.skills.join(", ")),
@@ -38,7 +37,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     try {
       const updated = await updateProfile.mutateAsync({
         bio: emptyToNull(bio),
-        major: emptyToNull(major),
+        major: PROFILE_MAJOR,
         academicCycle: emptyToNull(academicCycle),
         profilePhotoUrl: emptyToNull(photoUrl),
         skills: parseList(skills),
@@ -87,9 +86,10 @@ export function ProfileForm({ profile }: ProfileFormProps) {
         <div className="two-cols">
           <Field label="Carrera">
             <input
-              maxLength={100}
-              value={major}
-              onChange={(e) => setMajor(e.target.value)}
+              disabled
+              readOnly
+              value={PROFILE_MAJOR}
+              title="La carrera no se puede modificar"
             />
           </Field>
           <Field label="Ciclo académico">

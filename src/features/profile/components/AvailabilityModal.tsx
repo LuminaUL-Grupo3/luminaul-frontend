@@ -10,6 +10,10 @@ import { AvailabilitySlotDto, DAYS_OF_WEEK, DayOfWeek } from "../types";
 
 const EARLIEST_TIME = "07:00";
 const LATEST_TIME = "22:00";
+const RANGE_LABEL = "entre las 7:00 a. m. y las 10:00 p. m.";
+
+const outOfRange = (time: string) =>
+  time < EARLIEST_TIME || time > LATEST_TIME;
 
 export interface AvailabilityModalProps {
   edit: AvailabilitySlotDto | null;
@@ -34,8 +38,16 @@ export function AvailabilityModal({
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (busy) return;
-    if (start < EARLIEST_TIME || end > LATEST_TIME) {
-      setError("El horario debe estar entre 07:00 y 22:00");
+    if (!start || !end) {
+      setError("Ingresa la hora de inicio y la hora de fin");
+      return;
+    }
+    if (outOfRange(start)) {
+      setError(`La hora de inicio debe estar ${RANGE_LABEL}`);
+      return;
+    }
+    if (outOfRange(end)) {
+      setError(`La hora de fin debe estar ${RANGE_LABEL}`);
       return;
     }
     if (start >= end) {
@@ -60,7 +72,9 @@ export function AvailabilityModal({
       title={edit ? "Editar franja" : "Agregar horas libres"}
       close={close}
     >
-      <form className="form" onSubmit={submit}>
+      {/* noValidate: el aviso nativo del navegador sale en inglés ("Value must be 07:00 or later"),
+          así que el rango se valida en submit con mensajes en español */}
+      <form className="form" noValidate onSubmit={submit}>
         <Field label="Día">
           <select
             value={day}

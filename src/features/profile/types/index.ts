@@ -17,6 +17,9 @@ export const DAYS_OF_WEEK: { value: DayOfWeek; label: string }[] = [
   { value: "domingo", label: "Domingo" },
 ];
 
+// Única carrera permitida en LuminaUL
+export const PROFILE_MAJOR = "Ingeniería de Sistemas";
+
 export interface AvailabilitySlotDto {
   id: string;
   userId: string;
