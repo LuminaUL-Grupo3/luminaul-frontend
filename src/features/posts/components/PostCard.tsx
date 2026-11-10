@@ -43,7 +43,8 @@ export function PostCard({
             <span>{date(p.createdAt || p.created_at || "")}</span>
           </div>
         </Link>
-        <ReportButton kind="publication" id={p.id} />
+        {/* HU 6.1: no se reporta el contenido propio (igual que MessageItem en el chat) */}
+        {!isMine && <ReportButton kind="publication" id={p.id} />}
       </div>
 
       <div className="tags">
