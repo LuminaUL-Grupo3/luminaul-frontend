@@ -12,6 +12,7 @@ import {
   Link2,
 } from "lucide-react";
 import { api } from "@/config/api";
+import { useSession } from "@/features/auth";
 import { useResource } from "@/hooks/useResource";
 import { PageHeader, Loading, Notice, Modal, Field } from "@/components/ui";
 
@@ -229,8 +230,14 @@ export function PostEditor() {
 
   const activeCourse = selectedCourse || loadedCourse;
 
+  const { user } = useSession();
   const currentUserId = myProfile.data?.userId || myProfile.data?.user_id;
-  const isOwner = !id || !postUserId || !currentUserId || postUserId === currentUserId;
+  const isOwner =
+    !id ||
+    !postUserId ||
+    !currentUserId ||
+    postUserId === currentUserId ||
+    user?.role === "admin";
 
   const displayAuthorName =
     postAuthor?.name ||
@@ -288,9 +295,9 @@ export function PostEditor() {
     setFieldErrors({});
 
     try {
+      const isEditing = Boolean(id);
       const payload: Record<string, unknown> = {
-        courseId: form.course_id,
-        type: form.type,
+        ...(isEditing ? {} : { courseId: form.course_id, type: form.type }),
         description: form.description,
         benefits: form.benefits,
         requirements: form.requirements,
@@ -301,9 +308,9 @@ export function PostEditor() {
           payload.maxCapacity = Math.min(8, Math.max(2, form.max_capacity));
         } else if (groupMode === "existing" && form.group_id) {
           payload.groupId = form.group_id;
-          if (selectedGroup?.maxCapacity) {
-            payload.maxCapacity = selectedGroup.maxCapacity;
-          }
+          payload.maxCapacity = id
+            ? Math.min(8, Math.max(2, form.max_capacity))
+            : (selectedGroup?.maxCapacity ?? Math.min(8, Math.max(2, form.max_capacity)));
         }
       } else {
         payload.maxCapacity = Math.min(8, Math.max(2, form.max_capacity));
@@ -370,7 +377,11 @@ export function PostEditor() {
               {/* 1. Selector Visual de Tipo de Publicación */}
               <Field
                 label="1. Tipo de Publicación"
-                hint="Selecciona cómo deseas colaborar con otros estudiantes."
+                hint={
+                  id
+                    ? "El tipo de publicación no se puede cambiar una vez creada."
+                    : "Selecciona cómo deseas colaborar con otros estudiantes."
+                }
               >
                 {/* Select accesible para fallback y compatibilidad */}
                 <select
@@ -382,8 +393,11 @@ export function PostEditor() {
                     height: "1px",
                     opacity: 0,
                   }}
+                  disabled={Boolean(id)}
                   value={form.type}
-                  onChange={(e) => set("type", e.target.value)}
+                  onChange={(e) => {
+                    if (!id) set("type", e.target.value);
+                  }}
                 >
                   <option value="study_group">Grupo de Estudio</option>
                   <option value="tutoring">Asesoría</option>
@@ -397,13 +411,16 @@ export function PostEditor() {
                   <div
                     role="radio"
                     aria-checked={form.type === "study_group"}
-                    tabIndex={0}
+                    aria-disabled={Boolean(id)}
+                    tabIndex={id ? -1 : 0}
                     className={`type-card-option ${
                       form.type === "study_group" ? "selected" : ""
-                    }`}
-                    onClick={() => set("type", "study_group")}
+                    }${id ? " locked" : ""}`}
+                    onClick={() => {
+                      if (!id) set("type", "study_group");
+                    }}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
+                      if (!id && (e.key === "Enter" || e.key === " ")) {
                         e.preventDefault();
                         set("type", "study_group");
                       }
@@ -425,13 +442,16 @@ export function PostEditor() {
                   <div
                     role="radio"
                     aria-checked={form.type === "tutoring"}
-                    tabIndex={0}
+                    aria-disabled={Boolean(id)}
+                    tabIndex={id ? -1 : 0}
                     className={`type-card-option ${
                       form.type === "tutoring" ? "selected" : ""
-                    }`}
-                    onClick={() => set("type", "tutoring")}
+                    }${id ? " locked" : ""}`}
+                    onClick={() => {
+                      if (!id) set("type", "tutoring");
+                    }}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
+                      if (!id && (e.key === "Enter" || e.key === " ")) {
                         e.preventDefault();
                         set("type", "tutoring");
                       }
@@ -507,7 +527,7 @@ export function PostEditor() {
                     </button>
                   </div>
 
-                  {groupMode === "new" && (
+                  {(groupMode === "new" || Boolean(id)) && (
                     <div className="group-capacity-inline" style={{ marginTop: 12 }}>
                       <div
                         style={{
@@ -639,20 +659,26 @@ export function PostEditor() {
               {/* 2. Asignatura o Curso */}
               <Field
                 label="2. Asignatura o Curso"
-                hint="Selecciona la materia correspondiente a la publicación."
+                hint={
+                  id
+                    ? "El curso no se puede modificar una vez creada la publicación."
+                    : "Selecciona la materia correspondiente a la publicación."
+                }
               >
                 <div
                   className={`courses-category-box ${
                     fieldErrors.course_id ? "has-error" : ""
-                  }`}
+                  }${id ? " locked" : ""}`}
                 >
                   {/* Selector Estructurado nativo con Optgroups */}
                   <select
                     required
+                    disabled={Boolean(id)}
                     aria-label="Curso"
                     className={fieldErrors.course_id ? "input-error" : ""}
                     value={form.course_id}
                     onChange={(e) => {
+                      if (id) return;
                       const cid = e.target.value;
                       set("course_id", cid);
                       const found = courses.data.find((c) => c.id === cid);
@@ -705,13 +731,15 @@ export function PostEditor() {
                           )}
                         </div>
                       </div>
-                      <button
-                        type="button"
-                        className="button small secondary"
-                        onClick={() => set("course_id", "")}
-                      >
-                        Cambiar
-                      </button>
+                      {!id && (
+                        <button
+                          type="button"
+                          className="button small secondary"
+                          onClick={() => set("course_id", "")}
+                        >
+                          Cambiar
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

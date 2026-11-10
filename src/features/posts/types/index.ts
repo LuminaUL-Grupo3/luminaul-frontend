@@ -67,9 +67,8 @@ export interface CreatePostPayload {
 }
 
 export interface UpdatePostPayload {
-  type?: PostType;
-  courseId?: string;
-  course_id?: string;
+  groupId?: string | null;
+  group_id?: string | null;
   description?: string;
   benefits?: string;
   requirements?: string;
