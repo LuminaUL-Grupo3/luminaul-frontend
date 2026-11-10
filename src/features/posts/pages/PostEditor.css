@@ -66,6 +66,26 @@ form.form textarea,
   box-shadow: 0 0 0 1px var(--primary, #0f172a), 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
+.type-card-option.locked {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.type-card-option.locked.selected {
+  opacity: 0.9;
+}
+
+.type-card-option.locked:hover {
+  border-color: var(--border-color, #e2e8f0);
+  transform: none;
+  box-shadow: none;
+}
+
+.type-card-option.locked.selected:hover {
+  border-color: var(--primary, #0f172a);
+  box-shadow: 0 0 0 1px var(--primary, #0f172a), 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
 .type-card-header {
   display: flex;
   align-items: center;
@@ -128,6 +148,10 @@ form.form textarea,
   padding: 20px;
   border-radius: 14px;
   border: 1px solid #e2e8f0;
+}
+
+.courses-category-box.locked {
+  opacity: 0.9;
 }
 
 .cycle-pills-label {

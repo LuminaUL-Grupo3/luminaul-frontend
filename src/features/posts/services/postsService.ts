@@ -20,8 +20,8 @@ export const postsService = {
     return api.request<{ message: string; post?: Publication }>("/posts", "POST", payload);
   },
 
-  async updatePost(id: string, payload: UpdatePostPayload): Promise<{ message: string }> {
-    return api.request<{ message: string }>(`/posts/${id}`, "PUT", payload);
+  async updatePost(id: string, payload: UpdatePostPayload): Promise<Publication> {
+    return api.request<Publication>(`/posts/${id}`, "PUT", payload);
   },
 
   async deletePost(id: string): Promise<{ message: string }> {
