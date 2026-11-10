@@ -5,7 +5,7 @@ import { useSession } from "@/features/auth";
 import { useFeedback } from "@/hooks/useFeedback";
 import { Avatar, Notice, Field } from "@/components/ui";
 import { useUpdateProfileMutation } from "../hooks/useProfileQueries";
-import { StudentProfileDto, ULIMA_MAJORS } from "../types";
+import { PROFILE_MAJOR, StudentProfileDto } from "../types";
 
 const parseList = (value: string) =>
   value
@@ -24,17 +24,11 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   const feedback = useFeedback();
   const updateProfile = useUpdateProfileMutation(),
     [bio, setBio] = useState(profile.bio || ""),
-    [major, setMajor] = useState(profile.major || ""),
     [academicCycle, setAcademicCycle] = useState(profile.academicCycle || ""),
     [photoUrl, setPhotoUrl] = useState(profile.profilePhotoUrl || ""),
     [skills, setSkills] = useState(profile.skills.join(", ")),
     [interests, setInterests] = useState(profile.interests.join(", ")),
     [error, setError] = useState("");
-  // Una carrera escrita a mano antes de la lista se conserva como opción para no perderla
-  const majors: readonly string[] =
-    profile.major && !ULIMA_MAJORS.some((m) => m === profile.major)
-      ? [profile.major, ...ULIMA_MAJORS]
-      : ULIMA_MAJORS;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -43,7 +37,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     try {
       const updated = await updateProfile.mutateAsync({
         bio: emptyToNull(bio),
-        major: emptyToNull(major),
+        major: PROFILE_MAJOR,
         academicCycle: emptyToNull(academicCycle),
         profilePhotoUrl: emptyToNull(photoUrl),
         skills: parseList(skills),
@@ -91,14 +85,12 @@ export function ProfileForm({ profile }: ProfileFormProps) {
         </Field>
         <div className="two-cols">
           <Field label="Carrera">
-            <select value={major} onChange={(e) => setMajor(e.target.value)}>
-              <option value="">Selecciona tu carrera</option>
-              {majors.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
+            <input
+              disabled
+              readOnly
+              value={PROFILE_MAJOR}
+              title="La carrera no se puede modificar"
+            />
           </Field>
           <Field label="Ciclo académico">
             <select
