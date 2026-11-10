@@ -5,17 +5,15 @@ export type GroupMembershipStatus = "leader" | "admin" | "member" | "pending" | 
 
 export interface GroupDetailMinimal {
   id: string;
-  my_status: GroupMembershipStatus;
+  myRole: "leader" | "member" | null;
+  pendingRequest: boolean;
 }
 
 /**
  * H.U 2.1 — Estado del usuario actual frente a cada grupo del feed.
  *
- * Consulta GET /groups/:group_id (una vez por grupo distinto) y guarda
- * my_status ("admin" | "member" | "pending" | "none"). El feed lo usa para:
- *  - mostrar "Me interesa" solo si el estado es "none",
- *  - mostrar "Solicitud pendiente" si ya se envió una solicitud,
- *  - ocultar la opción de enviar solicitud si el alumno ya es miembro (escenario 3).
+ * Consulta GET /groups/:groupId (una vez por grupo distinto) y deriva
+ * el estado ("leader" | "member" | "pending" | "none") usando myRole y pendingRequest.
  */
 export function useGroupStatuses(groupIds: string[]) {
   const [statuses, setStatuses] = useState<
@@ -36,7 +34,11 @@ export function useGroupStatuses(groupIds: string[]) {
       ids.map((id) =>
         api
           .request<GroupDetailMinimal>(`/groups/${id}`)
-          .then((group) => [id, group.my_status] as const)
+          .then((group) => {
+            const status: GroupMembershipStatus =
+              group.myRole ?? (group.pendingRequest ? "pending" : "none");
+            return [id, status] as const;
+          })
           .catch(() => null),
       ),
     )

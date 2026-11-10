@@ -23,7 +23,7 @@ export function SettingsPage() {
             title="Cambiar contraseña"
             path="/auth/password"
             method="PUT"
-            payload={() => ({ current_password: current, password })}
+            payload={() => ({ currentPassword: current, password })}
             label="Actualizar contraseña"
             done={() => setUser(null)}
           >

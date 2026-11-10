@@ -41,7 +41,7 @@ export function FeedPage({
     offset: String(page * 12),
     ...(query ? { search: query } : {}),
     ...(type ? { type } : {}),
-    ...(course ? { course_id: course } : {}),
+    ...(course ? { courseId: course } : {}),
     ...(cycle ? { cycle } : {}),
   });
 
@@ -54,7 +54,7 @@ export function FeedPage({
     mine
       ? []
       : posts.data
-          .map((p) => p.group_id)
+          .map((p) => p.groupId)
           .filter((id): id is string => Boolean(id)),
   );
 
@@ -148,7 +148,7 @@ export function FeedPage({
                 key={p.id}
                 post={p}
                 currentUserId={user?.id}
-                groupStatus={p.group_id ? groupStatuses.statuses[p.group_id] : undefined}
+                groupStatus={p.groupId ? groupStatuses.statuses[p.groupId] : undefined}
                 onRemove={remove}
                 onInterestClick={setJoining}
               />
@@ -194,7 +194,7 @@ export function FeedPage({
           post={joining}
           onClose={() => setJoining(null)}
           onSuccess={() => {
-            if (joining.group_id) groupStatuses.markPending(joining.group_id);
+            if (joining.groupId) groupStatuses.markPending(joining.groupId);
           }}
         />
       )}
