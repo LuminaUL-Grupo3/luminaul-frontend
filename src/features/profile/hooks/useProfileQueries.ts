@@ -1,14 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { profileService } from "../services/profileService";
-import { UpdateAvailabilityRequest } from "../types";
+import { StudentProfileDto, UpdateAvailabilityRequest } from "../types";
 
 const PROFILE_KEY = "profile";
 
-export function useMyProfileQuery() {
+// enabled permite al Layout esperar a que haya sesión antes de pedir /profiles/me
+export function useMyProfileQuery(enabled = true) {
   return useQuery({
     queryKey: [PROFILE_KEY, "me"],
     queryFn: profileService.getMyProfile,
     retry: false,
+    enabled,
   });
 }
 
@@ -26,11 +28,18 @@ function useInvalidateProfiles() {
   return () => queryClient.invalidateQueries({ queryKey: [PROFILE_KEY] });
 }
 
+// La foto y los datos del perfil también se muestran en publicaciones, reseñas y chat:
+// se guarda la respuesta para que la barra superior cambie al instante y se invalidan
+// todas las consultas para que el resto de pantallas vuelva a pedir los datos actuales
 export function useUpdateProfileMutation() {
-  const invalidate = useInvalidateProfiles();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: profileService.updateMyProfile,
-    onSuccess: invalidate,
+    onSuccess: (updated: StudentProfileDto) => {
+      queryClient.setQueryData([PROFILE_KEY, "me"], updated);
+      queryClient.setQueryData([PROFILE_KEY, updated.userId], updated);
+      return queryClient.invalidateQueries();
+    },
   });
 }
 

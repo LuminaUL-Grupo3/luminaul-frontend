@@ -17,6 +17,24 @@ export const DAYS_OF_WEEK: { value: DayOfWeek; label: string }[] = [
   { value: "domingo", label: "Domingo" },
 ];
 
+// Carreras de pregrado de la Universidad de Lima (mallas curriculares 2026)
+export const ULIMA_MAJORS = [
+  "Administración",
+  "Arquitectura",
+  "Comunicación",
+  "Contabilidad y Finanzas",
+  "Derecho",
+  "Economía",
+  "Ingeniería Ambiental",
+  "Ingeniería Civil",
+  "Ingeniería de Sistemas",
+  "Ingeniería Industrial",
+  "Ingeniería Mecatrónica",
+  "Marketing",
+  "Negocios Internacionales",
+  "Psicología",
+] as const;
+
 export interface AvailabilitySlotDto {
   id: string;
   userId: string;
