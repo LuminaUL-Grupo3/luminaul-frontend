@@ -17,11 +17,11 @@ export function JoinGroupModal({
 
   return (
     <Modal
-      title={`Unirme a ${post.group_name || "grupo"}`}
+      title={post.course?.name ? `Unirme al grupo de ${post.course.name}` : "Unirme al grupo"}
       close={onClose}
     >
       <ActionForm
-        path={`/groups/${post.group_id}/join-requests`}
+        path={`/groups/${post.groupId}/join-requests`}
         payload={() => ({ message: message.trim() })}
         label="Enviar solicitud"
         validate={() =>

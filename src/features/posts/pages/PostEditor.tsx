@@ -90,10 +90,8 @@ export function PostEditor() {
   const myGroups = useResource<MyGroupSummary[]>("/groups/me", []);
   const myProfile = useResource<{
     userId?: string;
-    user_id?: string;
     name?: string;
     profilePhotoUrl?: string | null;
-    profile_photo_url?: string | null;
   }>("/profiles/me", { name: "" });
 
   const [selectedCycle, setSelectedCycle] = useState<number | null>(null);
@@ -105,16 +103,15 @@ export function PostEditor() {
   } | null>(null);
   const [postUserId, setPostUserId] = useState<string>("");
   const [loadedCourse, setLoadedCourse] = useState<Course | null>(null);
-  const [loadedGroupName, setLoadedGroupName] = useState<string>("");
 
   const [form, setForm] = useState({
-    course_id: "",
+    courseId: "",
     type: "study_group",
-    group_id: "",
+    groupId: "",
     description: "",
     benefits: "",
     requirements: "",
-    max_capacity: 5, // Máximo 8 integrantes según requerimiento
+    maxCapacity: 5, // Máximo 8 integrantes según requerimiento
   });
 
   // Errores dinámicos en línea por campo
@@ -131,40 +128,31 @@ export function PostEditor() {
       .request<Publication>(`/posts/${id}`)
       .then((p) => {
         if (!active) return;
-        const courseId = p.courseId || p.course?.id || p.course_id || "";
-        const existingGroupId = p.groupId || p.group_id || "";
+        const courseId = p.courseId || p.course?.id || "";
+        const existingGroupId = p.groupId || "";
         setForm({
-          course_id: courseId,
+          courseId,
           type: p.type,
-          group_id: existingGroupId,
+          groupId: existingGroupId,
           description: p.description,
           benefits: p.benefits || "",
           requirements: p.requirements || "",
-          max_capacity: Math.min(8, Math.max(2, p.maxCapacity ?? p.max_capacity ?? 5)),
+          maxCapacity: Math.min(8, Math.max(2, p.maxCapacity ?? 5)),
         });
 
         if (existingGroupId) {
           setGroupMode("existing");
         }
 
-        const authorUserId = p.userId || p.user_id || p.author?.id || p.author?.user_id || "";
+        const authorUserId = p.userId || p.author?.id || "";
         if (authorUserId) {
           setPostUserId(authorUserId);
         }
 
         if (p.author) {
           setPostAuthor({
-            name: p.author.name || p.author_name || "",
-            profilePhotoUrl:
-              p.author.profilePhotoUrl ||
-              p.author.profile_photo_url ||
-              p.photo_url ||
-              null,
-          });
-        } else if (p.author_name) {
-          setPostAuthor({
-            name: p.author_name,
-            profilePhotoUrl: p.photo_url || null,
+            name: p.author.name || "",
+            profilePhotoUrl: p.author.profilePhotoUrl || null,
           });
         }
 
@@ -173,10 +161,6 @@ export function PostEditor() {
           if (typeof p.course.cycle === "number") {
             setSelectedCycle(p.course.cycle);
           }
-        }
-
-        if (p.group_name) {
-          setLoadedGroupName(p.group_name);
         }
       })
       .catch((e) => setError((e as Error).message))
@@ -190,28 +174,19 @@ export function PostEditor() {
   }, [id]);
 
   const selectedGroup = useMemo(() => {
-    if (!form.group_id) return null;
-    const found = myGroups.data.find((g) => g.id === form.group_id);
-    if (found) return found;
-    if (loadedGroupName) {
-      return {
-        id: form.group_id,
-        name: loadedGroupName,
-        maxCapacity: form.max_capacity,
-      };
-    }
-    return null;
-  }, [myGroups.data, form.group_id, loadedGroupName, form.max_capacity]);
+    if (!form.groupId) return null;
+    return myGroups.data.find((g) => g.id === form.groupId) || null;
+  }, [myGroups.data, form.groupId]);
 
   // Sincronizar ciclo seleccionado si el curso ya está fijado
   useEffect(() => {
-    if (form.course_id && courses.data.length > 0) {
-      const current = courses.data.find((c) => c.id === form.course_id);
+    if (form.courseId && courses.data.length > 0) {
+      const current = courses.data.find((c) => c.id === form.courseId);
       if (current && typeof current.cycle === "number" && selectedCycle === null) {
         setSelectedCycle(current.cycle);
       }
     }
-  }, [form.course_id, courses.data]);
+  }, [form.courseId, courses.data]);
 
   // Lista única de ciclos ordenados de menor a mayor
   const availableCycles = useMemo(() => {
@@ -225,13 +200,13 @@ export function PostEditor() {
   }, [courses.data]);
 
   const selectedCourse = useMemo(() => {
-    return courses.data.find((c) => c.id === form.course_id);
-  }, [courses.data, form.course_id]);
+    return courses.data.find((c) => c.id === form.courseId);
+  }, [courses.data, form.courseId]);
 
   const activeCourse = selectedCourse || loadedCourse;
 
   const { user } = useSession();
-  const currentUserId = myProfile.data?.userId || myProfile.data?.user_id;
+  const currentUserId = myProfile.data?.userId;
   const isOwner =
     !id ||
     !postUserId ||
@@ -264,8 +239,8 @@ export function PostEditor() {
     }
     const errorsMap: Record<string, string> = {};
 
-    if (!form.course_id) {
-      errorsMap.course_id = "Selecciona una asignatura o curso de la lista.";
+    if (!form.courseId) {
+      errorsMap.courseId = "Selecciona una asignatura o curso de la lista.";
     }
     if (!form.description.trim()) {
       errorsMap.description =
@@ -279,8 +254,8 @@ export function PostEditor() {
       errorsMap.requirements =
         "Especifica los requisitos o conocimientos previos necesarios.";
     }
-    if (form.type === "study_group" && groupMode === "existing" && !form.group_id) {
-      errorsMap.group_id =
+    if (form.type === "study_group" && groupMode === "existing" && !form.groupId) {
+      errorsMap.groupId =
         "Selecciona un grupo de estudio existente de la lista para vincular.";
     }
 
@@ -297,7 +272,7 @@ export function PostEditor() {
     try {
       const isEditing = Boolean(id);
       const payload: Record<string, unknown> = {
-        ...(isEditing ? {} : { courseId: form.course_id, type: form.type }),
+        ...(isEditing ? {} : { courseId: form.courseId, type: form.type }),
         description: form.description,
         benefits: form.benefits,
         requirements: form.requirements,
@@ -305,15 +280,15 @@ export function PostEditor() {
 
       if (form.type === "study_group") {
         if (groupMode === "new") {
-          payload.maxCapacity = Math.min(8, Math.max(2, form.max_capacity));
-        } else if (groupMode === "existing" && form.group_id) {
-          payload.groupId = form.group_id;
+          payload.maxCapacity = Math.min(8, Math.max(2, form.maxCapacity));
+        } else if (groupMode === "existing" && form.groupId) {
+          payload.groupId = form.groupId;
           payload.maxCapacity = id
-            ? Math.min(8, Math.max(2, form.max_capacity))
-            : (selectedGroup?.maxCapacity ?? Math.min(8, Math.max(2, form.max_capacity)));
+            ? Math.min(8, Math.max(2, form.maxCapacity))
+            : (selectedGroup?.maxCapacity ?? Math.min(8, Math.max(2, form.maxCapacity)));
         }
       } else {
-        payload.maxCapacity = Math.min(8, Math.max(2, form.max_capacity));
+        payload.maxCapacity = Math.min(8, Math.max(2, form.maxCapacity));
       }
 
       await api.request(
@@ -492,7 +467,7 @@ export function PostEditor() {
                       }`}
                       onClick={() => {
                         setGroupMode("new");
-                        set("group_id", "");
+                        set("groupId", "");
                       }}
                     >
                       <Sparkles size={18} />
@@ -557,10 +532,10 @@ export function PostEditor() {
                             min={2}
                             max={8}
                             step={1}
-                            value={form.max_capacity}
+                            value={form.maxCapacity}
                             onChange={(e) => {
                               const val = Math.min(8, Math.max(2, Number(e.target.value)));
-                              set("max_capacity", val);
+                              set("maxCapacity", val);
                             }}
                             aria-label="Capacidad del grupo"
                           />
@@ -568,10 +543,10 @@ export function PostEditor() {
                             type="number"
                             min={2}
                             max={8}
-                            value={form.max_capacity}
+                            value={form.maxCapacity}
                             onChange={(e) => {
                               const val = Math.min(8, Math.max(2, Number(e.target.value)));
-                              set("max_capacity", val);
+                              set("maxCapacity", val);
                             }}
                             style={{ width: 80, textAlign: "center" }}
                             aria-label="Número de integrantes"
@@ -606,18 +581,18 @@ export function PostEditor() {
                           <select
                             aria-label="Seleccionar grupo existente"
                             className={`existing-group-select ${
-                              fieldErrors.group_id ? "input-error" : ""
+                              fieldErrors.groupId ? "input-error" : ""
                             }`}
-                            value={form.group_id}
+                            value={form.groupId}
                             onChange={(e) => {
                               const selectedId = e.target.value;
-                              set("group_id", selectedId);
+                              set("groupId", selectedId);
                               const grp = myGroups.data.find(
                                 (g) => g.id === selectedId,
                               );
                               if (grp && typeof grp.maxCapacity === "number") {
                                 set(
-                                  "max_capacity",
+                                  "maxCapacity",
                                   Math.min(8, Math.max(2, grp.maxCapacity)),
                                 );
                               }
@@ -634,10 +609,10 @@ export function PostEditor() {
                               </option>
                             ))}
                           </select>
-                          {fieldErrors.group_id && (
+                          {fieldErrors.groupId && (
                             <div className="field-error-message">
                               <AlertCircle size={15} />
-                              <span>{fieldErrors.group_id}</span>
+                              <span>{fieldErrors.groupId}</span>
                             </div>
                           )}
                           {selectedGroup && (
@@ -667,7 +642,7 @@ export function PostEditor() {
               >
                 <div
                   className={`courses-category-box ${
-                    fieldErrors.course_id ? "has-error" : ""
+                    fieldErrors.courseId ? "has-error" : ""
                   }${id ? " locked" : ""}`}
                 >
                   {/* Selector Estructurado nativo con Optgroups */}
@@ -675,12 +650,12 @@ export function PostEditor() {
                     required
                     disabled={Boolean(id)}
                     aria-label="Curso"
-                    className={fieldErrors.course_id ? "input-error" : ""}
-                    value={form.course_id}
+                    className={fieldErrors.courseId ? "input-error" : ""}
+                    value={form.courseId}
                     onChange={(e) => {
                       if (id) return;
                       const cid = e.target.value;
-                      set("course_id", cid);
+                      set("courseId", cid);
                       const found = courses.data.find((c) => c.id === cid);
                       if (found && typeof found.cycle === "number") {
                         setSelectedCycle(found.cycle);
@@ -735,7 +710,7 @@ export function PostEditor() {
                         <button
                           type="button"
                           className="button small secondary"
-                          onClick={() => set("course_id", "")}
+                          onClick={() => set("courseId", "")}
                         >
                           Cambiar
                         </button>
@@ -744,10 +719,10 @@ export function PostEditor() {
                   )}
                 </div>
 
-                {fieldErrors.course_id && (
+                {fieldErrors.courseId && (
                   <div className="field-error-message" role="alert">
                     <AlertCircle size={15} />
-                    <span>{fieldErrors.course_id}</span>
+                    <span>{fieldErrors.courseId}</span>
                   </div>
                 )}
               </Field>
@@ -952,8 +927,8 @@ export function PostEditor() {
                       <span>
                         <Users size={15} />
                         {groupMode === "existing" && selectedGroup
-                          ? `Capacidad: ${selectedGroup.maxCapacity ?? form.max_capacity} integrantes`
-                          : `Hasta ${form.max_capacity} integrantes (máx. 8)`}
+                          ? `Capacidad: ${selectedGroup.maxCapacity ?? form.maxCapacity} integrantes`
+                          : `Hasta ${form.maxCapacity} integrantes (máx. 8)`}
                       </span>
                     ) : (
                       <span>

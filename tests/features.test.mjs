@@ -92,7 +92,7 @@ describe("Criterios de Aceptación - Épica 1: Gestionar Publicaciones (features
   describe("H.U. 1.1 - Validaciones obligatorias de campos", () => {
     function validatePostForm(form) {
       const missing = [];
-      if (!form.course_id) missing.push("Curso");
+      if (!form.courseId) missing.push("Curso");
       if (!form.description?.trim()) missing.push("Descripción");
       if (!form.benefits?.trim()) missing.push("Beneficios");
       if (!form.requirements?.trim()) missing.push("Requisitos");
@@ -108,7 +108,7 @@ describe("Criterios de Aceptación - Épica 1: Gestionar Publicaciones (features
 
     test("Publicación con todos los campos obligatorios es válida", () => {
       const form = {
-        course_id: "course-123",
+        courseId: "course-123",
         description: "Grupo de estudio de Algoritmos",
         benefits: "Aprender resolución de problemas",
         requirements: "Conocimientos previos de C++",
@@ -119,7 +119,7 @@ describe("Criterios de Aceptación - Épica 1: Gestionar Publicaciones (features
 
     test("Detecta campos faltantes individualizados", () => {
       const form = {
-        course_id: "",
+        courseId: "",
         description: "",
         benefits: "Beneficios",
         requirements: "",
@@ -135,17 +135,17 @@ describe("Criterios de Aceptación - Épica 1: Gestionar Publicaciones (features
   // H.U. 1.3: Filtrar publicaciones
   describe("H.U. 1.3 - Filtrado por tipo, ciclo y curso", () => {
     const samplePosts = [
-      { id: "1", type: "study_group", cycle: 5, course_id: "cs-1" },
-      { id: "2", type: "tutoring", cycle: 5, course_id: "cs-1" },
-      { id: "3", type: "study_group", cycle: 7, course_id: "cs-2" },
-      { id: "4", type: "tutoring", cycle: 8, course_id: "cs-3" },
+      { id: "1", type: "study_group", cycle: 5, courseId: "cs-1" },
+      { id: "2", type: "tutoring", cycle: 5, courseId: "cs-1" },
+      { id: "3", type: "study_group", cycle: 7, courseId: "cs-2" },
+      { id: "4", type: "tutoring", cycle: 8, courseId: "cs-3" },
     ];
 
-    function filterPosts(posts, { type, cycle, course_id }) {
+    function filterPosts(posts, { type, cycle, courseId }) {
       return posts.filter((p) => {
         if (type && p.type !== type) return false;
         if (cycle && p.cycle !== cycle) return false;
-        if (course_id && p.course_id !== course_id) return false;
+        if (courseId && p.courseId !== courseId) return false;
         return true;
       });
     }
@@ -229,15 +229,15 @@ describe("Criterios de Aceptación - Épica 2: Gestionar Comunicación (features
   describe("H.U. 2.6 - Expulsión de integrante", () => {
     test("El administrador no puede expulsarse a sí mismo", () => {
       const currentUserId = "admin-1";
-      const member = { user_id: "admin-1", role: "admin" };
-      const canExpel = member.user_id !== currentUserId;
+      const member = { userId: "admin-1", role: "leader" };
+      const canExpel = member.userId !== currentUserId;
       assert.equal(canExpel, false);
     });
 
     test("El administrador sí puede expulsar a otro integrante", () => {
       const currentUserId = "admin-1";
-      const member = { user_id: "student-2", role: "member" };
-      const canExpel = member.user_id !== currentUserId;
+      const member = { userId: "student-2", role: "member" };
+      const canExpel = member.userId !== currentUserId;
       assert.equal(canExpel, true);
     });
   });

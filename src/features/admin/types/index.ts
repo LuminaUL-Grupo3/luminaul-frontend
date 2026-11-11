@@ -121,17 +121,3 @@ export interface MarkNotificationReadResponse {
 
 // Alias heredado: src/api.ts lo reexporta como Notice
 export type NoticeNotification = NotificationDto;
-
-// Pertenece a SPEC-06 (historial de moderación propio); se mantiene aquí mientras
-// ModerationPage siga dentro de features/admin.
-export interface Moderated {
-  publication_id?: string;
-  message_id?: string;
-  review_id?: string;
-  id: string;
-  content: string;
-  reason: string;
-  result: string;
-  created_at: string;
-  appeal_status?: string;
-}

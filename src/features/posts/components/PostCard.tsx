@@ -20,27 +20,25 @@ export function PostCard({
   onRemove,
   onInterestClick,
 }: PostCardProps) {
-  const authorName = p.author?.name || p.author_name || "Estudiante";
-  const authorPhoto = p.author?.profilePhotoUrl || p.author?.profile_photo_url || p.photo_url;
-  const authorId = p.author?.id || p.author?.user_id || p.userId || p.user_id || "";
-  const courseName = p.course?.name || p.course_name || "Curso";
-  const cycleNum = p.course?.cycle ?? p.cycle ?? 1;
-  const maxCapacityNum = p.maxCapacity ?? p.max_capacity;
-  const groupId = p.groupId ?? p.group_id;
+  const authorName = p.author?.name || "Estudiante";
+  const authorPhoto = p.author?.profilePhotoUrl ?? undefined;
+  const authorId = p.author?.id || p.userId || "";
+  const courseName = p.course?.name || "Curso";
+  const cycleNum = p.course?.cycle ?? 1;
+  const maxCapacityNum = p.maxCapacity;
+  const groupId = p.groupId;
   const isMine =
     (Boolean(p.userId) && p.userId === currentUserId) ||
-    (Boolean(p.user_id) && p.user_id === currentUserId) ||
-    (Boolean(p.author?.id) && p.author?.id === currentUserId) ||
-    (Boolean(p.author?.user_id) && p.author?.user_id === currentUserId);
+    (Boolean(p.author?.id) && p.author?.id === currentUserId);
 
   return (
     <article className="post-card" key={p.id}>
       <div className="post-top">
         <Link className="person" to={authorId ? `/perfil/${authorId}` : "#"}>
-          <Avatar name={authorName} src={authorPhoto ?? undefined} />
+          <Avatar name={authorName} src={authorPhoto} />
           <div>
             <strong>{authorName}</strong>
-            <span>{date(p.createdAt || p.created_at || "")}</span>
+            <span>{date(p.createdAt || "")}</span>
           </div>
         </Link>
         {/* HU 6.1: no se reporta el contenido propio (igual que MessageItem en el chat) */}
