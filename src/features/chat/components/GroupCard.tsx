@@ -24,7 +24,15 @@ export function GroupCard({ group, colorToneIndex = 0 }: GroupCardProps) {
         <div className="spec04-card-course">
           <BookOpen size={14} />
           {group.courseCode}
-          <span className="tag">{group.meetingMode}</span>
+          <span className="tag">
+            {
+              {
+                virtual: "Virtual",
+                presencial: "Presencial",
+                hibrido: "Híbrido",
+              }[group.meetingMode]
+            }
+          </span>
         </div>
         <h3>{group.name}</h3>
         <p>{group.description || "Un espacio para aprender en equipo."}</p>
@@ -36,6 +44,17 @@ export function GroupCard({ group, colorToneIndex = 0 }: GroupCardProps) {
           <span>
             <Crown size={14} />
             {group.leader.name}
+          </span>
+        </div>
+        <div
+          className="spec04-capacity"
+          aria-label={`${Math.max(0, group.maxCapacity - group.currentMembers)} cupos disponibles`}
+        >
+          <progress max={group.maxCapacity} value={group.currentMembers} />
+          <span>
+            {group.currentMembers >= group.maxCapacity
+              ? "Grupo completo"
+              : `${group.maxCapacity - group.currentMembers} cupos disponibles`}
           </span>
         </div>
         <Link to={`/grupos/${group.id}`} className="button secondary full">

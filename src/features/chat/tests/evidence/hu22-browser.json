@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-13T16:29:51.826Z",
+  "groupId": "2b60644a-13eb-43b3-9cc5-55af27364e05",
+  "checks": [
+    {
+      "name": "HU2.2 consulta y filtro de solicitudes",
+      "result": "Aprobado"
+    },
+    {
+      "name": "HU2.2 aceptar actualiza lista y notifica al solicitante",
+      "result": "Aprobado"
+    },
+    {
+      "name": "HU2.2 rechazar elimina la pendiente sin incorporar al alumno",
+      "result": "Aprobado"
+    },
+    {
+      "name": "HU2.2 el alumno sin grupos liderados ve el estado vacío",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Chat entre dos sesiones y conservación del borrador ante ACK tardío",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Un ACK tardío no mezcla dos conversaciones",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Persistencia del chat después de recargar",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Reacción y respuesta sincronizadas",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Diseño móvil de solicitudes y chat sin desbordamiento",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Grupos",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Perfil",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Horario",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Reseñas",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Moderación",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Publicación",
+      "result": "Aprobado"
+    }
+  ],
+  "passed": 15,
+  "errors": [],
+  "scope": "UI y API reales; solo el ACK del caso indicado se difiere de forma controlada."
+}

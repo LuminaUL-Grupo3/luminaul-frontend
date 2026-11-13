@@ -2105,3 +2105,68 @@ dialog::backdrop {
     scroll-behavior: auto !important;
   }
 }
+/* Ajustes compartidos de lectura: no cambian navegación, contratos ni reglas de las SPEC. */
+.main-content,
+.page-heading > div,
+.panel,
+.info-card,
+.field {
+  min-width: 0;
+}
+.page-heading h1 {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.page-heading p {
+  max-width: 65ch;
+  line-height: 1.65;
+}
+.form :is(input, select, textarea) {
+  line-height: 1.5;
+}
+.notice {
+  overflow-wrap: anywhere;
+}
+.button-row {
+  flex-wrap: wrap;
+}
+.panel .section-title {
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  .main-content {
+    padding: 24px 16px 40px;
+  }
+  .page-heading {
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .page-heading h1 {
+    font-size: clamp(24px, 6.8vw, 29px);
+    letter-spacing: -0.7px;
+  }
+  .page-heading p {
+    font-size: 13px;
+  }
+  .panel {
+    padding: 20px;
+    border-radius: 14px;
+  }
+  .form {
+    gap: 20px;
+  }
+  .field {
+    font-size: 13px;
+  }
+  .two-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .form input,
+  .form select,
+  .form textarea {
+    font-size: 16px;
+  }
+  .button-row .button {
+    min-height: 42px;
+  }
+}
