@@ -151,7 +151,7 @@ function ConfirmationDialog({
         </button>
         <button
           type="button"
-          className="button danger"
+          className="button confirmation-accept"
           onClick={() => settle(true)}
         >
           {options.acceptLabel || "Confirmar"}

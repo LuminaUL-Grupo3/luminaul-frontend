@@ -1642,6 +1642,24 @@ td small {
 }
 .confirmation-dialog {
   max-width: 490px;
+  border-radius: 16px;
+}
+.confirmation-dialog .modal-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.confirmation-dialog .modal-header h2 svg {
+  flex-shrink: 0;
+}
+/* El botón de confirmar conserva contraste propio porque el diálogo está fuera del layout. */
+.confirmation-dialog .confirmation-accept {
+  color: #fff;
+  background: #c74819;
+}
+.confirmation-dialog .confirmation-accept:hover {
+  color: #fff;
+  background: #a53611;
 }
 .confirmation-symbol {
   display: grid;

@@ -1,7 +1,15 @@
 {
-  "date": "2026-11-13T16:29:51.826Z",
-  "groupId": "2b60644a-13eb-43b3-9cc5-55af27364e05",
+  "date": "2026-11-13T22:47:08.858Z",
+  "groupId": "01804d82-5361-4f53-a04c-c151b9c5006d",
   "checks": [
+    {
+      "name": "Confirmación de cierre legible y cancelación sin perder la sesión",
+      "result": "Aprobado"
+    },
+    {
+      "name": "El diseño respeta la preferencia de movimiento reducido",
+      "result": "Aprobado"
+    },
     {
       "name": "HU2.2 consulta y filtro de solicitudes",
       "result": "Aprobado"
@@ -63,7 +71,7 @@
       "result": "Aprobado"
     }
   ],
-  "passed": 15,
+  "passed": 17,
   "errors": [],
   "scope": "UI y API reales; solo el ACK del caso indicado se difiere de forma controlada."
 }

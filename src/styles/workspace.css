@@ -46,14 +46,14 @@
 }
 .app-shell .sidebar {
   width: 232px;
-  background: #252d2e;
-  border-right: 0;
+  background: #fff;
+  border-right: 1px solid var(--border);
   padding: 28px 14px 22px;
   scrollbar-width: thin;
-  scrollbar-color: #536061 transparent;
+  scrollbar-color: #cbd2d5 transparent;
 }
 .app-shell .sidebar-heading {
-  color: #a4b0ae;
+  color: #748078;
   font-size: 10px;
   letter-spacing: 1.15px;
   margin-inline: 15px;
@@ -65,7 +65,7 @@
 }
 .app-shell .sidebar nav a {
   position: relative;
-  color: #d2dad7;
+  color: #47544e;
   border-radius: 7px;
   padding: 11px 14px;
   font-size: 13px;
@@ -75,28 +75,28 @@
     color 180ms ease;
 }
 .app-shell .sidebar nav a svg {
-  color: #a4b2ae;
+  color: #758077;
   stroke-width: 1.6;
   transition:
     transform 220ms var(--motion-ease),
     color 180ms ease;
 }
 .app-shell .sidebar nav a:hover {
-  color: #fff;
-  background: #ffffff09;
+  color: #2c3731;
+  background: #f6f7f4;
   transform: none;
 }
 .app-shell .sidebar nav a:hover svg {
   transform: translateX(2px);
-  color: #fff;
+  color: #b34117;
 }
 .app-shell .sidebar nav a.active {
-  background: #3b3630;
-  color: #ffb790;
+  background: #fff0e5;
+  color: #ad3b13;
   font-weight: 600;
 }
 .app-shell .sidebar nav a.active svg {
-  color: #ffad7e;
+  color: #bd451b;
 }
 .app-shell .sidebar nav a.active::before {
   content: "";
@@ -105,33 +105,33 @@
   width: 3px;
   height: 19px;
   border-radius: 2px;
-  background: #ff975e;
+  background: #cf521f;
   animation: workspace-indicator 220ms var(--motion-ease) both;
 }
 .app-shell .sidebar-create {
-  background: #e86a30;
-  color: #181f1e;
+  background: #c74819;
+  color: #fff;
   font-size: 13px;
   font-weight: 650;
   box-shadow: none;
 }
 .app-shell .sidebar-create:hover {
-  background: #ff9359;
+  background: #a53611;
 }
 .app-shell .sidebar-bottom {
-  border-color: #ffffff16;
+  border-color: var(--border);
   padding-inline: 12px;
   gap: 16px;
 }
 .app-shell .sidebar-bottom > :is(a, button) {
-  color: #c3ceca;
+  color: #637169;
   font-size: 12px;
 }
 .app-shell .sidebar-bottom > :is(a, button):hover {
-  color: #ffb790;
+  color: #ad3b13;
 }
 .app-shell .sidebar-bottom > span {
-  color: #9daea7;
+  color: #748078;
   font-size: 9px;
   line-height: 1.6;
 }
@@ -644,7 +644,7 @@
     transition: transform 260ms var(--motion-ease);
   }
   .app-shell .sidebar-heading .mobile-menu {
-    color: #d7e0d8;
+    color: #47544e;
   }
   .app-shell .sidebar-backdrop {
     background: #18211e70;

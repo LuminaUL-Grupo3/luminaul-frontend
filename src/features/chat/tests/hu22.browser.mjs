@@ -94,6 +94,68 @@ try {
     other = await member.newPage();
   await login(page, accounts[0]);
   await login(other, accounts[1]);
+  await check(
+    "Confirmación de cierre legible y cancelación sin perder la sesión",
+    async () => {
+      await page
+        .getByRole("button", { name: "Cerrar sesión", exact: true })
+        .click();
+      const dialog = page.getByRole("dialog", { name: "¿Cerrar tu sesión?" });
+      const accept = dialog.getByRole("button", {
+        name: "Cerrar sesión",
+        exact: true,
+      });
+      // Compara los colores realmente renderizados; detecta la regresión de texto rojo sobre naranja.
+      const contrast = await accept.evaluate((element) => {
+        const luminance = (color) => {
+          const rgb = color
+            .match(/[\d.]+/g)
+            .slice(0, 3)
+            .map(Number)
+            .map((value) => {
+              const channel = value / 255;
+              return channel <= 0.04045
+                ? channel / 12.92
+                : ((channel + 0.055) / 1.055) ** 2.4;
+            });
+          return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722;
+        };
+        const style = getComputedStyle(element);
+        const values = [
+          luminance(style.color),
+          luminance(style.backgroundColor),
+        ].sort((a, b) => b - a);
+        return (values[0] + 0.05) / (values[1] + 0.05);
+      });
+      expect(contrast).toBeGreaterThanOrEqual(4.5);
+      await page.screenshot({
+        path: resolve(output, "00-confirmacion-cierre.png"),
+        fullPage: true,
+      });
+      await dialog
+        .getByRole("button", { name: "Seguir en mi comunidad" })
+        .click();
+      await expect(dialog).toHaveCount(0);
+      await expect(page.locator(".app-shell")).toBeVisible();
+      await page
+        .getByRole("button", { name: "Cerrar sesión", exact: true })
+        .click();
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      await expect(
+        page.getByRole("button", { name: "Cerrar sesión", exact: true }),
+      ).toBeFocused();
+    },
+  );
+  await check(
+    "El diseño respeta la preferencia de movimiento reducido",
+    async () => {
+      await expect(page.locator(".workspace-view")).toHaveCSS(
+        "animation-name",
+        "none",
+      );
+    },
+  );
   await check("HU2.2 consulta y filtro de solicitudes", async () => {
     await page.goto(web + "/solicitudes");
     await page
@@ -121,13 +183,38 @@ try {
   await check(
     "HU2.2 aceptar actualiza lista y notifica al solicitante",
     async () => {
-      await page
+      let releaseResponse;
+      const gate = new Promise((release) => {
+        releaseResponse = release;
+      });
+      let requests = 0;
+      const decisionUrl = `**/api/groups/${group.id}/join-requests/${first.id}`;
+      // La API decide realmente; retener solo su respuesta permite comprobar el bloqueo de doble clic.
+      await page.route(decisionUrl, async (route) => {
+        if (route.request().method() !== "PATCH") return route.continue();
+        requests += 1;
+        const response = await route.fetch();
+        await gate;
+        await route.fulfill({ response });
+      });
+      const accept = page
         .locator(`[data-request-id="${first.id}"]`)
-        .getByRole("button", { name: /Aceptar solicitud/ })
-        .click();
+        .getByRole("button", { name: /Aceptar solicitud/ });
+      try {
+        await accept.evaluate((element) => {
+          element.click();
+          element.click();
+        });
+        await expect(accept).toBeDisabled();
+        await expect.poll(() => requests).toBe(1);
+      } finally {
+        releaseResponse();
+      }
       await expect(page.locator(`[data-request-id="${first.id}"]`)).toHaveCount(
         0,
       );
+      expect(requests).toBe(1);
+      await page.unroute(decisionUrl);
       await other.goto(web + "/notificaciones");
       await expect(
         other.getByText(
