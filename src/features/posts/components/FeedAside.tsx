@@ -1,16 +1,17 @@
 import { Link } from "react-router-dom";
-import { Sparkles, Users, MessageSquare } from "lucide-react";
+import { BookOpen, Users, MessageSquare } from "lucide-react";
 
 export function FeedAside() {
   return (
     <aside className="feed-aside">
       <div className="panel aside-card">
         <h3>
-          <Sparkles size={18} />
-          ¿Cómo aprovechar el feed?
+          <BookOpen size={18} />
+          Tu comunidad
         </h3>
         <p className="muted small">
-          Encuentra compañeros de estudio para tus cursos del ciclo o comparte lo que sabes creando un grupo de estudio o asesoría.
+          Encuentra compañeros de estudio para tus cursos del ciclo o comparte
+          lo que sabes creando un grupo de estudio o asesoría.
         </p>
         <div className="aside-actions">
           <Link to="/publicar" className="button secondary full">

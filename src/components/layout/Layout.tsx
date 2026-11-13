@@ -23,6 +23,7 @@ import {
   Plus,
   Menu,
   X,
+  ChevronRight,
 } from "lucide-react";
 import { useSession } from "../../features/auth/hooks/useSession";
 // Import directo del hook: el index de profile arrastraría sus páginas, que se cargan con lazy
@@ -48,6 +49,12 @@ const personal = [
   ["/moderacion", "Moderación", Shield],
 ] as const;
 
+const secondarySections: Record<string, string> = {
+  "/publicar": "Crear publicación",
+  "/configuracion": "Configuración",
+  "/admin": "Administración",
+};
+
 export function Layout() {
   const feedback = useFeedback(),
     navigate = useNavigate();
@@ -59,6 +66,16 @@ export function Layout() {
     myProfile = useMyProfileQuery(Boolean(user));
 
   useEffect(() => setOpen(false), [location.pathname]);
+
+  // El encabezado indica la sección actual sin agregar rutas ni modificar permisos.
+  const section =
+    [...nav, ...personal].find(([path]) =>
+      path === "/"
+        ? location.pathname === path
+        : location.pathname.startsWith(path),
+    )?.[1] ??
+    secondarySections[location.pathname] ??
+    "Mi comunidad";
 
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/login" replace />;
@@ -72,6 +89,8 @@ export function Layout() {
         <button
           className="icon-button mobile-menu"
           aria-label="Abrir menú"
+          aria-expanded={open}
+          aria-controls="community-navigation"
           onClick={() => setOpen(!open)}
         >
           <Menu />
@@ -80,8 +99,9 @@ export function Layout() {
           <Brand compact />
         </Link>
         <div className="topbar-center">
-          <span className="live-dot" />
-          Un espacio para aprender juntos
+          <span>Mi comunidad</span>
+          <ChevronRight size={14} aria-hidden="true" />
+          <strong>{section}</strong>
         </div>
         <div className="topbar-right">
           {/* SPEC-07: campana con el contador de notificaciones sin leer */}
@@ -108,7 +128,10 @@ export function Layout() {
           onClick={() => setOpen(false)}
         />
       )}
-      <aside className={`sidebar ${open ? "open" : ""}`}>
+      <aside
+        id="community-navigation"
+        className={`sidebar ${open ? "open" : ""}`}
+      >
         <div className="sidebar-heading">
           COMUNIDAD
           <button
@@ -119,7 +142,7 @@ export function Layout() {
             <X size={18} />
           </button>
         </div>
-        <nav>
+        <nav aria-label="Comunidad">
           {nav.map(([to, label, Icon]) => (
             <NavLink key={to} to={to} end={to === "/"}>
               <Icon size={19} />
@@ -128,7 +151,7 @@ export function Layout() {
           ))}
         </nav>
         <div className="sidebar-heading">MI ESPACIO</div>
-        <nav>
+        <nav aria-label="Mi espacio">
           {personal.map(([to, label, Icon]) => (
             <NavLink key={to} to={to}>
               <Icon size={19} />
@@ -179,9 +202,15 @@ export function Layout() {
       </aside>
       <main className="main-content" id="main-content">
         <Notice error>{error}</Notice>
-        <Suspense fallback={<Loading />}>
-          <Outlet />
-        </Suspense>
+        {/* Otra sala conserva el contenedor del chat; la entrada anima únicamente otra sección. */}
+        <div
+          className="workspace-view"
+          key={location.pathname.split("/")[1] || "inicio"}
+        >
+          <Suspense fallback={<Loading />}>
+            <Outlet />
+          </Suspense>
+        </div>
       </main>
     </div>
   );
