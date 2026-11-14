@@ -429,7 +429,9 @@
   gap: 10px;
   pointer-events: none;
   max-height: calc(100dvh - 112px);
-  overflow: auto;
+  /* La salida horizontal no debe crear una barra de desplazamiento transitoria. */
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 3px;
 }
 .live-notices {
