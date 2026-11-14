@@ -1,5 +1,6 @@
 /** Valores compartidos con el contrato de publicaciones; solo los colores de esta paleta se permiten. */
 export const POST_COLORS = [
+  ["white", "Blanco", "#ffffff"],
   ["peach", "Durazno", "#fff1e6"],
   ["rose", "Rosa", "#fcecf0"],
   ["lavender", "Lavanda", "#eeedfc"],

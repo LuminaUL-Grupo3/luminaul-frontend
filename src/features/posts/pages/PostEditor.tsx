@@ -110,7 +110,7 @@ export function PostEditor() {
     type: "study_group",
     groupId: "",
     description: "",
-    color: "peach",
+    color: "white",
     benefits: "",
     requirements: "",
     maxCapacity: 5, // Máximo 8 integrantes según requerimiento
@@ -137,7 +137,7 @@ export function PostEditor() {
           type: p.type,
           groupId: existingGroupId,
           description: p.description,
-          color: p.color || "peach",
+          color: p.color || "white",
           benefits: p.benefits || "",
           requirements: p.requirements || "",
           maxCapacity: Math.min(8, Math.max(2, p.maxCapacity ?? 5)),

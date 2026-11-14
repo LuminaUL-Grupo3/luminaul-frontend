@@ -16,7 +16,7 @@
 .post-color-picker button {
   width: 40px;
   height: 40px;
-  border: 2px solid transparent;
+  border: 2px solid #d9e0e6;
   border-radius: 50%;
   color: #334155;
   font-weight: 700;
@@ -29,35 +29,48 @@
   outline: 2px solid #334155;
   outline-offset: 3px;
 }
+.app-shell .post-card[data-color] {
+  background-color: #fff;
+  background-image: linear-gradient(
+    var(--post-accent, #fff),
+    var(--post-accent, #fff)
+  );
+  background-position: top;
+  background-size: 100% 8px;
+  background-repeat: no-repeat;
+}
+.app-shell .post-card[data-color="white"] {
+  --post-accent: #fff;
+}
 .app-shell .post-card[data-color="peach"] {
-  background: #fff1e6;
+  --post-accent: #fff1e6;
 }
 .app-shell .post-card[data-color="rose"] {
-  background: #fcecf0;
+  --post-accent: #fcecf0;
 }
 .app-shell .post-card[data-color="lavender"] {
-  background: #eeedfc;
+  --post-accent: #eeedfc;
 }
 .app-shell .post-card[data-color="lilac"] {
-  background: #f5ebf8;
+  --post-accent: #f5ebf8;
 }
 .app-shell .post-card[data-color="sky"] {
-  background: #eaf3fd;
+  --post-accent: #eaf3fd;
 }
 .app-shell .post-card[data-color="mint"] {
-  background: #e9f7ef;
+  --post-accent: #e9f7ef;
 }
 .app-shell .post-card[data-color="sage"] {
-  background: #eff3e6;
+  --post-accent: #eff3e6;
 }
 .app-shell .post-card[data-color="lemon"] {
-  background: #fff9df;
+  --post-accent: #fff9df;
 }
 .app-shell .post-card[data-color="sand"] {
-  background: #f7f0e5;
+  --post-accent: #f7f0e5;
 }
 .app-shell .post-card[data-color="aqua"] {
-  background: #e6f6f5;
+  --post-accent: #e6f6f5;
 }
 /* Cada sección utiliza un acento discreto; las acciones principales conservan el naranja institucional. */
 .app-shell {

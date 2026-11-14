@@ -39,7 +39,7 @@ export function PostCard({
     (Boolean(p.author?.id) && p.author?.id === currentUserId);
 
   return (
-    <article className="post-card" data-color={p.color || "peach"} key={p.id}>
+    <article className="post-card" data-color={p.color || "white"} key={p.id}>
       <div className="post-top">
         <Link className="person" to={authorId ? `/perfil/${authorId}` : "#"}>
           <Avatar name={authorName} src={authorPhoto} />
