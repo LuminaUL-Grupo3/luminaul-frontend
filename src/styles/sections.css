@@ -1,3 +1,64 @@
+.post-color-picker {
+  border: 0;
+  padding: 0;
+  margin: 0 0 10px;
+}
+.post-color-picker legend {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.post-color-picker > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.post-color-picker button {
+  width: 40px;
+  height: 40px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  color: #334155;
+  font-weight: 700;
+}
+.post-color-picker button[aria-pressed="true"] {
+  border-color: #b3431c;
+  box-shadow: 0 0 0 2px #fff inset;
+}
+.post-color-picker button:focus-visible {
+  outline: 2px solid #334155;
+  outline-offset: 3px;
+}
+.app-shell .post-card[data-color="peach"] {
+  background: #fff1e6;
+}
+.app-shell .post-card[data-color="rose"] {
+  background: #fcecf0;
+}
+.app-shell .post-card[data-color="lavender"] {
+  background: #eeedfc;
+}
+.app-shell .post-card[data-color="lilac"] {
+  background: #f5ebf8;
+}
+.app-shell .post-card[data-color="sky"] {
+  background: #eaf3fd;
+}
+.app-shell .post-card[data-color="mint"] {
+  background: #e9f7ef;
+}
+.app-shell .post-card[data-color="sage"] {
+  background: #eff3e6;
+}
+.app-shell .post-card[data-color="lemon"] {
+  background: #fff9df;
+}
+.app-shell .post-card[data-color="sand"] {
+  background: #f7f0e5;
+}
+.app-shell .post-card[data-color="aqua"] {
+  background: #e6f6f5;
+}
 /* Cada sección utiliza un acento discreto; las acciones principales conservan el naranja institucional. */
 .app-shell {
   --section-accent: #bd4c1c;
@@ -205,10 +266,36 @@
 }
 .app-shell .spec04-message-content,
 .app-shell .spec04 .mine .spec04-message-content {
-  max-width: min(90%, 740px);
+  max-width: min(72%, 520px);
 }
 .app-shell .spec04 .bubble {
+  width: fit-content;
+  max-width: 100%;
   border-color: #e0e6eb;
+}
+.app-shell .spec04 .mine .bubble {
+  margin-left: auto;
+}
+.group-density-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #657181;
+  font-size: 12px;
+}
+.group-density-control select {
+  width: auto;
+  padding: 8px 12px;
+}
+.app-shell .spec04 .group-grid[data-density="wide"] {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 18px;
+}
+.app-shell .spec04 .group-grid[data-density="wide"] .group-art {
+  min-height: 70px;
+}
+.app-shell .spec04 .group-grid[data-density="wide"] .group-card-body {
+  padding: 20px;
 }
 .app-shell .spec04 .bubble p {
   --message-preview-lines: 7;
@@ -233,13 +320,13 @@
   text-decoration: underline;
 }
 .app-shell .spec04 .chat-input {
-  padding: 10px 12px;
+  padding: 6px 10px;
   background: #fff;
   border-color: #cfd9e3;
 }
 .app-shell .spec04 .chat-input textarea {
-  min-height: 66px;
-  padding: 12px 6px;
+  min-height: 36px;
+  padding: 6px;
   line-height: 1.6;
 }
 .app-shell .spec04 .chat-input .button {
@@ -523,7 +610,7 @@
 @media (max-width: 760px) {
   .app-shell .spec04-message-content,
   .app-shell .spec04 .mine .spec04-message-content {
-    max-width: 80%;
+    max-width: 76%;
   }
   .app-shell .spec04 .bubble {
     padding: 9px 11px;
@@ -562,7 +649,7 @@
     min-height: 0;
   }
   .app-shell .spec04 .chat-input textarea {
-    min-height: 62px;
+    min-height: 36px;
   }
   .app-shell .schedule-panel .section-title {
     flex-wrap: wrap;

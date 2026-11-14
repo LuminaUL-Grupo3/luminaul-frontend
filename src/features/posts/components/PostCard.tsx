@@ -1,5 +1,12 @@
 import { Link } from "react-router-dom";
-import { BookOpen, Users, Pencil, Trash2, ArrowRight, ArrowUpRight } from "lucide-react";
+import {
+  BookOpen,
+  Users,
+  Pencil,
+  Trash2,
+  ArrowRight,
+  ArrowUpRight,
+} from "lucide-react";
 import { date } from "@/config/api";
 import { Avatar, ReportButton } from "@/components/ui";
 import { Publication } from "../types";
@@ -32,7 +39,7 @@ export function PostCard({
     (Boolean(p.author?.id) && p.author?.id === currentUserId);
 
   return (
-    <article className="post-card" key={p.id}>
+    <article className="post-card" data-color={p.color || "peach"} key={p.id}>
       <div className="post-top">
         <Link className="person" to={authorId ? `/perfil/${authorId}` : "#"}>
           <Avatar name={authorName} src={authorPhoto} />
@@ -105,7 +112,11 @@ export function PostCard({
           </>
         ) : groupId ? (
           (() => {
-            if (groupStatus === "leader" || groupStatus === "admin" || groupStatus === "member") {
+            if (
+              groupStatus === "leader" ||
+              groupStatus === "admin" ||
+              groupStatus === "member"
+            ) {
               return (
                 <Link className="text-button muted" to={`/grupos/${groupId}`}>
                   Ver grupo <ArrowUpRight size={15} />
@@ -114,9 +125,7 @@ export function PostCard({
             }
             if (groupStatus === "pending") {
               return (
-                <span className="text-button muted">
-                  Solicitud pendiente
-                </span>
+                <span className="text-button muted">Solicitud pendiente</span>
               );
             }
             if (groupStatus === "none") {
