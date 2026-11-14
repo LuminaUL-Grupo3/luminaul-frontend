@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { api } from "@/config/api";
 import { useSession } from "@/features/auth/hooks/useSession";
@@ -26,14 +26,25 @@ export function FeedPage({
   const { user } = useSession();
   const feedbackUi = useFeedback();
   const location = useLocation();
+  const navigate = useNavigate();
   const [query, setQuery] = useState(""),
     [type, setType] = useState(""),
     [course, setCourse] = useState(""),
     [cycle, setCycle] = useState(""),
     [page, setPage] = useState(0),
     [joining, setJoining] = useState<Publication | null>(null),
-    [error, setError] = useState(""),
-    [feedback, setFeedback] = useState("");
+    [error, setError] = useState("");
+
+  // Consume una sola vez el resultado del editor; filtrar no vuelve a mostrarlo.
+  useEffect(() => {
+    const state = location.state as { message?: string } | null;
+    if (!state?.message) return;
+    feedbackUi.notify(state.message);
+    navigate(location.pathname + location.search, {
+      replace: true,
+      state: null,
+    });
+  }, [location.key, feedbackUi.notify, navigate]);
 
   const courses = useResource<Course[]>("/courses", []);
   const params = new URLSearchParams({
@@ -70,13 +81,13 @@ export function FeedPage({
         cancelLabel: "Regresar",
       }))
     ) {
-      setFeedback("No se eliminó el post");
+      feedbackUi.notify("No se eliminó el post");
       return;
     }
     try {
       setError("");
       await api.request(`/posts/${id}`, "DELETE");
-      setFeedback("Post eliminado con éxito");
+      feedbackUi.notify("Post eliminado con éxito");
       posts.reload();
     } catch (e) {
       setError((e as Error).message);
@@ -113,11 +124,6 @@ export function FeedPage({
 
       <div className="feed-layout">
         <section>
-          <Notice>
-            {feedback ||
-              (location.state as { message?: string } | null)?.message}
-          </Notice>
-
           <div className="feed-toolbar">
             <h2>
               {mine ? "Tu historial" : "En la comunidad"}{" "}
@@ -148,7 +154,9 @@ export function FeedPage({
                 key={p.id}
                 post={p}
                 currentUserId={user?.id}
-                groupStatus={p.groupId ? groupStatuses.statuses[p.groupId] : undefined}
+                groupStatus={
+                  p.groupId ? groupStatuses.statuses[p.groupId] : undefined
+                }
                 onRemove={remove}
                 onInterestClick={setJoining}
               />

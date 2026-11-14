@@ -66,18 +66,7 @@ try {
     meetingShift: "tarde",
     maxCapacity: 3,
   });
-  const first = await api(
-    `/groups/${group.id}/join-requests`,
-    tokens[1],
-    "POST",
-    { message: "Me gustaría repasar los ejercicios con el grupo." },
-  );
-  const second = await api(
-    `/groups/${group.id}/join-requests`,
-    tokens[2],
-    "POST",
-    { message: "Quisiera participar en la próxima sesión de estudio." },
-  );
+  let first, second;
   browser = await chromium.launch({
     channel: process.env.BROWSER_CHANNEL || "msedge",
     headless: true,
@@ -154,6 +143,200 @@ try {
         "animation-name",
         "none",
       );
+    },
+  );
+  await check(
+    "La solicitud llega a la campana y al aviso sin recargar",
+    async () => {
+      await expect(page.locator(".notifications-bell")).toHaveAttribute(
+        "data-realtime",
+        "connected",
+      );
+      first = await api(
+        `/groups/${group.id}/join-requests`,
+        tokens[1],
+        "POST",
+        { message: "Me gustaría repasar los ejercicios con el grupo." },
+      );
+      await expect(
+        page.locator(".live-notice").filter({ hasText: groupName }),
+      ).toBeVisible({ timeout: 5000 });
+      await page.screenshot({
+        path: resolve(output, "07-aviso-tiempo-real.png"),
+        fullPage: true,
+      });
+    },
+  );
+  await check(
+    "Los avisos se ordenan a la derecha y se cierran a los diez segundos",
+    async () => {
+      const live = page.locator(".live-notice").filter({ hasText: groupName });
+      await expect(live.locator(".notice-lifetime")).toBeVisible();
+      await expect(live.locator(".notice-lifetime > span")).toHaveCSS(
+        "animation-duration",
+        "10s",
+      );
+      expect(
+        await page.locator(".app-notices").evaluate((el) => {
+          const box = el.getBoundingClientRect();
+          return box.right > innerWidth - 50 && box.left > innerWidth / 2;
+        }),
+      ).toBe(true);
+      await expect(live).toHaveClass(/notice-closing/, { timeout: 11_000 });
+      expect(
+        await live
+          .locator(".notice-lifetime > span")
+          .evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).a),
+      ).toBe(0);
+      await expect(live).toHaveCount(0);
+    },
+  );
+  await check(
+    "La lectura se sincroniza con otra sesión del mismo líder",
+    async () => {
+      const n = (await api("/notifications/me", tokens[0])).find((n) =>
+        n.message.includes(groupName),
+      );
+      const unread = (await api("/notifications/me", tokens[0])).filter(
+        (n) => !n.isRead,
+      ).length;
+      await expect(page.locator(".notifications-bell")).toHaveAttribute(
+        "data-unread-count",
+        String(unread),
+      );
+      await api(`/notifications/${n.id}/read`, tokens[0], "PATCH");
+      await expect(page.locator(".notifications-bell")).toHaveAttribute(
+        "data-unread-count",
+        String(unread - 1),
+      );
+      await expect(
+        page.locator(".live-notice").filter({ hasText: groupName }),
+      ).toHaveCount(0);
+      await page.goto(web + "/notificaciones");
+      const card = page.locator(".notification").filter({ hasText: groupName });
+      await expect(card.locator(".notification-meta .tag")).toHaveText(
+        "Grupos",
+      );
+      await expect(
+        card.locator(".notification-meta .notification-read"),
+      ).toHaveText("Leído");
+    },
+  );
+  await check(
+    "Desactivar avisos conserva la entrega en la campana",
+    async () => {
+      await page.goto(web + "/configuracion");
+      await expect(page.locator(".notifications-bell")).toHaveAttribute(
+        "data-realtime",
+        "connected",
+      );
+      await page
+        .getByRole("checkbox", { name: "Mostrar avisos emergentes" })
+        .uncheck();
+      const count = (await api("/notifications/me", tokens[0])).filter(
+        (n) => !n.isRead,
+      ).length;
+      second = await api(
+        `/groups/${group.id}/join-requests`,
+        tokens[2],
+        "POST",
+        { message: "Quisiera participar en la próxima sesión de estudio." },
+      );
+      await expect(page.locator(".notifications-bell")).toHaveAttribute(
+        "data-unread-count",
+        String(count + 1),
+      );
+      await expect(page.locator(".live-notice")).toHaveCount(0);
+      await page.reload();
+      await expect(
+        page.getByRole("checkbox", { name: "Mostrar avisos emergentes" }),
+      ).not.toBeChecked();
+      await page
+        .getByRole("checkbox", { name: "Mostrar avisos emergentes" })
+        .check();
+    },
+  );
+  await check(
+    "Disponibilidad pertenece a Mi espacio en el encabezado",
+    async () => {
+      await page.goto(web + "/horario");
+      await expect(page.locator(".topbar-center")).toContainText("Mi espacio");
+      await expect(page.locator(".topbar-center")).toContainText(
+        "Disponibilidad",
+      );
+      await expect(page.locator(".topbar-center")).not.toContainText(
+        "Comunidad",
+      );
+      await expect(page.locator(".schedule-panel")).toBeVisible();
+      await page.screenshot({
+        path: resolve(output, "08-disponibilidad.png"),
+        fullPage: true,
+      });
+    },
+  );
+  await check(
+    "Filtrar publicaciones no conserva el aviso de la acción anterior",
+    async () => {
+      await page.goto(web + "/buscar");
+      // Reproduce el estado de navegación que deja el editor, sin modificar publicaciones existentes.
+      await page.evaluate(() =>
+        history.replaceState(
+          {
+            ...history.state,
+            usr: { message: "Publicación enviada con éxito" },
+          },
+          "",
+        ),
+      );
+      await page.reload();
+      await expect(page.locator(".action-toast")).toContainText(
+        "Publicación enviada con éxito",
+      );
+      await expect(
+        page.locator(".action-toast .notice-lifetime"),
+      ).toBeVisible();
+      for (const [control, value] of [
+        ["Ciclo", "7"],
+        ["Ciclo", "11"],
+        ["Ciclo", ""],
+      ]) {
+        const response = page.waitForResponse(
+          (r) =>
+            r.url().includes("/api/posts?") && r.request().method() === "GET",
+        );
+        await page.getByLabel(control, { exact: true }).selectOption(value);
+        expect((await response).status()).toBe(200);
+      }
+      let response = page.waitForResponse(
+        (r) =>
+          r.url().includes("/api/posts?") &&
+          r.url().includes("type=study_group"),
+      );
+      await page
+        .getByRole("button", { name: "Grupo de Estudio", exact: true })
+        .click();
+      expect((await response).status()).toBe(200);
+      const course = (await api("/courses", tokens[0]))[0];
+      if (course) {
+        response = page.waitForResponse((r) => r.url().includes("courseId="));
+        await page.getByLabel("Curso", { exact: true }).selectOption(course.id);
+        expect((await response).status()).toBe(200);
+      }
+      await page
+        .getByLabel("Buscar publicaciones")
+        .fill("sin-coincidencias-" + randomUUID());
+      await expect(
+        page.getByText("No se encontraron resultados para tu búsqueda"),
+      ).toBeVisible();
+      await expect(page.locator(".notice.error")).toHaveCount(0);
+      await expect(page.locator(".action-toast")).toHaveCount(0, {
+        timeout: 12_000,
+      });
+      await page.getByLabel("Buscar publicaciones").fill("");
+      await expect(page.locator(".action-toast")).toHaveCount(0);
+      await page.reload();
+      await expect(page.getByLabel("Buscar publicaciones")).toBeVisible();
+      await expect(page.locator(".action-toast")).toHaveCount(0);
     },
   );
   await check("HU2.2 consulta y filtro de solicitudes", async () => {
@@ -381,6 +564,70 @@ try {
         .getByText("De acuerdo, revisamos ese ejercicio.", { exact: true }),
     ).toBeVisible();
   });
+  await check("Los mensajes largos se pueden expandir y contraer", async () => {
+    const content = Array.from(
+      { length: 14 },
+      (_, i) =>
+        `Punto ${i + 1}: revisaremos los ejercicios y las dudas de la práctica.`,
+    ).join("\n");
+    await page.getByLabel("Mensaje", { exact: true }).fill(content);
+    await page.getByRole("button", { name: "Enviar mensaje" }).click();
+    const row = page.locator(".bubble-row").filter({ hasText: "Punto 14:" });
+    await expect(
+      row.getByRole("button", { name: "Ver más", exact: true }),
+    ).toBeVisible();
+    await row.getByRole("button", { name: "Ver más", exact: true }).click();
+    await expect(row.locator(".message-collapsed")).toHaveCount(0);
+    await row.getByRole("button", { name: "Ver menos", exact: true }).click();
+    await expect(row.locator(".message-collapsed")).toHaveCount(1);
+    await page.screenshot({
+      path: resolve(output, "09-chat-mensaje-largo.png"),
+      fullPage: true,
+    });
+  });
+  await check(
+    "La prioridad oculta avisos de grupo y muestra un reporte importante",
+    async () => {
+      const targetId = await other
+        .locator(".bubble-row.mine")
+        .last()
+        .getAttribute("data-message-id");
+      await page.goto(web + "/configuracion");
+      await expect(page.locator(".notifications-bell")).toHaveAttribute(
+        "data-realtime",
+        "connected",
+      );
+      await page.getByLabel("Prioridad de los avisos").selectOption("high");
+      const count = (await api("/notifications/me", tokens[0])).filter(
+        (n) => !n.isRead,
+      ).length;
+      await api(`/groups/${group.id}/join-requests`, tokens[2], "POST", {
+        message: "Solicitud de prueba de prioridad.",
+      });
+      await expect(page.locator(".notifications-bell")).toHaveAttribute(
+        "data-unread-count",
+        String(count + 1),
+      );
+      await expect(page.locator(".live-notice")).toHaveCount(0);
+      await api("/moderation/reports", tokens[0], "POST", {
+        targetType: "message",
+        targetId,
+        reason: "Prueba del aviso de reporte.",
+      });
+      await expect(
+        page
+          .locator(".live-notice-high")
+          .filter({ hasText: "Reporte recibido" }),
+      ).toBeVisible();
+      await page.screenshot({
+        path: resolve(output, "10-aviso-prioritario.png"),
+        fullPage: true,
+      });
+      await page.getByLabel("Prioridad de los avisos").selectOption("normal");
+      await page.goto(web + `/mensajes/${group.id}`);
+      await expect(page.getByLabel("Mensaje", { exact: true })).toBeVisible();
+    },
+  );
   await check(
     "Diseño móvil de solicitudes y chat sin desbordamiento",
     async () => {

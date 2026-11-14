@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Reply, CheckCheck, Check } from "lucide-react";
 import { Avatar, ReportButton } from "@/components/ui";
 import {
@@ -26,7 +26,12 @@ export function MessageItem({
   const mine = message.senderId === userId,
     visible = message.status === "published";
   const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [expanded, setExpanded] = useState(false);
+  const contentId = useId();
+  const longMessage =
+    visible &&
+    (message.content.length > 600 || message.content.split("\n").length > 8);
   /** Espera el ACK para no inventar un contador de reacciones cuando falla la red. */
   async function react(emoji: ReactionEmoji) {
     if (busy || disabled) return;
@@ -80,13 +85,29 @@ export function MessageItem({
               </span>
             </blockquote>
           )}
-          <p>
+          <p
+            id={contentId}
+            className={
+              longMessage && !expanded ? "message-collapsed" : undefined
+            }
+          >
             {visible
               ? message.content
               : message.status === "hidden"
                 ? "Mensaje oculto por moderación."
                 : "Mensaje eliminado."}
           </p>
+          {longMessage && (
+            <button
+              className="message-expand"
+              type="button"
+              aria-expanded={expanded}
+              aria-controls={contentId}
+              onClick={() => setExpanded(!expanded)}
+            >
+              {expanded ? "Ver menos" : "Ver más"}
+            </button>
+          )}
           {mine && visible && (
             <small
               className="spec04-read"
@@ -109,7 +130,13 @@ export function MessageItem({
         </div>
         {visible && (
           <div className="spec04-message-actions">
-            {!mine && <ReportButton kind="message" id={message.id} disabled={disabled} />}
+            {!mine && (
+              <ReportButton
+                kind="message"
+                id={message.id}
+                disabled={disabled}
+              />
+            )}
             <button
               className="text-button"
               aria-label={`Responder a ${message.sender.name}`}

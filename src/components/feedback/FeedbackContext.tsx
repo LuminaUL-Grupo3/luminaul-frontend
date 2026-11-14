@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { CheckCircle2, HelpCircle, X } from "lucide-react";
+import { useNoticeLifetime } from "@/hooks/useNoticeLifetime";
 
 export type Confirmation = {
   title: string;
@@ -74,23 +75,44 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
       {confirmation && (
         <ConfirmationDialog options={confirmation} settle={settle} />
       )}
-      <div className="toast-stack" aria-live="polite" aria-atomic="true">
+      <div id="app-notice-region" className="app-notices" aria-label="Avisos">
         {message && (
-          <div className="toast" key={message.id}>
-            <CheckCircle2 size={22} aria-hidden="true" />
-            <p>{message.text}</p>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="Cerrar notificación"
-              onClick={() => setMessage(null)}
-            >
-              <X size={18} />
-            </button>
-          </div>
+          <ActionToast
+            key={message.id}
+            text={message.text}
+            dismiss={() =>
+              setMessage((current) =>
+                current?.id === message.id ? null : current,
+              )
+            }
+          />
         )}
       </div>
     </FeedbackContext.Provider>
+  );
+}
+
+function ActionToast({ text, dismiss }: { text: string; dismiss: () => void }) {
+  const { closing, close } = useNoticeLifetime(dismiss);
+  return (
+    <div
+      className={`toast action-toast ${closing ? "notice-closing" : ""}`}
+      role="status"
+    >
+      <span className="notice-lifetime" aria-hidden="true">
+        <span />
+      </span>
+      <CheckCircle2 size={22} aria-hidden="true" />
+      <p>{text}</p>
+      <button
+        type="button"
+        className="icon-button"
+        aria-label="Cerrar notificación"
+        onClick={close}
+      >
+        <X size={18} />
+      </button>
+    </div>
   );
 }
 

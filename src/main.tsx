@@ -4,6 +4,7 @@ import { App } from "./app";
 import { FeedbackProvider } from "./components/feedback";
 import "./styles.css";
 import "./styles/workspace.css";
+import "./styles/sections.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -1,6 +1,6 @@
 import { CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { Calendar, Pencil, Trash2 } from "lucide-react";
+import { Calendar, Clock3, Pencil, Trash2 } from "lucide-react";
 import { AvailabilitySlotDto, DAYS_OF_WEEK } from "../types";
 import "../styles/profile.css";
 
@@ -29,6 +29,13 @@ export function AvailabilitySchedule({
   onDelete,
 }: AvailabilityScheduleProps) {
   const editable = Boolean(onEdit || onDelete);
+  const totalMinutes = availability.reduce((total, slot) => {
+    const minutes = (time: string) => {
+      const [h, m] = time.split(":").map(Number);
+      return h * 60 + m;
+    };
+    return total + minutes(slot.endTime) - minutes(slot.startTime);
+  }, 0);
 
   return (
     <div className="panel schedule-panel">
@@ -37,6 +44,12 @@ export function AvailabilitySchedule({
           <Calendar size={20} />
           Disponibilidad
         </h2>
+        <span className="schedule-summary">
+          {availability.length}{" "}
+          {availability.length === 1 ? "franja" : "franjas"} ·{" "}
+          {Math.floor(totalMinutes / 60)} h{" "}
+          {totalMinutes % 60 ? `${totalMinutes % 60} min` : ""} por semana
+        </span>
         {own && !editable && (
           <Link className="text-button" to="/horario">
             Gestionar horario
@@ -44,7 +57,13 @@ export function AvailabilitySchedule({
         )}
       </div>
       {!availability.length && (
-        <p className="muted">Todavía no hay horas libres registradas.</p>
+        <div className="schedule-empty">
+          <Clock3 size={20} aria-hidden="true" />
+          <p>
+            Todavía no hay horas libres registradas.
+            {editable ? " Usa Agregar franja para organizar tu semana." : ""}
+          </p>
+        </div>
       )}
       <div className="schedule-scroll">
         <div

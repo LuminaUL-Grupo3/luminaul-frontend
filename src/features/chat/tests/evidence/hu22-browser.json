@@ -1,6 +1,6 @@
 {
-  "date": "2026-11-13T22:47:08.858Z",
-  "groupId": "01804d82-5361-4f53-a04c-c151b9c5006d",
+  "date": "2026-11-14T00:18:46.833Z",
+  "groupId": "5df0049e-c559-4eb1-85c9-f139be657826",
   "checks": [
     {
       "name": "Confirmación de cierre legible y cancelación sin perder la sesión",
@@ -8,6 +8,30 @@
     },
     {
       "name": "El diseño respeta la preferencia de movimiento reducido",
+      "result": "Aprobado"
+    },
+    {
+      "name": "La solicitud llega a la campana y al aviso sin recargar",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Los avisos se ordenan a la derecha y se cierran a los diez segundos",
+      "result": "Aprobado"
+    },
+    {
+      "name": "La lectura se sincroniza con otra sesión del mismo líder",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Desactivar avisos conserva la entrega en la campana",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Disponibilidad pertenece a Mi espacio en el encabezado",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Filtrar publicaciones no conserva el aviso de la acción anterior",
       "result": "Aprobado"
     },
     {
@@ -43,6 +67,14 @@
       "result": "Aprobado"
     },
     {
+      "name": "Los mensajes largos se pueden expandir y contraer",
+      "result": "Aprobado"
+    },
+    {
+      "name": "La prioridad oculta avisos de grupo y muestra un reporte importante",
+      "result": "Aprobado"
+    },
+    {
       "name": "Diseño móvil de solicitudes y chat sin desbordamiento",
       "result": "Aprobado"
     },
@@ -71,7 +103,7 @@
       "result": "Aprobado"
     }
   ],
-  "passed": 17,
+  "passed": 25,
   "errors": [],
   "scope": "UI y API reales; solo el ACK del caso indicado se difiere de forma controlada."
 }

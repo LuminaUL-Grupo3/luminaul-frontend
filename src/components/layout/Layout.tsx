@@ -68,20 +68,33 @@ export function Layout() {
   useEffect(() => setOpen(false), [location.pathname]);
 
   // El encabezado indica la sección actual sin agregar rutas ni modificar permisos.
+  const activeSection = [...nav, ...personal].find(([path]) =>
+    path === "/"
+      ? location.pathname === path
+      : location.pathname.startsWith(path),
+  );
   const section =
-    [...nav, ...personal].find(([path]) =>
-      path === "/"
-        ? location.pathname === path
-        : location.pathname.startsWith(path),
-    )?.[1] ??
+    activeSection?.[1] ??
     secondarySections[location.pathname] ??
     "Mi comunidad";
+  const personalSection =
+    personal.some(([path]) => location.pathname.startsWith(path)) ||
+    location.pathname.startsWith("/configuracion");
+  const sectionGroup = personalSection
+    ? "Mi espacio"
+    : location.pathname.startsWith("/admin")
+      ? "Administración"
+      : "Comunidad";
+  const SectionIcon = activeSection?.[2] ?? Settings;
 
   if (loading) return <Loading />;
   if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <div className="app-shell">
+    <div
+      className="app-shell"
+      data-section={location.pathname.split("/")[1] || "inicio"}
+    >
       <a className="skip-link" href="#main-content">
         Ir al contenido
       </a>
@@ -99,8 +112,11 @@ export function Layout() {
           <Brand compact />
         </Link>
         <div className="topbar-center">
-          <span>Mi comunidad</span>
+          <span>{sectionGroup}</span>
           <ChevronRight size={14} aria-hidden="true" />
+          <span className="section-symbol">
+            <SectionIcon size={15} aria-hidden="true" />
+          </span>
           <strong>{section}</strong>
         </div>
         <div className="topbar-right">
