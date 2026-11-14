@@ -81,8 +81,17 @@ export function ChatWindow(props: ChatWindowProps) {
       id: string;
     } | null>(null);
   const stickyBottom = useRef(true);
+  const sending = useRef(false),
+    draftVersion = useRef(0);
   const scrollSnapshot = useRef<{ top: number; height: number } | null>(null);
   const latest = messages.at(-1)?.id || "";
+
+  // El compositor crece con el texto sin desplazar el historial que el usuario está leyendo.
+  useLayoutEffect(() => {
+    if (!field.current) return;
+    field.current.style.height = "auto";
+    field.current.style.height = `${Math.min(field.current.scrollHeight, 140)}px`;
+  }, [text]);
 
   useEffect(() => {
     if (
@@ -177,6 +186,7 @@ export function ChatWindow(props: ChatWindowProps) {
 
   /** Una respuesta se prepara en el mismo compositor y no permite citar texto oculto. */
   function respond(message: GroupMessageDto) {
+    draftVersion.current += 1;
     setReply(message);
     pending.current = null;
     field.current?.focus();
@@ -185,7 +195,9 @@ export function ChatWindow(props: ChatWindowProps) {
   /** Reintenta con la misma clave cuando no llegó el ACK, conservando texto y cita si hay un fallo. */
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!text.trim() || busy || !connected || revoked) return;
+    if (!text.trim() || sending.current || !connected || revoked) return;
+    sending.current = true;
+    const version = draftVersion.current;
     const content = text.trim(),
       replyToId = reply?.id;
     const attempt =
@@ -204,8 +216,11 @@ export function ChatWindow(props: ChatWindowProps) {
         clientMessageId: attempt.id,
         ...(replyToId ? { replyToId } : {}),
       });
-      setText("");
-      setReply(null);
+      // Un ACK tardío no debe borrar el siguiente texto que el usuario ya está escribiendo.
+      if (draftVersion.current === version) {
+        setText("");
+        setReply(null);
+      }
       pending.current = null;
       setAtBottom(true);
       requestAnimationFrame(() => {
@@ -216,6 +231,7 @@ export function ChatWindow(props: ChatWindowProps) {
     } catch (cause) {
       setSendError((cause as Error).message);
     } finally {
+      sending.current = false;
       setBusy(false);
     }
   }
@@ -311,7 +327,7 @@ export function ChatWindow(props: ChatWindowProps) {
               key={message.id}
               message={message}
               userId={userId}
-              disabled={!connected || busy}
+              disabled={!connected}
               onReply={respond}
               onReaction={onReaction}
             />
@@ -353,6 +369,7 @@ export function ChatWindow(props: ChatWindowProps) {
             className="icon-button"
             aria-label="Cancelar respuesta"
             onClick={() => {
+              draftVersion.current += 1;
               setReply(null);
               pending.current = null;
             }}
@@ -368,13 +385,14 @@ export function ChatWindow(props: ChatWindowProps) {
           rows={1}
           maxLength={4000}
           value={text}
-          disabled={busy || revoked}
+          disabled={revoked}
           placeholder={
             revoked
               ? "Ya no perteneces a este grupo."
               : "Escribe un mensaje para el grupo…"
           }
           onChange={(event) => {
+            draftVersion.current += 1;
             setText(event.target.value);
             onTyping(Boolean(event.target.value.trim()));
           }}

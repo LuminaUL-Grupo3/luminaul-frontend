@@ -6,6 +6,7 @@ import { groupKeys } from "./useGroupQueries";
 import type {
   ChatError,
   GroupMessageDto,
+  GroupDetailDto,
   HiddenEvent,
   PresenceEvent,
   ReactionEmoji,
@@ -31,6 +32,52 @@ export function useChatSocket(groupId: string, enabled: boolean) {
     typingTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const generation = useRef(0);
   const currentRoom = useRef("");
+  const inboxRefresh = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  /** Agrupa las consultas de contadores después de una ráfaga; PostgreSQL conserva la verdad de lectura. */
+  const refreshInbox = useCallback(() => {
+    if (inboxRefresh.current) clearTimeout(inboxRefresh.current);
+    inboxRefresh.current = setTimeout(() => {
+      void cache.invalidateQueries({
+        queryKey: groupKeys.mine(user?.id || ""),
+      });
+    }, 250);
+  }, [cache, user?.id]);
+
+  useEffect(
+    () => () => {
+      if (inboxRefresh.current) clearTimeout(inboxRefresh.current);
+    },
+    [user?.id],
+  );
+
+  /** Proyecta la actividad confirmada en la bandeja sin una petición HTTP por cada mensaje. */
+  const updateInbox = useCallback(
+    (message: GroupMessageDto) => {
+      cache.setQueryData<GroupDetailDto[]>(
+        groupKeys.mine(user?.id || ""),
+        (previous) =>
+          previous
+            ?.map((group) =>
+              group.id === message.groupId &&
+              message.createdAt >= group.lastActivity
+                ? {
+                    ...group,
+                    lastMessage:
+                      message.status === "published"
+                        ? message.content
+                        : "Mensaje no disponible",
+                    lastActivity: message.createdAt,
+                  }
+                : group,
+            )
+            .sort((a, b) => b.lastActivity.localeCompare(a.lastActivity)),
+      );
+    },
+    [cache, user?.id],
+  );
 
   useEffect(() => {
     setLive({});
@@ -84,7 +131,8 @@ export function useChatSocket(groupId: string, enabled: boolean) {
     function message(value: GroupMessageDto) {
       if (value.groupId !== groupId) return;
       setLive((previous) => ({ ...previous, [value.id]: value }));
-      void cache.invalidateQueries({ queryKey: groupKeys.mine(user!.id) });
+      updateInbox(value);
+      refreshInbox();
     }
     /** Al ocultar contenido también se elimina el texto de las respuestas citadas al renderizar. */
     function hidden(event: HiddenEvent) {
@@ -201,28 +249,33 @@ export function useChatSocket(groupId: string, enabled: boolean) {
         }
       });
     };
-  }, [groupId, enabled, user?.id, cache]);
+  }, [groupId, enabled, user?.id, cache, updateInbox, refreshInbox]);
 
   /** Confirma el mensaje persistido y conserva la misma clave de intento si el ACK se pierde. */
   const send = useCallback(
     async (payload: SendMessageRequest) => {
       if (!joined || revoked)
         throw new Error("Espera a que la conversación vuelva a conectarse.");
+      const version = generation.current;
       const result = await chatCommand<{ message: GroupMessageDto }>(
         "chat:send_message",
         payload,
       );
+      // Un ACK de una sala anterior no debe incorporarse al historial de la nueva conversación.
+      if (
+        version !== generation.current ||
+        currentRoom.current !== payload.groupId
+      )
+        return result.message;
       setLive((previous) => ({
         ...previous,
         [result.message.id]: result.message,
       }));
       setError("");
-      void cache.invalidateQueries({
-        queryKey: groupKeys.mine(user?.id || ""),
-      });
+      updateInbox(result.message);
       return result.message;
     },
-    [joined, revoked, cache, user?.id],
+    [joined, revoked, updateInbox],
   );
 
   /** Limita los avisos de escritura y emite el cese también por inactividad local. */
@@ -247,10 +300,13 @@ export function useChatSocket(groupId: string, enabled: boolean) {
   /** Cambia reacciones con el agregado confirmado por PostgreSQL. */
   const react = useCallback(
     async (messageId: string, emoji: ReactionEmoji, add: boolean) => {
+      const version = generation.current;
       const result = await chatCommand<{ message: GroupMessageDto }>(
         add ? "reaction:add" : "reaction:remove",
         { groupId, messageId, emoji },
       );
+      if (version !== generation.current || currentRoom.current !== groupId)
+        return;
       setLive((previous) => ({ ...previous, [messageId]: result.message }));
     },
     [groupId],
@@ -260,12 +316,14 @@ export function useChatSocket(groupId: string, enabled: boolean) {
   const markRead = useCallback(
     async (messageId: string) => {
       if (!joined || revoked) return;
+      const version = generation.current;
       await chatCommand("message:read", { groupId, messageId });
-      void cache.invalidateQueries({
-        queryKey: groupKeys.mine(user?.id || ""),
-      });
+      if (version !== generation.current || currentRoom.current !== groupId)
+        return;
+      // No pone el contador a cero a ciegas: otro mensaje podría llegar antes de recibir este ACK.
+      refreshInbox();
     },
-    [groupId, joined, revoked, cache, user?.id],
+    [groupId, joined, revoked, refreshInbox],
   );
 
   return {

@@ -1,3 +1,4 @@
+import { POST_COLORS } from "../postColors";
 import { useEffect, useState, useRef, useMemo, FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -109,6 +110,7 @@ export function PostEditor() {
     type: "study_group",
     groupId: "",
     description: "",
+    color: "peach",
     benefits: "",
     requirements: "",
     maxCapacity: 5, // Máximo 8 integrantes según requerimiento
@@ -135,6 +137,7 @@ export function PostEditor() {
           type: p.type,
           groupId: existingGroupId,
           description: p.description,
+          color: p.color || "peach",
           benefits: p.benefits || "",
           requirements: p.requirements || "",
           maxCapacity: Math.min(8, Math.max(2, p.maxCapacity ?? 5)),
@@ -182,7 +185,11 @@ export function PostEditor() {
   useEffect(() => {
     if (form.courseId && courses.data.length > 0) {
       const current = courses.data.find((c) => c.id === form.courseId);
-      if (current && typeof current.cycle === "number" && selectedCycle === null) {
+      if (
+        current &&
+        typeof current.cycle === "number" &&
+        selectedCycle === null
+      ) {
         setSelectedCycle(current.cycle);
       }
     }
@@ -215,14 +222,10 @@ export function PostEditor() {
     user?.role === "admin";
 
   const displayAuthorName =
-    postAuthor?.name ||
-    myProfile.data?.name ||
-    "Estudiante";
+    postAuthor?.name || myProfile.data?.name || "Estudiante";
 
   const displayAuthorPhoto =
-    postAuthor?.profilePhotoUrl ||
-    myProfile.data?.profilePhotoUrl ||
-    null;
+    postAuthor?.profilePhotoUrl || myProfile.data?.profilePhotoUrl || null;
 
   const authorInitials = useMemo(() => {
     if (!displayAuthorName) return "U";
@@ -234,7 +237,9 @@ export function PostEditor() {
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!isOwner) {
-      setError("No tienes permiso para modificar esta publicación porque pertenece a otro usuario.");
+      setError(
+        "No tienes permiso para modificar esta publicación porque pertenece a otro usuario.",
+      );
       return;
     }
     const errorsMap: Record<string, string> = {};
@@ -254,7 +259,11 @@ export function PostEditor() {
       errorsMap.requirements =
         "Especifica los requisitos o conocimientos previos necesarios.";
     }
-    if (form.type === "study_group" && groupMode === "existing" && !form.groupId) {
+    if (
+      form.type === "study_group" &&
+      groupMode === "existing" &&
+      !form.groupId
+    ) {
       errorsMap.groupId =
         "Selecciona un grupo de estudio existente de la lista para vincular.";
     }
@@ -274,6 +283,7 @@ export function PostEditor() {
       const payload: Record<string, unknown> = {
         ...(isEditing ? {} : { courseId: form.courseId, type: form.type }),
         description: form.description,
+        color: form.color,
         benefits: form.benefits,
         requirements: form.requirements,
       };
@@ -285,7 +295,8 @@ export function PostEditor() {
           payload.groupId = form.groupId;
           payload.maxCapacity = id
             ? Math.min(8, Math.max(2, form.maxCapacity))
-            : (selectedGroup?.maxCapacity ?? Math.min(8, Math.max(2, form.maxCapacity)));
+            : (selectedGroup?.maxCapacity ??
+              Math.min(8, Math.max(2, form.maxCapacity)));
         }
       } else {
         payload.maxCapacity = Math.min(8, Math.max(2, form.maxCapacity));
@@ -328,7 +339,11 @@ export function PostEditor() {
   return (
     <>
       <PageHeader
-        eyebrow={id ? `PUBLICACIÓN DE ${displayAuthorName.toUpperCase()}` : "COMPARTE TU CONOCIMIENTO"}
+        eyebrow={
+          id
+            ? `PUBLICACIÓN DE ${displayAuthorName.toUpperCase()}`
+            : "COMPARTE TU CONOCIMIENTO"
+        }
         title={id ? "Editar publicación" : "Crear publicación"}
         description={
           id
@@ -339,7 +354,8 @@ export function PostEditor() {
       {error && <Notice error>{error}</Notice>}
       {!isOwner && (
         <Notice error>
-          Esta publicación pertenece a otro usuario ({displayAuthorName}). Solo el autor original puede guardar cambios.
+          Esta publicación pertenece a otro usuario ({displayAuthorName}). Solo
+          el autor original puede guardar cambios.
         </Notice>
       )}
       {!loaded ? (
@@ -348,7 +364,12 @@ export function PostEditor() {
         <div className="modern-editor-wrapper">
           <div className="modern-editor-grid">
             {/* Formulario Principal */}
-            <form ref={formRef} className="panel form" onSubmit={submit} noValidate>
+            <form
+              ref={formRef}
+              className="panel form"
+              onSubmit={submit}
+              noValidate
+            >
               {/* 1. Selector Visual de Tipo de Publicación */}
               <Field
                 label="1. Tipo de Publicación"
@@ -405,12 +426,14 @@ export function PostEditor() {
                       <div className="type-card-icon">
                         <Users size={22} />
                       </div>
-                      <span className="type-card-badge">Grupo colaborativo</span>
+                      <span className="type-card-badge">
+                        Grupo colaborativo
+                      </span>
                     </div>
                     <h3 className="type-card-title">Grupo de Estudio</h3>
                     <p className="type-card-desc">
-                      Crea un espacio de estudio compartido para preparar exámenes,
-                      repasar guías y trabajar en equipo.
+                      Crea un espacio de estudio compartido para preparar
+                      exámenes, repasar guías y trabajar en equipo.
                     </p>
                   </div>
 
@@ -440,8 +463,8 @@ export function PostEditor() {
                     </div>
                     <h3 className="type-card-title">Asesoría Académica</h3>
                     <p className="type-card-desc">
-                      Brinda u ofrece soporte temático y mentoría personalizada en
-                      materias específicas de la malla.
+                      Brinda u ofrece soporte temático y mentoría personalizada
+                      en materias específicas de la malla.
                     </p>
                   </div>
                 </div>
@@ -503,7 +526,10 @@ export function PostEditor() {
                   </div>
 
                   {(groupMode === "new" || Boolean(id)) && (
-                    <div className="group-capacity-inline" style={{ marginTop: 12 }}>
+                    <div
+                      className="group-capacity-inline"
+                      style={{ marginTop: 12 }}
+                    >
                       <div
                         style={{
                           display: "flex",
@@ -534,7 +560,10 @@ export function PostEditor() {
                             step={1}
                             value={form.maxCapacity}
                             onChange={(e) => {
-                              const val = Math.min(8, Math.max(2, Number(e.target.value)));
+                              const val = Math.min(
+                                8,
+                                Math.max(2, Number(e.target.value)),
+                              );
                               set("maxCapacity", val);
                             }}
                             aria-label="Capacidad del grupo"
@@ -545,7 +574,10 @@ export function PostEditor() {
                             max={8}
                             value={form.maxCapacity}
                             onChange={(e) => {
-                              const val = Math.min(8, Math.max(2, Number(e.target.value)));
+                              const val = Math.min(
+                                8,
+                                Math.max(2, Number(e.target.value)),
+                              );
                               set("maxCapacity", val);
                             }}
                             style={{ width: 80, textAlign: "center" }}
@@ -561,7 +593,8 @@ export function PostEditor() {
                           display: "block",
                         }}
                       >
-                        Mínimo 2 y máximo 8 integrantes (incluye al líder/creador).
+                        Mínimo 2 y máximo 8 integrantes (incluye al
+                        líder/creador).
                       </span>
                     </div>
                   )}
@@ -604,7 +637,9 @@ export function PostEditor() {
                             {myGroups.data.map((g) => (
                               <option key={g.id} value={g.id}>
                                 {g.name}{" "}
-                                {g.myRole === "leader" ? "(Líder)" : "(Miembro)"}{" "}
+                                {g.myRole === "leader"
+                                  ? "(Líder)"
+                                  : "(Miembro)"}{" "}
                                 • {g.currentMembers ?? 1} miembros
                               </option>
                             ))}
@@ -619,8 +654,10 @@ export function PostEditor() {
                             <div className="selected-group-card">
                               <Users size={16} />
                               <span>
-                                Vinculado a: <strong>{selectedGroup.name}</strong>{" "}
-                                • Capacidad: {selectedGroup.maxCapacity ?? 6} integrantes
+                                Vinculado a:{" "}
+                                <strong>{selectedGroup.name}</strong> •
+                                Capacidad: {selectedGroup.maxCapacity ?? 6}{" "}
+                                integrantes
                               </span>
                             </div>
                           )}
@@ -693,7 +730,9 @@ export function PostEditor() {
                       <div className="selected-course-info">
                         <CheckCircle2 size={20} />
                         <div>
-                          <strong>{formatCourseName(selectedCourse.name)}</strong>
+                          <strong>
+                            {formatCourseName(selectedCourse.name)}
+                          </strong>
                           {selectedCourse.cycle && (
                             <span
                               className="selected-course-tag"
@@ -727,7 +766,24 @@ export function PostEditor() {
                 )}
               </Field>
 
-              {/* 3. Detalles de la Publicación (Textareas con error inline) */}
+              <fieldset className="post-color-picker">
+                <legend>Color de tu publicación</legend>
+                <div role="group" aria-label="Colores pastel">
+                  {POST_COLORS.map(([value, label, hex]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-label={label}
+                      aria-pressed={form.color === value}
+                      title={label}
+                      style={{ backgroundColor: hex }}
+                      onClick={() => set("color", value)}
+                    >
+                      {form.color === value ? "✓" : ""}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
               <Field
                 label="3. Descripción Detallada"
                 hint={`${form.description.length}/3000 caracteres`}
@@ -799,7 +855,11 @@ export function PostEditor() {
               {/* Botones de Acción */}
               <div className="button-row" style={{ marginTop: 20 }}>
                 <button className="button" disabled={busy || !isOwner}>
-                  {busy ? "Guardando…" : id ? "Guardar cambios" : "Publicar ahora"}
+                  {busy
+                    ? "Guardando…"
+                    : id
+                      ? "Guardar cambios"
+                      : "Publicar ahora"}
                   <ArrowUpRight size={18} />
                 </button>
                 <button
@@ -828,6 +888,7 @@ export function PostEditor() {
               <div className="panel live-preview-card">
                 <article
                   className="post-card"
+                  data-color={form.color}
                   style={{ margin: 0, border: "none", boxShadow: "none" }}
                 >
                   <div className="post-top">
@@ -865,7 +926,9 @@ export function PostEditor() {
                       <div>
                         <strong>{displayAuthorName}</strong>
                         <span>
-                          {id ? "Autor de la publicación" : "Tu perfil (Vista previa)"}
+                          {id
+                            ? "Autor de la publicación"
+                            : "Tu perfil (Vista previa)"}
                         </span>
                       </div>
                     </div>
@@ -877,7 +940,9 @@ export function PostEditor() {
                         form.type === "tutoring" ? "purple" : ""
                       }`}
                     >
-                      {form.type === "tutoring" ? "Asesoría" : "Grupo de Estudio"}
+                      {form.type === "tutoring"
+                        ? "Asesoría"
+                        : "Grupo de Estudio"}
                     </span>
                     <span className="course-tag">
                       {activeCourse
@@ -1007,8 +1072,8 @@ export function PostEditor() {
           close={() => setLeaving(false)}
         >
           <p className="confirmation-copy">
-            Puedes guardar tu publicación antes de regresar, continuar editando o
-            salir sin guardar los cambios.
+            Puedes guardar tu publicación antes de regresar, continuar editando
+            o salir sin guardar los cambios.
           </p>
           <div className="modal-actions">
             <button

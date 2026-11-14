@@ -8,10 +8,22 @@ import {
 import { GroupCard } from "../components/GroupCard";
 import { CreateGroupModal } from "../components/CreateGroupModal";
 import type { MeetingMode } from "../types/contracts";
+import { useAuthStore } from "@/features/auth/store/useAuthStore";
 import "../styles/chat.css";
 
 /** Separa Mis grupos del directorio público, conservando la identidad visual del frontend actual. */
 export function GroupsPage() {
+  const userId = useAuthStore((s) => s.user?.id);
+  const preferenceKey = `luminaul.groups.layout.${userId}`;
+  const [density, setDensity] = useState(() => {
+    try {
+      return localStorage.getItem(preferenceKey) === "wide"
+        ? "wide"
+        : "compact";
+    } catch {
+      return "compact";
+    }
+  });
   const [tab, setTab] = useState<"mine" | "directory">("mine"),
     [open, setOpen] = useState(false);
   const [courseCode, setCourseCode] = useState(""),
@@ -59,6 +71,24 @@ export function GroupsPage() {
             Explorar grupos
           </button>
         </div>
+        <label className="group-density-control">
+          Tarjetas
+          <select
+            aria-label="Tamaño de tarjetas"
+            value={density}
+            onChange={(event) => {
+              setDensity(event.target.value);
+              try {
+                localStorage.setItem(preferenceKey, event.target.value);
+              } catch {
+                /* Mantiene la elección durante esta sesión si no hay almacenamiento. */
+              }
+            }}
+          >
+            <option value="compact">Compactas</option>
+            <option value="wide">Amplias</option>
+          </select>
+        </label>
         {tab === "directory" && (
           <div className="spec04-directory-filters">
             <label className="search-input">
@@ -95,7 +125,7 @@ export function GroupsPage() {
       {query.isPending ? (
         <Loading />
       ) : rows.length ? (
-        <div className="group-grid">
+        <div className="group-grid" data-density={density}>
           {rows.map((group, index) => (
             <GroupCard key={group.id} group={group} colorToneIndex={index} />
           ))}

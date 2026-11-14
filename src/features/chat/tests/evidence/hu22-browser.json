@@ -1,0 +1,109 @@
+{
+  "date": "2026-11-14T00:18:46.833Z",
+  "groupId": "5df0049e-c559-4eb1-85c9-f139be657826",
+  "checks": [
+    {
+      "name": "Confirmación de cierre legible y cancelación sin perder la sesión",
+      "result": "Aprobado"
+    },
+    {
+      "name": "El diseño respeta la preferencia de movimiento reducido",
+      "result": "Aprobado"
+    },
+    {
+      "name": "La solicitud llega a la campana y al aviso sin recargar",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Los avisos se ordenan a la derecha y se cierran a los diez segundos",
+      "result": "Aprobado"
+    },
+    {
+      "name": "La lectura se sincroniza con otra sesión del mismo líder",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Desactivar avisos conserva la entrega en la campana",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Disponibilidad pertenece a Mi espacio en el encabezado",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Filtrar publicaciones no conserva el aviso de la acción anterior",
+      "result": "Aprobado"
+    },
+    {
+      "name": "HU2.2 consulta y filtro de solicitudes",
+      "result": "Aprobado"
+    },
+    {
+      "name": "HU2.2 aceptar actualiza lista y notifica al solicitante",
+      "result": "Aprobado"
+    },
+    {
+      "name": "HU2.2 rechazar elimina la pendiente sin incorporar al alumno",
+      "result": "Aprobado"
+    },
+    {
+      "name": "HU2.2 el alumno sin grupos liderados ve el estado vacío",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Chat entre dos sesiones y conservación del borrador ante ACK tardío",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Un ACK tardío no mezcla dos conversaciones",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Persistencia del chat después de recargar",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Reacción y respuesta sincronizadas",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Los mensajes largos se pueden expandir y contraer",
+      "result": "Aprobado"
+    },
+    {
+      "name": "La prioridad oculta avisos de grupo y muestra un reporte importante",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Diseño móvil de solicitudes y chat sin desbordamiento",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Grupos",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Perfil",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Horario",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Reseñas",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Moderación",
+      "result": "Aprobado"
+    },
+    {
+      "name": "Presentación móvil de Publicación",
+      "result": "Aprobado"
+    }
+  ],
+  "passed": 25,
+  "errors": [],
+  "scope": "UI y API reales; solo el ACK del caso indicado se difiere de forma controlada."
+}

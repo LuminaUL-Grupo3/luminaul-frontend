@@ -1,0 +1,662 @@
+.post-color-picker {
+  border: 0;
+  padding: 0;
+  margin: 0 0 10px;
+}
+.post-color-picker legend {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.post-color-picker > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.post-color-picker button {
+  width: 40px;
+  height: 40px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  color: #334155;
+  font-weight: 700;
+}
+.post-color-picker button[aria-pressed="true"] {
+  border-color: #b3431c;
+  box-shadow: 0 0 0 2px #fff inset;
+}
+.post-color-picker button:focus-visible {
+  outline: 2px solid #334155;
+  outline-offset: 3px;
+}
+.app-shell .post-card[data-color="peach"] {
+  background: #fff1e6;
+}
+.app-shell .post-card[data-color="rose"] {
+  background: #fcecf0;
+}
+.app-shell .post-card[data-color="lavender"] {
+  background: #eeedfc;
+}
+.app-shell .post-card[data-color="lilac"] {
+  background: #f5ebf8;
+}
+.app-shell .post-card[data-color="sky"] {
+  background: #eaf3fd;
+}
+.app-shell .post-card[data-color="mint"] {
+  background: #e9f7ef;
+}
+.app-shell .post-card[data-color="sage"] {
+  background: #eff3e6;
+}
+.app-shell .post-card[data-color="lemon"] {
+  background: #fff9df;
+}
+.app-shell .post-card[data-color="sand"] {
+  background: #f7f0e5;
+}
+.app-shell .post-card[data-color="aqua"] {
+  background: #e6f6f5;
+}
+/* Cada sección utiliza un acento discreto; las acciones principales conservan el naranja institucional. */
+.app-shell {
+  --section-accent: #bd4c1c;
+  --section-soft: #fff4ec;
+  --workspace-paper: #f7f8fa;
+  --workspace-ink: #29333b;
+  --muted: #67737f;
+  background: var(--workspace-paper);
+}
+.app-shell:is(
+  [data-section="horario"],
+  [data-section="perfil"],
+  [data-section="configuracion"]
+) {
+  --section-accent: #3d6687;
+  --section-soft: #eff5fa;
+}
+.app-shell:is([data-section="admin"], [data-section="moderacion"]) {
+  --section-accent: #805776;
+  --section-soft: #f7f0f5;
+}
+.app-shell[data-section="mis-resenas"] {
+  --section-accent: #8a6424;
+  --section-soft: #faf5e9;
+}
+.app-shell .page-heading {
+  padding: 22px 24px;
+  background: #fff;
+  border: 1px solid #e2e7ec;
+  border-left: 3px solid var(--section-accent);
+  border-radius: 12px;
+}
+.app-shell .page-heading .eyebrow {
+  color: var(--section-accent);
+}
+.app-shell .topbar-center {
+  gap: 10px;
+}
+.section-symbol {
+  width: 28px;
+  height: 28px;
+  display: inline-grid;
+  place-items: center;
+  color: var(--section-accent);
+  background: var(--section-soft);
+  border-radius: 7px;
+}
+.app-shell .main-content {
+  padding-top: 28px;
+}
+.app-shell .panel {
+  border-color: #e0e6eb;
+}
+/* La rejilla mantiene un ancho legible y evita las dos columnas estrechas de un teléfono. */
+.app-shell .spec04 .group-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+.app-shell .spec04 .group-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-color: #e0e6eb;
+}
+.app-shell .spec04 .group-art {
+  height: auto;
+  min-height: 44px;
+  padding: 10px 16px;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 8px;
+}
+.app-shell .spec04 .group-art > svg {
+  width: 21px;
+  height: 21px;
+  flex-shrink: 0;
+}
+.app-shell .spec04 .group-art > span {
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.app-shell .spec04 .group-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  padding: 16px;
+}
+.app-shell .spec04 .group-card-body h3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  margin: 9px 0 6px;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.app-shell .spec04 .group-card-body > p {
+  min-height: 0;
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #657181;
+}
+.app-shell .spec04 .spec04-card-meta {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  margin: 0 0 12px;
+}
+.app-shell .spec04 .spec04-card-meta > span {
+  min-width: 0;
+}
+.app-shell .spec04 .spec04-card-meta svg {
+  flex-shrink: 0;
+}
+.spec04-group-leader {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.spec04-group-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  border-top: 1px solid #edf0f3;
+  padding-top: 12px;
+}
+.app-shell .spec04 .spec04-group-actions .spec04-capacity {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  line-height: 1.3;
+}
+.app-shell .spec04 .spec04-group-actions progress {
+  width: 100%;
+  max-width: 84px;
+}
+.app-shell .spec04 .spec04-group-actions .button {
+  width: auto;
+  flex: 0 0 auto;
+  margin: 0;
+  min-height: 44px;
+  padding: 9px 11px;
+  font-size: 12px;
+  gap: 7px;
+}
+.app-shell
+  :is(
+    .post-description,
+    .post-details,
+    .info-card p,
+    .feed-aside p,
+    .tips-list,
+    .field,
+    .empty p
+  ) {
+  color: #5d6b78;
+}
+.app-shell .spec04 .chat-stream {
+  background: #f8f9fb;
+}
+.app-shell .spec04 .chat-sidebar {
+  background: #fdfdfd;
+}
+.app-shell .spec04 .chat-icon {
+  background: #f0f3f6;
+  color: #637287;
+}
+.app-shell .spec04 .chat-row p {
+  color: #667486;
+}
+.app-shell .spec04 .chat-layout {
+  height: calc(100dvh - 285px);
+  min-height: 470px;
+  grid-template-columns: 265px minmax(0, 1fr);
+}
+.app-shell[data-section="mensajes"] .main-content {
+  padding-bottom: 24px;
+}
+.app-shell[data-section="mensajes"] .workspace-view {
+  height: calc(100dvh - 132px);
+  min-height: 540px;
+}
+.app-shell[data-section="mensajes"] .spec04 {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.app-shell[data-section="mensajes"] .page-heading {
+  padding: 16px 20px;
+  margin-bottom: 18px;
+  flex-shrink: 0;
+}
+.app-shell[data-section="mensajes"] .chat-layout {
+  height: auto;
+  min-height: 0;
+  flex: 1;
+}
+.app-shell .spec04-message-content,
+.app-shell .spec04 .mine .spec04-message-content {
+  max-width: min(72%, 520px);
+}
+.app-shell .spec04 .bubble {
+  width: fit-content;
+  max-width: 100%;
+  border-color: #e0e6eb;
+}
+.app-shell .spec04 .mine .bubble {
+  margin-left: auto;
+}
+.group-density-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #657181;
+  font-size: 12px;
+}
+.group-density-control select {
+  width: auto;
+  padding: 8px 12px;
+}
+.app-shell .spec04 .group-grid[data-density="wide"] {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 18px;
+}
+.app-shell .spec04 .group-grid[data-density="wide"] .group-art {
+  min-height: 70px;
+}
+.app-shell .spec04 .group-grid[data-density="wide"] .group-card-body {
+  padding: 20px;
+}
+.app-shell .spec04 .bubble p {
+  --message-preview-lines: 7;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.app-shell .spec04 .bubble p.message-collapsed {
+  display: -webkit-box;
+  -webkit-line-clamp: var(--message-preview-lines);
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.app-shell .message-expand {
+  display: block;
+  padding: 6px 0 0;
+  background: transparent;
+  color: #a73e13;
+  font-size: 12px;
+  font-weight: 600;
+}
+.app-shell .message-expand:hover {
+  text-decoration: underline;
+}
+.app-shell .spec04 .chat-input {
+  padding: 6px 10px;
+  background: #fff;
+  border-color: #cfd9e3;
+}
+.app-shell .spec04 .chat-input textarea {
+  min-height: 36px;
+  padding: 6px;
+  line-height: 1.6;
+}
+.app-shell .spec04 .chat-input .button {
+  min-height: 44px;
+}
+.app-shell .spec04 .chat-input:focus-within {
+  border-color: #ca7e54;
+}
+.app-shell .spec04-request-message {
+  background: #f7f8fb;
+  border-color: #dce3eb;
+  color: #52606d;
+}
+.app-shell .schedule-panel .section-title {
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e7edf2;
+  align-items: center;
+}
+.app-shell .schedule-panel h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+  font-size: 20px;
+}
+.app-shell .schedule-panel h2 svg {
+  color: #3d6687;
+}
+.app-shell .schedule-summary {
+  color: #5b7387;
+  font-size: 12px;
+}
+.app-shell .schedule-grid {
+  --hour-height: 30px;
+}
+.app-shell .schedule-day-name {
+  color: #415d76;
+  background: #f4f8fc;
+  border-radius: 5px 5px 0 0;
+  padding-block: 11px;
+}
+.app-shell .schedule-day:hover {
+  background-color: #f8fbfe;
+}
+.app-shell .schedule-slot {
+  background: #e7f0fb;
+  color: #2d5d88;
+  border-left: 2px solid #789fcb;
+  transition: box-shadow 180ms ease;
+}
+.app-shell .schedule-slot:hover {
+  box-shadow: 0 2px 8px #43658c20;
+}
+.schedule-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 15px;
+  margin: 18px 0;
+  background: #f4f8fc;
+  color: #59728c;
+  border-radius: 7px;
+  font-size: 13px;
+}
+.schedule-empty p {
+  margin: 0;
+  line-height: 1.5;
+}
+.notification-preferences h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.notification-preferences > p {
+  color: #667486;
+  font-size: 13px;
+}
+.notification-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+}
+.notification-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: #c74819;
+}
+.notification-preferences small {
+  margin-top: 14px;
+}
+/* Los avisos se renderizan fuera del layout para no desplazar la conversación ni robar el foco. */
+.app-notices {
+  position: fixed;
+  z-index: 1100;
+  top: 90px;
+  right: 22px;
+  width: min(390px, calc(100vw - 24px));
+  display: grid;
+  gap: 10px;
+  pointer-events: none;
+  max-height: calc(100dvh - 112px);
+  overflow: auto;
+  padding: 3px;
+}
+.live-notices {
+  display: grid;
+  gap: 10px;
+}
+.app-notices .toast,
+.live-notice {
+  position: relative;
+  overflow: hidden;
+}
+.app-notices .action-toast {
+  width: 100%;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-left: 3px solid #558273;
+  box-shadow: 0 8px 28px #29334318;
+  pointer-events: auto;
+  animation: live-notice-enter 220ms ease-out;
+}
+.app-notices .action-toast p {
+  font-size: 13px;
+  line-height: 1.6;
+}
+.notice-lifetime {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: #eaf0f3;
+  pointer-events: none;
+}
+.notice-lifetime > span {
+  display: block;
+  height: 100%;
+  background: #cc6738;
+  transform-origin: left;
+  animation: notice-countdown 10s linear forwards;
+}
+.action-toast .notice-lifetime > span {
+  background: #558273;
+}
+.live-notice-high .notice-lifetime > span {
+  background: #a7732b;
+}
+.live-notice-low .notice-lifetime > span {
+  background: #577aa1;
+}
+@keyframes notice-countdown {
+  to {
+    transform: scaleX(0);
+  }
+}
+.app-notices .notice-closing {
+  animation: notice-exit 240ms ease-in forwards;
+  pointer-events: none;
+}
+.notice-closing .notice-lifetime > span {
+  animation: none !important;
+  transform: scaleX(0);
+}
+@keyframes notice-exit {
+  to {
+    opacity: 0;
+    transform: translateX(22px) scale(0.98);
+  }
+}
+.app-shell .notification {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+}
+.notification-body {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.notification-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.notification-read {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #4b785e;
+  font-size: 12px;
+}
+.notification-meta .text-button {
+  font-size: 12px;
+}
+.live-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-left: 3px solid #d16532;
+  border-radius: 10px;
+  box-shadow: 0 8px 28px #29334318;
+  pointer-events: auto;
+  animation: live-notice-enter 220ms ease-out;
+  color: #323c48;
+}
+.live-notice-high {
+  border-left-color: #a7732b;
+}
+.live-notice-high .live-notice-icon {
+  color: #8b611f;
+  background: #fbf4e6;
+}
+.live-notice-low {
+  border-left-color: #577aa1;
+}
+.live-notice-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: grid;
+  place-items: center;
+  color: #b94c20;
+  background: #fff1e7;
+  border-radius: 7px;
+}
+.live-notice > div {
+  min-width: 0;
+  flex: 1;
+}
+.live-notice strong {
+  font-size: 13px;
+}
+.live-notice p {
+  margin: 5px 0;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  color: #657181;
+}
+.live-notice a {
+  color: #a74018;
+  font-size: 12px;
+  font-weight: 600;
+}
+.live-notice > button {
+  padding: 2px;
+  min-height: 24px;
+}
+@keyframes live-notice-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-notice,
+  .app-notices .action-toast,
+  .app-notices .notice-closing {
+    animation: none;
+  }
+  .notice-lifetime > span {
+    animation: notice-countdown 10s steps(10) forwards !important;
+  }
+  .notice-closing .notice-lifetime > span {
+    animation: none !important;
+  }
+}
+@media (max-width: 1100px) {
+  .app-shell .spec04 .chat-layout {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .app-shell .spec04-message-content,
+  .app-shell .spec04 .mine .spec04-message-content {
+    max-width: 76%;
+  }
+  .app-shell .spec04 .bubble {
+    padding: 9px 11px;
+  }
+  .app-shell .spec04 .bubble p {
+    --message-preview-lines: 5;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .app-shell .spec04 .bubble-row {
+    margin-bottom: 12px;
+  }
+  .app-shell .spec04 .bubble-top {
+    gap: 8px;
+  }
+  .app-shell .spec04 .bubble-top strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+  .app-shell .page-heading {
+    padding: 18px;
+  }
+  .app-shell .spec04 .chat-layout {
+    height: calc(100dvh - 245px);
+    min-height: 430px;
+  }
+  .app-shell[data-section="mensajes"] .workspace-view {
+    height: calc(100dvh - 110px);
+    min-height: 510px;
+  }
+  .app-shell[data-section="mensajes"] .chat-layout {
+    height: auto;
+    min-height: 0;
+  }
+  .app-shell .spec04 .chat-input textarea {
+    min-height: 36px;
+  }
+  .app-shell .schedule-panel .section-title {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .app-notices {
+    top: 76px;
+    right: 12px;
+  }
+}

@@ -3,13 +3,16 @@ import { api } from "@/config/api";
 import { useSession } from "@/features/auth";
 import { useFeedback } from "@/hooks/useFeedback";
 import { PageHeader, Notice, Field, ActionForm } from "@/components/ui";
+import { useNotificationPreferences } from "@/features/admin/hooks/useNotificationPreferences";
+import { BellRing } from "lucide-react";
 
 export function SettingsPage() {
   const feedback = useFeedback();
-  const { setUser } = useSession(),
+  const { setUser, user } = useSession(),
     [current, setCurrent] = useState(""),
     [password, setPassword] = useState(""),
     [error, setError] = useState("");
+  const { preferences, save } = useNotificationPreferences(user!.id);
 
   return (
     <>
@@ -18,6 +21,45 @@ export function SettingsPage() {
         description="Tu seguridad y tus datos, bajo tu control."
       />
       <div className="narrow stack">
+        <section className="panel notification-preferences">
+          <h3>
+            <BellRing size={19} /> Avisos en pantalla
+          </h3>
+          <p>
+            La campana y el historial siempre reciben tus notificaciones. Elige
+            cuáles aparecen mientras navegas.
+          </p>
+          <label className="notification-toggle">
+            <input
+              type="checkbox"
+              checked={preferences.enabled}
+              onChange={(event) =>
+                save({ ...preferences, enabled: event.target.checked })
+              }
+            />{" "}
+            Mostrar avisos emergentes
+          </label>
+          <Field label="Prioridad de los avisos">
+            <select
+              value={preferences.minimum}
+              disabled={!preferences.enabled}
+              onChange={(event) =>
+                save({
+                  ...preferences,
+                  minimum: event.target.value as "normal" | "high" | "all",
+                })
+              }
+            >
+              <option value="normal">Grupos y moderación</option>
+              <option value="high">Solo moderación</option>
+              <option value="all">Todas las notificaciones</option>
+            </select>
+          </Field>
+          <small>
+            Se guarda para esta cuenta en este navegador. Los avisos de
+            suspensión siempre se muestran.
+          </small>
+        </section>
         <section className="panel">
           <ActionForm
             title="Cambiar contraseña"

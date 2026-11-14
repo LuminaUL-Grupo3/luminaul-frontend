@@ -1,0 +1,99 @@
+{
+  "date": "2026-11-14T00:37:03.2957476Z",
+  "groups": {
+    "date": "2026-11-14T00:35:56.191Z",
+    "results": [
+      {
+        "width": 360,
+        "columns": 1,
+        "cardWidth": 328,
+        "cardHeight": 274.09375,
+        "overflow": false,
+        "cardOverflow": false,
+        "touchHeight": 44
+      },
+      {
+        "width": 390,
+        "columns": 1,
+        "cardWidth": 358,
+        "cardHeight": 274.09375,
+        "overflow": false,
+        "cardOverflow": false,
+        "touchHeight": 44
+      },
+      {
+        "width": 768,
+        "columns": 2,
+        "cardWidth": 250.5,
+        "cardHeight": 295.6875,
+        "overflow": false,
+        "cardOverflow": false,
+        "touchHeight": 44
+      },
+      {
+        "width": 1024,
+        "columns": 2,
+        "cardWidth": 358.28125,
+        "cardHeight": 274.09375,
+        "overflow": false,
+        "cardOverflow": false,
+        "touchHeight": 44
+      },
+      {
+        "width": 1440,
+        "columns": 4,
+        "cardWidth": 269.90625,
+        "cardHeight": 274.09375,
+        "overflow": false,
+        "cardOverflow": false,
+        "touchHeight": 44
+      },
+      {
+        "width": 1920,
+        "columns": 5,
+        "cardWidth": 244.796875,
+        "cardHeight": 295.6875,
+        "overflow": false,
+        "cardOverflow": false,
+        "touchHeight": 44
+      }
+    ],
+    "errors": [],
+    "navigation": "Aprobado"
+  },
+  "chat": {
+    "date": "2026-11-14T00:36:00.226Z",
+    "results": [
+      {
+        "width": 360,
+        "collapsedHeight": 186.203125,
+        "expandedHeight": 649.4375,
+        "bubbleWidth": 241.59375,
+        "result": "Aprobado"
+      },
+      {
+        "width": 390,
+        "collapsedHeight": 186.203125,
+        "expandedHeight": 649.4375,
+        "bubbleWidth": 265.59375,
+        "result": "Aprobado"
+      },
+      {
+        "width": 768,
+        "collapsedHeight": 259.578125,
+        "expandedHeight": 1092.46875,
+        "bubbleWidth": 207.890625,
+        "result": "Aprobado"
+      },
+      {
+        "width": 1440,
+        "collapsedHeight": 259.578125,
+        "expandedHeight": 426.15625,
+        "bubbleWidth": 433.015625,
+        "result": "Aprobado"
+      }
+    ],
+    "errors": [],
+    "scope": "Lectura y expansión del historial real existente; no se generan grupos ni mensajes."
+  }
+}

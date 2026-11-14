@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { adminService, notificationsService, UsersFilter } from "../services/adminService";
+import {
+  adminService,
+  notificationsService,
+  UsersFilter,
+} from "../services/adminService";
 import {
   AdminAppealStatus,
   AdminReportStatus,
@@ -7,6 +11,7 @@ import {
   ResolveAppealRequest,
   ResolveReportRequest,
 } from "../types";
+import { useAuthStore } from "@/features/auth/store/useAuthStore";
 
 const ADMIN_KEY = "admin";
 const NOTIFICATIONS_KEY = "notifications";
@@ -28,8 +33,13 @@ export function useAdminReportsQuery(status?: AdminReportStatus) {
 export function useResolveReportMutation() {
   const invalidate = useInvalidateAdmin();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: ResolveReportRequest }) =>
-      adminService.resolveReport(id, payload),
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: ResolveReportRequest;
+    }) => adminService.resolveReport(id, payload),
     onSuccess: invalidate,
   });
 }
@@ -45,8 +55,13 @@ export function useAdminAppealsQuery(status?: AdminAppealStatus) {
 export function useResolveAppealMutation() {
   const invalidate = useInvalidateAdmin();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: ResolveAppealRequest }) =>
-      adminService.resolveAppeal(id, payload),
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: ResolveAppealRequest;
+    }) => adminService.resolveAppeal(id, payload),
     onSuccess: invalidate,
   });
 }
@@ -62,8 +77,13 @@ export function useAdminUsersQuery(filter: UsersFilter) {
 export function useChangeUserStatusMutation() {
   const invalidate = useInvalidateAdmin();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: ChangeUserStatusRequest }) =>
-      adminService.changeUserStatus(id, payload),
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: ChangeUserStatusRequest;
+    }) => adminService.changeUserStatus(id, payload),
     onSuccess: invalidate,
   });
 }
@@ -77,9 +97,11 @@ export function useAdminStatsQuery() {
 }
 
 export function useMyNotificationsQuery() {
+  const userId = useAuthStore((state) => state.user?.id);
   return useQuery({
-    queryKey: [NOTIFICATIONS_KEY, "me"],
+    queryKey: [NOTIFICATIONS_KEY, userId],
     queryFn: notificationsService.getMine,
+    enabled: Boolean(userId),
     retry: false,
     refetchInterval: 60_000,
   });
@@ -89,6 +111,7 @@ export function useMarkNotificationReadMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: notificationsService.markRead,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_KEY] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_KEY] }),
   });
 }
