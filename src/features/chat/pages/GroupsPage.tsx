@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { PageHeader, Loading, Notice, Empty } from "@/components/ui";
 import {
@@ -8,22 +8,27 @@ import {
 import { GroupCard } from "../components/GroupCard";
 import { CreateGroupModal } from "../components/CreateGroupModal";
 import type { MeetingMode } from "../types/contracts";
-import { useAuthStore } from "@/features/auth/store/useAuthStore";
+import { useAuthStore } from "@/features/auth";
 import "../styles/chat.css";
+
+function readDensity(key: string): "compact" | "wide" {
+  try {
+    return localStorage.getItem(key) === "wide" ? "wide" : "compact";
+  } catch {
+    return "compact";
+  }
+}
 
 /** Separa Mis grupos del directorio público, conservando la identidad visual del frontend actual. */
 export function GroupsPage() {
-  const userId = useAuthStore((s) => s.user?.id);
+  const userId = useAuthStore((s) => s.user?.id || "");
   const preferenceKey = `luminaul.groups.layout.${userId}`;
-  const [density, setDensity] = useState(() => {
-    try {
-      return localStorage.getItem(preferenceKey) === "wide"
-        ? "wide"
-        : "compact";
-    } catch {
-      return "compact";
-    }
-  });
+  const [density, setDensity] = useState<"compact" | "wide">(() =>
+    readDensity(preferenceKey),
+  );
+  useEffect(() => {
+    setDensity(readDensity(preferenceKey));
+  }, [preferenceKey]);
   const [tab, setTab] = useState<"mine" | "directory">("mine"),
     [open, setOpen] = useState(false);
   const [courseCode, setCourseCode] = useState(""),
@@ -77,9 +82,10 @@ export function GroupsPage() {
             aria-label="Tamaño de tarjetas"
             value={density}
             onChange={(event) => {
-              setDensity(event.target.value);
+              const next = event.target.value === "wide" ? "wide" : "compact";
+              setDensity(next);
               try {
-                localStorage.setItem(preferenceKey, event.target.value);
+                localStorage.setItem(preferenceKey, next);
               } catch {
                 /* Mantiene la elección durante esta sesión si no hay almacenamiento. */
               }

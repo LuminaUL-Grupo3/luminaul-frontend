@@ -1,6 +1,6 @@
-import { io, Socket } from "socket.io-client";
-import { env } from "@/config/env";
-import { useAuthStore } from "@/features/auth/store/useAuthStore";
+import { Socket } from "socket.io-client";
+import { createAppSocket } from "@/config/socket";
+import { useAuthStore } from "@/features/auth";
 import type { ChatCommand, WsAck } from "../types/contracts";
 
 let client: Socket | undefined;
@@ -9,16 +9,7 @@ let unsubscribeSession: (() => void) | undefined;
 /** Comparte la conexión; una navegación abandona su sala sin desconectar el cliente global. */
 export function getChatSocket(): Socket {
   if (!client) {
-    const origin = new URL(env.API_URL || "/", window.location.origin).origin;
-    client = io(origin, {
-      path: "/socket.io",
-      autoConnect: false,
-      withCredentials: true,
-      auth: (callback) => {
-        const token = useAuthStore.getState().token;
-        callback(token ? { token } : {});
-      },
-    });
+    client = createAppSocket("", () => useAuthStore.getState().token);
     unsubscribeSession = useAuthStore.subscribe((state, previous) => {
       if (state.user?.id !== previous.user?.id || !state.user)
         client?.disconnect();

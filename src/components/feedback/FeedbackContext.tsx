@@ -16,10 +16,12 @@ export type Confirmation = {
   description: string;
   acceptLabel?: string;
   cancelLabel?: string;
+  informative?: boolean;
 };
 
 export type Feedback = {
   confirm: (options: Confirmation) => Promise<boolean>;
+  alert: (options: Omit<Confirmation, "cancelLabel" | "informative">) => Promise<void>;
   notify: (message: string) => void;
 };
 
@@ -51,6 +53,17 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const alert = useCallback(
+    async (options: Omit<Confirmation, "cancelLabel" | "informative">) => {
+      await confirm({
+        ...options,
+        acceptLabel: options.acceptLabel || "Entendido",
+        informative: true,
+      });
+    },
+    [confirm],
+  );
+
   const settle = useCallback((accepted: boolean) => {
     const resolve = resolvePending.current;
     resolvePending.current = null;
@@ -70,7 +83,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <FeedbackContext.Provider value={{ confirm, notify }}>
+    <FeedbackContext.Provider value={{ confirm, alert, notify }}>
       {children}
       {confirmation && (
         <ConfirmationDialog options={confirmation} settle={settle} />
@@ -163,17 +176,20 @@ function ConfirmationDialog({
       </div>
       <p id={descriptionId}>{options.description}</p>
       <div className="modal-actions">
-        <button
-          type="button"
-          className="button secondary"
-          autoFocus
-          onClick={() => settle(false)}
-        >
-          {options.cancelLabel || "Cancelar"}
-        </button>
+        {!options.informative && (
+          <button
+            type="button"
+            className="button secondary"
+            autoFocus
+            onClick={() => settle(false)}
+          >
+            {options.cancelLabel || "Cancelar"}
+          </button>
+        )}
         <button
           type="button"
           className="button confirmation-accept"
+          autoFocus={Boolean(options.informative)}
           onClick={() => settle(true)}
         >
           {options.acceptLabel || "Confirmar"}

@@ -23,7 +23,7 @@ export function useJoinRequestDecision(onConflict: () => void) {
     onSuccess: (result, { request }) => {
       // Solo se retira la tarjeta después del HTTP exitoso; un fallo mantiene la solicitud visible.
       cache.setQueriesData<JoinRequestDto[]>(
-        { queryKey: ["spec04", "requests"] },
+        { queryKey: groupKeys.requestsRoot },
         (previous) => previous?.filter((item) => item.id !== request.id),
       );
       feedback.notify(result.message);

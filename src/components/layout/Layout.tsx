@@ -25,13 +25,16 @@ import {
   X,
   ChevronRight,
 } from "lucide-react";
-import { useSession } from "../../features/auth/hooks/useSession";
-// Import directo del hook: el index de profile arrastraría sus páginas, que se cargan con lazy
+import { useSession } from "../../features/auth";
+// Import directo de los barriles de hooks/componentes para conservar el lazy-loading de páginas
 import { useMyProfileQuery } from "../../features/profile/hooks/useProfileQueries";
 import { Avatar, Loading, Notice } from "../ui";
 import { Brand } from "../brand/Brand";
 import { useFeedback } from "../../hooks/useFeedback";
-import { NotificationsBell } from "../../features/admin/components/NotificationsBell";
+import {
+  NotificationsBell,
+  NotificationRealtimeHost,
+} from "../../features/admin/components";
 
 const nav = [
   ["/", "Inicio", House],
@@ -217,6 +220,7 @@ export function Layout() {
         </div>
       </aside>
       <main className="main-content" id="main-content">
+        <NotificationRealtimeHost />
         <Notice error>{error}</Notice>
         {/* Otra sala conserva el contenedor del chat; la entrada anima únicamente otra sección. */}
         <div

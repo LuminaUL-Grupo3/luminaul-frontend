@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Bell, ShieldAlert, X } from "lucide-react";
-import type { LiveNotice } from "../hooks/useNotificationRealtime";
+import type { LiveNotice } from "../store/useNotificationRealtimeStore";
 import { useNoticeLifetime } from "@/hooks/useNoticeLifetime";
 
 function NotificationToast({

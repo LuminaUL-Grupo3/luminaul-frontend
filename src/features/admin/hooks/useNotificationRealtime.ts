@@ -1,124 +1,133 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/features/auth/store/useAuthStore";
-import { useClearSession } from "@/features/auth/hooks/useSession";
+import { useAuthStore, useClearSession } from "@/features/auth";
+import { queryKeys } from "@/config/queryKeys";
 import { useFeedback } from "@/hooks/useFeedback";
-import { getChatSocket } from "@/features/chat/services/socketClient";
+import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
+import { getNotificationSocket } from "../services/notificationSocketClient";
+import {
+  useNotificationRealtimeStore,
+  type LiveNotice,
+} from "../store/useNotificationRealtimeStore";
+import { adminKeys, notificationKeys } from "./useAdminQueries";
 import type { NotificationDto } from "../types";
-import { useNotificationPreferences } from "./useNotificationPreferences";
 
-export type LiveNotice = NotificationDto & {
-  priority: "high" | "normal" | "low";
-};
-/** Una conexión compartida recibe avisos de la sala privada y recupera el historial tras reconectar. */
+export type { LiveNotice };
+
+/** Una conexión compartida recibe avisos del namespace `/notifications` y recupera el historial tras reconectar. */
 export function useNotificationRealtime() {
-  const user = useAuthStore((s) => s.user),
-    cache = useQueryClient(),
-    clearSession = useClearSession(),
-    navigate = useNavigate(),
-    feedback = useFeedback();
-  const { preferences } = useNotificationPreferences(user?.id || "");
+  const userId = useAuthStore((s) => s.user?.id || "");
+  const cache = useQueryClient();
+  const clearSession = useClearSession();
+  const navigate = useNavigate();
+  const feedback = useFeedback();
+  const { preferences } = useNotificationPreferences(userId);
   const preference = useRef(preferences);
   preference.current = preferences;
-  const [notices, setNotices] = useState<LiveNotice[]>([]);
-  const [connected, setConnected] = useState(false);
+
+  const setConnected = useNotificationRealtimeStore((s) => s.setConnected);
+  const pushNotice = useNotificationRealtimeStore((s) => s.pushNotice);
+  const removeNotice = useNotificationRealtimeStore((s) => s.removeNotice);
+  const clearNotices = useNotificationRealtimeStore((s) => s.clearNotices);
+
   useEffect(() => {
-    setNotices([]);
+    clearNotices();
     setConnected(false);
-    if (!user) return;
-    const socket = getChatSocket(),
-      seen = new Set<string>(),
-      readIds = new Set<string>();
+    if (!userId) return;
+
+    const socket = getNotificationSocket();
+    const seen = new Set<string>();
+    const readIds = new Set<string>();
     let active = true;
+
     const refresh = () => {
       setConnected(true);
-      void cache.invalidateQueries({ queryKey: ["notifications"] });
+      void cache.invalidateQueries({ queryKey: notificationKeys.root });
     };
     const disconnected = () => setConnected(false);
+
     const receive = async (notification: NotificationDto) => {
-      if (!active || notification.userId !== user.id) return;
-      const hadHistory =
-        cache.getQueryData(["notifications", user.id]) !== undefined;
+      if (!active || notification.userId !== userId) return;
+      const userKey = notificationKeys.byUser(userId);
+      const hadHistory = cache.getQueryData(userKey) !== undefined;
       // Una consulta iniciada antes del evento no puede sobrescribir el aviso recién recibido.
-      await cache.cancelQueries({ queryKey: ["notifications", user.id] });
+      await cache.cancelQueries({ queryKey: userKey });
       if (!active) return;
-      cache.setQueryData<NotificationDto[]>(
-        ["notifications", user.id],
-        (previous) => {
-          const known = previous?.find((n) => n.id === notification.id);
-          return [
-            {
-              ...notification,
-              isRead:
-                notification.isRead ||
-                Boolean(known?.isRead) ||
-                readIds.has(notification.id),
-            },
-            ...(previous || []).filter((n) => n.id !== notification.id),
-          ]
-            .sort(
-              (a, b) =>
-                b.createdAt.localeCompare(a.createdAt) ||
-                b.id.localeCompare(a.id),
-            )
-            .slice(0, 100);
-        },
-      );
+
+      cache.setQueryData<NotificationDto[]>(userKey, (previous) => {
+        const known = previous?.find((n) => n.id === notification.id);
+        return [
+          {
+            ...notification,
+            isRead:
+              notification.isRead ||
+              Boolean(known?.isRead) ||
+              readIds.has(notification.id),
+          },
+          ...(previous || []).filter((n) => n.id !== notification.id),
+        ]
+          .sort(
+            (a, b) =>
+              b.createdAt.localeCompare(a.createdAt) ||
+              b.id.localeCompare(a.id),
+          )
+          .slice(0, 100);
+      });
+
       // Si el primer aviso llega durante la carga inicial, recupera también los avisos anteriores.
-      if (!hadHistory)
-        void cache.invalidateQueries({ queryKey: ["notifications", user.id] });
+      if (!hadHistory) void cache.invalidateQueries({ queryKey: userKey });
       if (notification.type === "GROUP")
-        void cache.invalidateQueries({ queryKey: ["spec04"] });
+        void cache.invalidateQueries({ queryKey: queryKeys.chatGroups });
       if (notification.type === "MODERATION")
-        void cache.invalidateQueries({ queryKey: ["admin"] });
+        void cache.invalidateQueries({ queryKey: adminKeys.root });
+
       if (seen.has(notification.id)) return;
       seen.add(notification.id);
       if (seen.size > 500) seen.delete(seen.values().next().value!);
       if (notification.isRead || readIds.has(notification.id)) return;
+
       const priority: LiveNotice["priority"] =
         notification.type === "MODERATION"
           ? "high"
           : notification.type === "GROUP"
             ? "normal"
             : "low";
-      const p = preference.current;
+      const currentPref = preference.current;
       if (
-        !p.enabled ||
-        (p.minimum === "high" && priority !== "high") ||
-        (p.minimum === "normal" && priority === "low")
-      )
+        !currentPref.enabled ||
+        (currentPref.minimum === "high" && priority !== "high") ||
+        (currentPref.minimum === "normal" && priority === "low")
+      ) {
         return;
-      const notice: LiveNotice = { ...notification, priority };
-      const rank = { high: 0, normal: 1, low: 2 };
-      setNotices((previous) =>
-        [...previous, notice]
-          .sort((a, b) => rank[a.priority] - rank[b.priority])
-          .slice(0, 3),
-      );
+      }
+
+      pushNotice({ ...notification, priority });
     };
+
     const read = ({ id }: { id: string }) => {
       readIds.add(id);
       if (readIds.size > 500) readIds.delete(readIds.values().next().value!);
       cache.setQueryData<NotificationDto[]>(
-        ["notifications", user.id],
+        notificationKeys.byUser(userId),
         (previous) =>
           previous?.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
       );
-      setNotices((previous) => previous.filter((n) => n.id !== id));
+      removeNotice(id);
     };
+
     const suspended = ({ message }: { message: string }) => {
       if (!active) return;
       // La preferencia de pop-ups nunca impide informar una revocación ni deja acceso a una cuenta suspendida.
-      void feedback.confirm({
+      void feedback.alert({
         title: "Cuenta suspendida",
         description: message,
         acceptLabel: "Entendido",
-        cancelLabel: "Cerrar",
       });
       clearSession();
       navigate("/login", { replace: true });
     };
+
     socket.on("notifications:ready", refresh);
     socket.on("disconnect", disconnected);
     socket.on("notification:new", receive);
@@ -126,6 +135,7 @@ export function useNotificationRealtime() {
     socket.on("account:suspended", suspended);
     if (socket.connected) refresh();
     else socket.connect();
+
     return () => {
       active = false;
       socket.off("notifications:ready", refresh);
@@ -134,14 +144,19 @@ export function useNotificationRealtime() {
       socket.off("notification:read", read);
       socket.off("account:suspended", suspended);
     };
-  }, [user?.id, cache, clearSession, navigate, feedback.confirm]);
+  }, [
+    userId,
+    cache,
+    clearSession,
+    navigate,
+    feedback.alert,
+    setConnected,
+    pushNotice,
+    removeNotice,
+    clearNotices,
+  ]);
+
   useEffect(() => {
-    if (!preferences.enabled) setNotices([]);
-  }, [preferences.enabled]);
-  return {
-    notices,
-    connected,
-    dismiss: (id: string) =>
-      setNotices((previous) => previous.filter((n) => n.id !== id)),
-  };
+    if (!preferences.enabled) clearNotices();
+  }, [preferences.enabled, clearNotices]);
 }

@@ -11,10 +11,20 @@ import {
   ResolveAppealRequest,
   ResolveReportRequest,
 } from "../types";
-import { useAuthStore } from "@/features/auth/store/useAuthStore";
+import { useAuthStore } from "@/features/auth";
+import { queryKeys } from "@/config/queryKeys";
 
-const ADMIN_KEY = "admin";
-const NOTIFICATIONS_KEY = "notifications";
+const ADMIN_KEY = queryKeys.admin[0];
+const NOTIFICATIONS_KEY = queryKeys.notifications[0];
+
+export const adminKeys = {
+  root: queryKeys.admin,
+};
+
+export const notificationKeys = {
+  root: queryKeys.notifications,
+  byUser: (userId: string) => [NOTIFICATIONS_KEY, userId] as const,
+};
 
 // Cualquier decisión del administrador cambia reportes, apelaciones, usuarios y métricas
 function useInvalidateAdmin() {
@@ -97,9 +107,9 @@ export function useAdminStatsQuery() {
 }
 
 export function useMyNotificationsQuery() {
-  const userId = useAuthStore((state) => state.user?.id);
+  const userId = useAuthStore((state) => state.user?.id || "");
   return useQuery({
-    queryKey: [NOTIFICATIONS_KEY, userId],
+    queryKey: notificationKeys.byUser(userId),
     queryFn: notificationsService.getMine,
     enabled: Boolean(userId),
     retry: false,
@@ -112,6 +122,6 @@ export function useMarkNotificationReadMutation() {
   return useMutation({
     mutationFn: notificationsService.markRead,
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: [NOTIFICATIONS_KEY] }),
+      queryClient.invalidateQueries({ queryKey: notificationKeys.root }),
   });
 }
