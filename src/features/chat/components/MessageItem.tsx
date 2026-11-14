@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import { Reply, CheckCheck, Check } from "lucide-react";
 import { Avatar, ReportButton } from "@/components/ui";
 import {
@@ -27,11 +27,31 @@ export function MessageItem({
     visible = message.status === "published";
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
-    [expanded, setExpanded] = useState(false);
+    [expanded, setExpanded] = useState(false),
+    [overflows, setOverflows] = useState(false);
   const contentId = useId();
-  const longMessage =
-    visible &&
-    (message.content.length > 600 || message.content.split("\n").length > 8);
+  const content = useRef<HTMLParagraphElement>(null);
+  const longMessage = visible && overflows;
+  // Mide las líneas reales: un texto puede necesitar plegado en móvil y caber completo en escritorio.
+  useLayoutEffect(() => {
+    const paragraph = content.current;
+    if (!paragraph || !visible) {
+      setOverflows(false);
+      return;
+    }
+    const measure = () => {
+      const style = getComputedStyle(paragraph);
+      const lines =
+        Number(style.getPropertyValue("--message-preview-lines")) || 7;
+      setOverflows(
+        paragraph.scrollHeight > parseFloat(style.lineHeight) * lines + 1,
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(paragraph);
+    return () => observer.disconnect();
+  }, [message.content, visible]);
   /** Espera el ACK para no inventar un contador de reacciones cuando falla la red. */
   async function react(emoji: ReactionEmoji) {
     if (busy || disabled) return;
@@ -86,10 +106,9 @@ export function MessageItem({
             </blockquote>
           )}
           <p
+            ref={content}
             id={contentId}
-            className={
-              longMessage && !expanded ? "message-collapsed" : undefined
-            }
+            className={visible && !expanded ? "message-collapsed" : undefined}
           >
             {visible
               ? message.content
