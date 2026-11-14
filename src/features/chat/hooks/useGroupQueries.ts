@@ -4,19 +4,23 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { queryKeys } from "@/config/queryKeys";
 import { useSession } from "@/features/auth";
 import { messagingService } from "../services/messagingService";
 import type { CreateGroupRequest, GroupFilter } from "../types/contracts";
 
 export const groupKeys = {
-  root: ["spec04"] as const,
-  mine: (userId: string) => ["spec04", "mine", userId] as const,
+  root: queryKeys.chatGroups,
+  mine: (userId: string) => [...queryKeys.chatGroups, "mine", userId] as const,
   detail: (userId: string, groupId: string) =>
-    ["spec04", "detail", userId, groupId] as const,
+    [...queryKeys.chatGroups, "detail", userId, groupId] as const,
   members: (userId: string, groupId: string) =>
-    ["spec04", "members", userId, groupId] as const,
+    [...queryKeys.chatGroups, "members", userId, groupId] as const,
   messages: (userId: string, groupId: string) =>
-    ["spec04", "messages", userId, groupId] as const,
+    [...queryKeys.chatGroups, "messages", userId, groupId] as const,
+  requestsRoot: [...queryKeys.chatGroups, "requests"] as const,
+  requests: (userId: string) =>
+    [...queryKeys.chatGroups, "requests", userId] as const,
 };
 /** La cuenta forma parte de la clave para no reutilizar datos privados de otra sesión. */
 export function useMyGroupsQuery() {
@@ -63,7 +67,7 @@ export function useGroupMembersQuery(groupId: string, enabled: boolean) {
 export function useJoinRequestsQuery() {
   const { user } = useSession();
   return useQuery({
-    queryKey: ["spec04", "requests", user?.id],
+    queryKey: groupKeys.requests(user?.id || ""),
     queryFn: messagingService.requests,
     enabled: Boolean(user),
     retry: false,

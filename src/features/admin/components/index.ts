@@ -4,3 +4,4 @@ export * from "./UsersTable";
 export * from "./SuspendUserModal";
 export * from "./StatsCards";
 export * from "./NotificationsBell";
+export * from "./NotificationRealtimeHost";

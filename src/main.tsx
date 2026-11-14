@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import { App } from "./app";
 import { FeedbackProvider } from "./components/feedback";
 import "./styles.css";
+import "./styles/workspace.css";
+import "./styles/sections.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -16,7 +18,8 @@ if ("serviceWorker" in navigator && !import.meta.env.DEV) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("/sw.js")
-      .catch((err) => console.warn("[PWA] Service Worker registration failed:", err));
+      .catch((err) =>
+        console.warn("[PWA] Service Worker registration failed:", err),
+      );
   });
 }
-

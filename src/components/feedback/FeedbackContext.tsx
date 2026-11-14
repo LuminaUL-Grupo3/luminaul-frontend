@@ -9,16 +9,19 @@ import {
   type ReactNode,
 } from "react";
 import { CheckCircle2, HelpCircle, X } from "lucide-react";
+import { useNoticeLifetime } from "@/hooks/useNoticeLifetime";
 
 export type Confirmation = {
   title: string;
   description: string;
   acceptLabel?: string;
   cancelLabel?: string;
+  informative?: boolean;
 };
 
 export type Feedback = {
   confirm: (options: Confirmation) => Promise<boolean>;
+  alert: (options: Omit<Confirmation, "cancelLabel" | "informative">) => Promise<void>;
   notify: (message: string) => void;
 };
 
@@ -50,6 +53,17 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const alert = useCallback(
+    async (options: Omit<Confirmation, "cancelLabel" | "informative">) => {
+      await confirm({
+        ...options,
+        acceptLabel: options.acceptLabel || "Entendido",
+        informative: true,
+      });
+    },
+    [confirm],
+  );
+
   const settle = useCallback((accepted: boolean) => {
     const resolve = resolvePending.current;
     resolvePending.current = null;
@@ -69,28 +83,49 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <FeedbackContext.Provider value={{ confirm, notify }}>
+    <FeedbackContext.Provider value={{ confirm, alert, notify }}>
       {children}
       {confirmation && (
         <ConfirmationDialog options={confirmation} settle={settle} />
       )}
-      <div className="toast-stack" aria-live="polite" aria-atomic="true">
+      <div id="app-notice-region" className="app-notices" aria-label="Avisos">
         {message && (
-          <div className="toast" key={message.id}>
-            <CheckCircle2 size={22} aria-hidden="true" />
-            <p>{message.text}</p>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="Cerrar notificación"
-              onClick={() => setMessage(null)}
-            >
-              <X size={18} />
-            </button>
-          </div>
+          <ActionToast
+            key={message.id}
+            text={message.text}
+            dismiss={() =>
+              setMessage((current) =>
+                current?.id === message.id ? null : current,
+              )
+            }
+          />
         )}
       </div>
     </FeedbackContext.Provider>
+  );
+}
+
+function ActionToast({ text, dismiss }: { text: string; dismiss: () => void }) {
+  const { closing, close } = useNoticeLifetime(dismiss);
+  return (
+    <div
+      className={`toast action-toast ${closing ? "notice-closing" : ""}`}
+      role="status"
+    >
+      <span className="notice-lifetime" aria-hidden="true">
+        <span />
+      </span>
+      <CheckCircle2 size={22} aria-hidden="true" />
+      <p>{text}</p>
+      <button
+        type="button"
+        className="icon-button"
+        aria-label="Cerrar notificación"
+        onClick={close}
+      >
+        <X size={18} />
+      </button>
+    </div>
   );
 }
 
@@ -141,17 +176,20 @@ function ConfirmationDialog({
       </div>
       <p id={descriptionId}>{options.description}</p>
       <div className="modal-actions">
+        {!options.informative && (
+          <button
+            type="button"
+            className="button secondary"
+            autoFocus
+            onClick={() => settle(false)}
+          >
+            {options.cancelLabel || "Cancelar"}
+          </button>
+        )}
         <button
           type="button"
-          className="button secondary"
-          autoFocus
-          onClick={() => settle(false)}
-        >
-          {options.cancelLabel || "Cancelar"}
-        </button>
-        <button
-          type="button"
-          className="button danger"
+          className="button confirmation-accept"
+          autoFocus={Boolean(options.informative)}
           onClick={() => settle(true)}
         >
           {options.acceptLabel || "Confirmar"}

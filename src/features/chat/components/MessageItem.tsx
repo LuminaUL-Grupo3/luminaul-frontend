@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import { Reply, CheckCheck, Check } from "lucide-react";
 import { Avatar, ReportButton } from "@/components/ui";
 import {
@@ -26,7 +26,32 @@ export function MessageItem({
   const mine = message.senderId === userId,
     visible = message.status === "published";
   const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [expanded, setExpanded] = useState(false),
+    [overflows, setOverflows] = useState(false);
+  const contentId = useId();
+  const content = useRef<HTMLParagraphElement>(null);
+  const longMessage = visible && overflows;
+  // Mide las líneas reales: un texto puede necesitar plegado en móvil y caber completo en escritorio.
+  useLayoutEffect(() => {
+    const paragraph = content.current;
+    if (!paragraph || !visible) {
+      setOverflows(false);
+      return;
+    }
+    const measure = () => {
+      const style = getComputedStyle(paragraph);
+      const lines =
+        Number(style.getPropertyValue("--message-preview-lines")) || 7;
+      setOverflows(
+        paragraph.scrollHeight > parseFloat(style.lineHeight) * lines + 1,
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(paragraph);
+    return () => observer.disconnect();
+  }, [message.content, visible]);
   /** Espera el ACK para no inventar un contador de reacciones cuando falla la red. */
   async function react(emoji: ReactionEmoji) {
     if (busy || disabled) return;
@@ -80,13 +105,28 @@ export function MessageItem({
               </span>
             </blockquote>
           )}
-          <p>
+          <p
+            ref={content}
+            id={contentId}
+            className={visible && !expanded ? "message-collapsed" : undefined}
+          >
             {visible
               ? message.content
               : message.status === "hidden"
                 ? "Mensaje oculto por moderación."
                 : "Mensaje eliminado."}
           </p>
+          {longMessage && (
+            <button
+              className="message-expand"
+              type="button"
+              aria-expanded={expanded}
+              aria-controls={contentId}
+              onClick={() => setExpanded(!expanded)}
+            >
+              {expanded ? "Ver menos" : "Ver más"}
+            </button>
+          )}
           {mine && visible && (
             <small
               className="spec04-read"
@@ -109,7 +149,13 @@ export function MessageItem({
         </div>
         {visible && (
           <div className="spec04-message-actions">
-            {!mine && <ReportButton kind="message" id={message.id} disabled={disabled} />}
+            {!mine && (
+              <ReportButton
+                kind="message"
+                id={message.id}
+                disabled={disabled}
+              />
+            )}
             <button
               className="text-button"
               aria-label={`Responder a ${message.sender.name}`}

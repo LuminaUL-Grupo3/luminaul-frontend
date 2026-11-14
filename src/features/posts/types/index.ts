@@ -14,6 +14,7 @@ export interface PostAuthor {
 }
 
 export interface Publication {
+  color?: string;
   id: string;
   userId?: string;
   groupId?: string | null;
