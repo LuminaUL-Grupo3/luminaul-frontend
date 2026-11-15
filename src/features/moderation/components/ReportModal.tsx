@@ -1,7 +1,6 @@
 import { FormEvent, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { Field, Modal, Notice } from "@/components/ui";
-import { useFeedback } from "@/hooks/useFeedback";
 import { useCreateReportMutation } from "../hooks/useModerationQueries";
 import {
   CONTENT_TYPE_LABELS,
@@ -23,8 +22,7 @@ export function ReportModal({
   targetId: string;
   close: () => void;
 }) {
-  const feedback = useFeedback(),
-    report = useCreateReportMutation(),
+  const report = useCreateReportMutation(),
     [choice, setChoice] = useState(""),
     [detail, setDetail] = useState(""),
     [validation, setValidation] = useState("");
@@ -43,8 +41,7 @@ export function ReportModal({
     report.mutate(
       { reason, targetType, targetId },
       {
-        onSuccess: (response) => {
-          feedback.notify(response.message);
+        onSuccess: () => {
           close();
         },
       },
