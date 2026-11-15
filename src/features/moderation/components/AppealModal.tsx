@@ -4,6 +4,7 @@ import { Field, Modal, Notice } from "@/components/ui";
 import { useFeedback } from "@/hooks/useFeedback";
 import { useCreateAppealMutation } from "../hooks/useModerationQueries";
 import { MODERATION_LIMITS, ModerationLogDto } from "../types";
+import "../styles/moderation.css";
 
 const MIN_JUSTIFICATION = 10;
 
@@ -38,9 +39,9 @@ export function AppealModal({ log, close }: { log: ModerationLogDto; close: () =
 
   return (
     <Modal title="Apelar moderación" close={close}>
-      <form className="form" onSubmit={submit} noValidate>
-        {log.content && <blockquote className="muted">{log.content}</blockquote>}
-        <p className="muted">
+      <form className="form appeal-form" onSubmit={submit} noValidate>
+        {log.content && <blockquote className="muted appeal-quote">{log.content}</blockquote>}
+        <p className="muted appeal-reason">
           Se ocultó por: <strong>{log.detectedWords.join(", ")}</strong>
         </p>
         <Field
@@ -58,13 +59,15 @@ export function AppealModal({ log, close }: { log: ModerationLogDto; close: () =
           />
         </Field>
         <Notice error>{validation || appeal.error?.message}</Notice>
-        <button className="button" disabled={appeal.isPending}>
-          {appeal.isPending ? <LoaderCircle className="spin" size={18} /> : null}
-          {appeal.isPending ? "Enviando…" : "Enviar apelación"}
-        </button>
-        <button type="button" className="button secondary" onClick={close} disabled={appeal.isPending}>
-          Cancelar
-        </button>
+        <div className="modal-actions">
+          <button type="button" className="button secondary" onClick={close} disabled={appeal.isPending}>
+            Cancelar
+          </button>
+          <button className="button" disabled={appeal.isPending}>
+            {appeal.isPending ? <LoaderCircle className="spin" size={18} /> : null}
+            {appeal.isPending ? "Enviando…" : "Enviar apelación"}
+          </button>
+        </div>
       </form>
     </Modal>
   );

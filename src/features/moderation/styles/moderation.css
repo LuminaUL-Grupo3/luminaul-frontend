@@ -1,0 +1,95 @@
+.moderation-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.moderation-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  justify-items: start;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.moderation-card .tag {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 100%;
+  white-space: normal;
+  line-height: 1.35;
+}
+
+.moderation-card p {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.55;
+}
+
+.moderation-meta {
+  font-size: 13px;
+}
+
+.appeal-form {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.appeal-quote {
+  margin: 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--border);
+  background: #f9fafc;
+  border-radius: 8px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.appeal-reason {
+  margin: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.appeal-form textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+  .moderation-tabs {
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .moderation-tabs button {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 11px 12px;
+    text-align: center;
+  }
+
+  .moderation-card {
+    padding: 18px 16px;
+    gap: 8px;
+  }
+
+  .moderation-card .button {
+    width: 100%;
+    justify-content: center;
+  }
+}

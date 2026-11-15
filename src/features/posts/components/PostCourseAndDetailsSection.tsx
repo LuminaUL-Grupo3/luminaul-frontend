@@ -3,6 +3,7 @@ import { Field } from "@/components/ui";
 import { POST_COLORS } from "../postColors";
 import { Course } from "../types";
 import { formatCourseName } from "../utils/formatCourseName";
+import "../styles/posts.css";
 
 interface PostCourseAndDetailsSectionProps {
   isEditing: boolean;
@@ -141,14 +142,13 @@ export function PostCourseAndDetailsSection({
 
       <Field
         label="3. Descripción Detallada"
-        hint={`${description.length}/3000 caracteres`}
+        hint={`${description.length}/1000 caracteres`}
       >
         <textarea
           required
-          maxLength={3000}
+          maxLength={1000}
           rows={5}
-          style={{ resize: "none" }}
-          className={fieldErrors.description ? "input-error" : ""}
+          className={`post-details-textarea post-details-textarea--tall ${fieldErrors.description ? "input-error" : ""}`}
           value={description}
           onChange={(e) => onChangeField("description", e.target.value)}
           placeholder="¿Cuál es el objetivo de estudio? Describe temas específicos, horarios tentativos o metas a cumplir en equipo."
@@ -161,17 +161,16 @@ export function PostCourseAndDetailsSection({
         )}
       </Field>
 
-      <div className="two-cols">
+      <div className="post-details-two-cols">
         <Field
           label="Beneficios esperados"
-          hint="Qué lograrán resolver o aprender juntos."
+          hint={`Qué lograrán resolver o aprender juntos (${benefits.length}/500).`}
         >
           <textarea
             required
-            maxLength={1000}
+            maxLength={500}
             rows={3}
-            style={{ resize: "none" }}
-            className={fieldErrors.benefits ? "input-error" : ""}
+            className={`post-details-textarea post-details-textarea--compact ${fieldErrors.benefits ? "input-error" : ""}`}
             value={benefits}
             onChange={(e) => onChangeField("benefits", e.target.value)}
             placeholder="Ejemplo: Preparar evaluaciones continuas, repasar código limpio y resolver dudas."
@@ -186,14 +185,13 @@ export function PostCourseAndDetailsSection({
 
         <Field
           label="Requisitos sugeridos"
-          hint="Conocimientos o herramientas necesarias."
+          hint={`Conocimientos o herramientas necesarias (${requirements.length}/500).`}
         >
           <textarea
             required
-            maxLength={1000}
+            maxLength={500}
             rows={3}
-            style={{ resize: "none" }}
-            className={fieldErrors.requirements ? "input-error" : ""}
+            className={`post-details-textarea post-details-textarea--compact ${fieldErrors.requirements ? "input-error" : ""}`}
             value={requirements}
             onChange={(e) => onChangeField("requirements", e.target.value)}
             placeholder="Ejemplo: Estar cursando la materia o tener instalado el entorno de desarrollo."
