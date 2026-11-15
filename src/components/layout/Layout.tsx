@@ -78,7 +78,12 @@ export function Layout() {
     // SPEC-02: la foto del perfil se refleja en la barra superior en cuanto se edita (solo estudiantes)
     myProfile = useMyProfileQuery(Boolean(user && user.role !== "admin"));
 
-  useEffect(() => setOpen(false), [location.pathname]);
+  useEffect(() => {
+    setOpen(false);
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.getElementById("main-content")?.scrollTo(0, 0);
+  }, [location.pathname]);
 
   // El encabezado indica la sección actual sin agregar rutas ni modificar permisos.
   const activeSection = [...nav, ...personal].find(([path]) =>
