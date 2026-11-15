@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { useSession } from "@/features/auth";
 import { useMyProfileQuery } from "@/features/profile/hooks";
@@ -211,12 +211,14 @@ export function PostEditor() {
   const activeCourse = selectedCourse || loadedCourse;
 
   const currentUserId = user?.id || myProfile.data?.userId;
+  const loadedAuthorId =
+    postDetailQuery.data?.userId || postDetailQuery.data?.author?.id || postUserId;
   const isOwner =
     !isEditing ||
-    !postUserId ||
-    !currentUserId ||
-    postUserId === currentUserId ||
-    isAdmin;
+    isAdmin ||
+    (Boolean(loadedAuthorId) &&
+      Boolean(currentUserId) &&
+      loadedAuthorId === currentUserId);
 
   const displayAuthorName =
     postAuthor?.name || myProfile.data?.name || "Alumno";
@@ -381,8 +383,33 @@ export function PostEditor() {
     );
   }
 
-  const error = submitError || postDetailQuery.error?.message || "";
-  const isLoading = isEditing && postDetailQuery.isPending;
+  if (isEditing && postDetailQuery.isPending) {
+    return <Loading />;
+  }
+
+  if (isEditing && (postDetailQuery.isError || !postDetailQuery.data)) {
+    return (
+      <div className="empty">
+        <PageHeader
+          eyebrow="NO ENCONTRADA"
+          title="Publicación no encontrada"
+          description={
+            postDetailQuery.error?.message ||
+            "La publicación que intentas editar no existe o fue eliminada."
+          }
+        />
+        <Link className="button" to="/">
+          Volver al inicio <ArrowUpRight size={18} />
+        </Link>
+      </div>
+    );
+  }
+
+  if (isEditing && !isOwner) {
+    return <Navigate to="/" replace />;
+  }
+
+  const error = submitError || "";
 
   return (
     <>
@@ -400,17 +427,8 @@ export function PostEditor() {
         }
       />
       {error && <Notice error>{error}</Notice>}
-      {!isOwner && (
-        <Notice error>
-          Esta publicación pertenece a otro usuario ({displayAuthorName}). Solo
-          el autor original puede guardar cambios.
-        </Notice>
-      )}
-      {isLoading ? (
-        <Loading />
-      ) : (
-        <div className="modern-editor-wrapper">
-          <div className="modern-editor-grid">
+      <div className="modern-editor-wrapper">
+        <div className="modern-editor-grid">
             <form
               ref={formRef}
               className="panel form"
@@ -496,9 +514,8 @@ export function PostEditor() {
               authorInitials={authorInitials}
               isEditing={isEditing}
             />
-          </div>
         </div>
-      )}
+      </div>
 
       {leaving && (
         <Modal
