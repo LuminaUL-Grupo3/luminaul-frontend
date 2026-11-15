@@ -106,3 +106,56 @@ export function useJoinGroupMutation() {
   });
 }
 
+export function useMyTutoringRequestsQuery(enabled = true) {
+  return useQuery({
+    queryKey: ["posts", "tutoring-requests", "mine"],
+    queryFn: () => postsService.getMyTutoringRequests(),
+    enabled,
+  });
+}
+
+export function useIncomingTutoringRequestsQuery(enabled = true) {
+  return useQuery({
+    queryKey: ["posts", "tutoring-requests", "incoming"],
+    queryFn: () => postsService.getIncomingTutoringRequests(),
+    enabled,
+  });
+}
+
+export function useCreateTutoringRequestMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ postId, message }: { postId: string; message: string }) =>
+      postsService.createTutoringRequest(postId, message),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["posts", "tutoring-requests"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["groups"],
+      });
+    },
+  });
+}
+
+export function useDecideTutoringRequestMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      requestId,
+      status,
+    }: {
+      requestId: string;
+      status: "accepted" | "rejected";
+    }) => postsService.decideTutoringRequest(requestId, status),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["posts", "tutoring-requests"],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["groups"],
+      });
+    },
+  });
+}
+

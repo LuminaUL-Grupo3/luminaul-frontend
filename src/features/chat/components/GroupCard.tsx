@@ -6,12 +6,24 @@ export interface GroupCardProps {
   group: GroupDetailDto;
   colorToneIndex?: number;
 }
+
+/** Calcula un tono determinístico (0..2) a partir del UUID del grupo para que no cambie al filtrar. */
+function hashGroupTone(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i += 1) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  }
+  return hash % 3;
+}
+
 /** Tarjeta de grupo con cupos reales y el rol canónico de líder o integrante. */
-export function GroupCard({ group, colorToneIndex = 0 }: GroupCardProps) {
+export function GroupCard({ group, colorToneIndex }: GroupCardProps) {
   const available = Math.max(0, group.maxCapacity - group.currentMembers);
+  const tone =
+    ((colorToneIndex ?? hashGroupTone(group.id)) % 3 + 3) % 3;
   return (
     <article className="group-card">
-      <div className={`group-art tone-${colorToneIndex % 3}`}>
+      <div className={`group-art tone-${tone}`}>
         <Users size={32} />
         <span>
           {group.myStatus === "active" ? "Tu comunidad" : "Grupo de estudio"}

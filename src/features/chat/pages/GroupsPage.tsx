@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { PageHeader, Loading, Notice, Empty } from "@/components/ui";
 import {
   useGroupsDirectoryQuery,
@@ -7,9 +8,33 @@ import {
 } from "../hooks/useGroupQueries";
 import { GroupCard } from "../components/GroupCard";
 import { CreateGroupModal } from "../components/CreateGroupModal";
+import { api } from "../services/apiClient";
 import type { MeetingMode } from "../types/contracts";
 import { useAuthStore } from "@/features/auth";
 import "../styles/chat.css";
+
+interface CourseOption {
+  id: string;
+  name: string;
+  cycle: number | null;
+}
+
+function toCourseCode(courseName: string): string {
+  const clean = courseName.trim().replace(/\s+/g, " ");
+  if (clean.length <= 20) return clean.toUpperCase();
+  const abbreviated = clean
+    .replace(/\bIngenier[íi]a\b/gi, "Ing.")
+    .replace(/\bProgramaci[óo]n\b/gi, "Prog.")
+    .replace(/\bAdministraci[óo]n\b/gi, "Adm.")
+    .replace(/\bArquitectura\b/gi, "Arq.")
+    .replace(/\bEstad[íi]stica\b/gi, "Est.")
+    .replace(/\bMatem[áa]tica\b/gi, "Mat.")
+    .replace(/\bSistemas\b/gi, "Sist.")
+    .replace(/\bDesarrollo\b/gi, "Des.")
+    .replace(/\bGesti[óo]n\b/gi, "Gest.")
+    .replace(/\bInvestigaci[óo]n\b/gi, "Inv.");
+  return abbreviated.slice(0, 20).trim().toUpperCase();
+}
 
 function readDensity(key: string): "compact" | "wide" {
   try {
@@ -35,14 +60,35 @@ export function GroupsPage() {
     ),
     [open, setOpen] = useState(false);
   const [courseCode, setCourseCode] = useState(""),
-    [mode, setMode] = useState<MeetingMode | "">("");
+    [mode, setMode] = useState<MeetingMode | "">(""),
+    [groupTypeFilter, setGroupTypeFilter] = useState<
+      "" | "study_group" | "tutoring"
+    >("");
+  const coursesQuery = useQuery({
+    queryKey: ["courses"],
+    queryFn: () => api.request<CourseOption[]>("/courses"),
+    staleTime: 5 * 60 * 1000,
+  });
+  const courses = coursesQuery.data ?? [];
+  const availableCycles = useMemo(() => {
+    const set = new Set<number>();
+    for (const c of courses) {
+      if (typeof c.cycle === "number") set.add(c.cycle);
+    }
+    return Array.from(set).sort((a, b) => a - b);
+  }, [courses]);
   const mine = useMyGroupsQuery(),
     directory = useGroupsDirectoryQuery({
       courseCode: courseCode.trim().toUpperCase() || undefined,
       meetingMode: mode,
     });
+  const mineRows = (mine.data || []).filter((group) => {
+    if (!groupTypeFilter) return true;
+    const type = group.groupType ?? "study_group";
+    return type === groupTypeFilter;
+  });
   const rows =
-    tab === "mine" ? mine.data || [] : directory.data?.pages.flat() || [];
+    tab === "mine" ? mineRows : directory.data?.pages.flat() || [];
   const query = tab === "mine" ? mine : directory;
   return (
     <div className="spec04">
@@ -100,18 +146,60 @@ export function GroupsPage() {
             <option value="wide">Amplias</option>
           </select>
         </label>
+        {tab === "mine" && (
+          <label className="group-density-control">
+            Tipo
+            <select
+              aria-label="Filtrar mis grupos por tipo"
+              value={groupTypeFilter}
+              onChange={(event) =>
+                setGroupTypeFilter(
+                  event.target.value as "" | "study_group" | "tutoring",
+                )
+              }
+            >
+              <option value="">Todos</option>
+              <option value="study_group">Estudio</option>
+              <option value="tutoring">Asesoría</option>
+            </select>
+          </label>
+        )}
         {tab === "directory" && (
           <div className="spec04-directory-filters">
-            <label className="search-input">
-              <Search size={17} />
-              <input
-                aria-label="Filtrar por código de curso"
-                placeholder="Código del curso"
-                value={courseCode}
-                maxLength={20}
-                onChange={(event) => setCourseCode(event.target.value)}
-              />
-            </label>
+            <select
+              aria-label="Filtrar por curso"
+              value={courseCode}
+              onChange={(event) => setCourseCode(event.target.value)}
+              disabled={coursesQuery.isPending}
+            >
+              <option value="">
+                {coursesQuery.isPending
+                  ? "Cargando cursos…"
+                  : "Todos los cursos"}
+              </option>
+              {availableCycles.map((cycleNum) => {
+                const groupCourses = courses.filter(
+                  (c) => c.cycle === cycleNum,
+                );
+                if (groupCourses.length === 0) return null;
+                return (
+                  <optgroup
+                    key={cycleNum}
+                    label={
+                      cycleNum === 11
+                        ? `Cursos Electivos (${groupCourses.length})`
+                        : `Ciclo ${cycleNum} (${groupCourses.length})`
+                    }
+                  >
+                    {groupCourses.map((c) => (
+                      <option key={c.id} value={toCourseCode(c.name)}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              })}
+            </select>
             <select
               aria-label="Filtrar por modalidad"
               value={mode}
@@ -137,8 +225,8 @@ export function GroupsPage() {
         <Loading />
       ) : rows.length ? (
         <div className="group-grid" data-density={density}>
-          {rows.map((group, index) => (
-            <GroupCard key={group.id} group={group} colorToneIndex={index} />
+          {rows.map((group) => (
+            <GroupCard key={group.id} group={group} />
           ))}
         </div>
       ) : (

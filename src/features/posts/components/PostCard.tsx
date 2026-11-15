@@ -1,23 +1,38 @@
 import { Link } from "react-router-dom";
 import {
   BookOpen,
+  CheckCircle2,
+  GraduationCap,
+  Sparkles,
   Users,
   Pencil,
   Trash2,
   ArrowRight,
   ArrowUpRight,
 } from "lucide-react";
+import type { CSSProperties } from "react";
 import { date } from "@/config/api";
 import { Avatar, ReportButton } from "@/components/ui";
-import { Publication } from "../types";
+import { Publication, TutoringRequestStatus } from "../types";
 import { GroupMembershipStatus } from "../hooks/useGroupStatuses";
+import { formatCourseName } from "../utils/formatCourseName";
 import "../styles/posts.css";
+
+const wrapTextStyle: CSSProperties = {
+  flex: 1,
+  minWidth: 0,
+  overflowWrap: "anywhere",
+  wordBreak: "break-word",
+  whiteSpace: "pre-wrap",
+};
 
 interface PostCardProps {
   post: Publication;
   currentUserId?: string;
   isAdmin?: boolean;
   groupStatus?: GroupMembershipStatus;
+  tutoringStatus?: TutoringRequestStatus;
+  tutoringGroupId?: string | null;
   onRemove: (id: string) => void;
   onInterestClick: (post: Publication) => void;
 }
@@ -27,6 +42,8 @@ export function PostCard({
   currentUserId,
   isAdmin = false,
   groupStatus,
+  tutoringStatus,
+  tutoringGroupId,
   onRemove,
   onInterestClick,
 }: PostCardProps) {
@@ -37,13 +54,32 @@ export function PostCard({
   const cycleNum = typeof p.course?.cycle === "number" ? p.course.cycle : null;
   const maxCapacityNum = p.maxCapacity;
   const groupId = p.groupId;
+  const effectiveMaxCapacity =
+    typeof p.groupMaxCapacity === "number"
+      ? p.groupMaxCapacity
+      : maxCapacityNum;
+  const isGroupFull =
+    Boolean(groupId) &&
+    typeof p.groupCurrentMembers === "number" &&
+    typeof effectiveMaxCapacity === "number" &&
+    p.groupCurrentMembers >= effectiveMaxCapacity;
   const isMine =
     (Boolean(p.userId) && p.userId === currentUserId) ||
     (Boolean(p.author?.id) && p.author?.id === currentUserId);
   const canManage = isMine || isAdmin;
 
   return (
-    <article className="post-card" data-color={p.color || "white"} key={p.id}>
+    <article
+      className="post-card"
+      data-color={p.color || "white"}
+      key={p.id}
+      style={{
+        borderRadius: 14,
+        border: "1px solid #e2e8f0",
+        boxShadow:
+          "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01)",
+      }}
+    >
       <div className="post-top">
         <Link className="person" to={authorId ? `/perfil/${authorId}` : "#"}>
           <Avatar name={authorName} src={authorPhoto} />
@@ -56,11 +92,11 @@ export function PostCard({
         {!isMine && <ReportButton kind="publication" id={p.id} />}
       </div>
 
-      <div className="tags">
+      <div className="tags" style={{ marginTop: 12 }}>
         <span className={`tag ${p.type === "tutoring" ? "purple" : ""}`}>
           {p.type === "tutoring" ? "Asesoría" : "Grupo de Estudio"}
         </span>
-        <span className="course-tag">{courseName}</span>
+        <span className="course-tag">{formatCourseName(courseName)}</span>
         {p.status !== "published" && (
           <span className="tag warning">
             {p.status === "hidden" ? "Oculta por Moderación" : "Inactiva"}
@@ -68,37 +104,72 @@ export function PostCard({
         )}
       </div>
 
-      <p className="post-description">{p.description}</p>
+      <p className="post-description" style={{ marginTop: 12 }}>
+        {p.description}
+      </p>
 
-      <div className="post-details">
+      <div className="post-details" style={{ marginTop: 12 }}>
         {cycleNum !== null && (
           <span>
             <BookOpen size={15} />
             {cycleNum === 11 ? "Electivo" : `Ciclo ${cycleNum}`}
           </span>
         )}
-        {maxCapacityNum ? (
+        {p.type === "tutoring" ? (
+          <span>
+            <GraduationCap size={15} />
+            Asesoría académica
+          </span>
+        ) : effectiveMaxCapacity ? (
           <span>
             <Users size={15} />
-            Hasta {maxCapacityNum} integrantes
+            {typeof p.groupCurrentMembers === "number"
+              ? isGroupFull
+                ? `Grupo completo (${p.groupCurrentMembers}/${effectiveMaxCapacity})`
+                : `${p.groupCurrentMembers}/${effectiveMaxCapacity} integrantes`
+              : `Hasta ${effectiveMaxCapacity} integrantes`}
           </span>
         ) : null}
       </div>
 
-      {(p.benefits || p.requirements) && (
-        <details className="post-more">
-          <summary>Beneficios y requisitos</summary>
-          {p.benefits && (
-            <p>
-              <strong>Beneficios:</strong> {p.benefits}
-            </p>
+      {(p.benefits?.trim() || p.requirements?.trim()) && (
+        <div
+          style={{
+            marginTop: 14,
+            marginBottom: 14,
+            paddingTop: 12,
+            borderTop: "1px solid #f1f5f9",
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            fontSize: 13,
+            minWidth: 0,
+            maxWidth: "100%",
+          }}
+        >
+          {p.benefits?.trim() && (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
+              <Sparkles
+                size={14}
+                style={{ color: "#d97706", marginTop: 2, flexShrink: 0 }}
+              />
+              <div style={wrapTextStyle}>
+                <strong>Beneficios:</strong> {p.benefits}
+              </div>
+            </div>
           )}
-          {p.requirements && (
-            <p>
-              <strong>Requisitos:</strong> {p.requirements}
-            </p>
+          {p.requirements?.trim() && (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
+              <CheckCircle2
+                size={14}
+                style={{ color: "#2563eb", marginTop: 2, flexShrink: 0 }}
+              />
+              <div style={wrapTextStyle}>
+                <strong>Requisitos:</strong> {p.requirements}
+              </div>
+            </div>
           )}
-        </details>
+        </div>
       )}
 
       <footer className="post-actions">
@@ -118,6 +189,33 @@ export function PostCard({
               Borrar publicación
             </button>
           </>
+        ) : p.type === "tutoring" && !groupId && !isAdmin ? (
+          tutoringStatus === "pending" ? (
+            <span className="text-button muted">Solicitud de asesoría pendiente</span>
+          ) : tutoringStatus === "accepted" ? (
+            <Link
+              className="text-button muted"
+              to={
+                tutoringGroupId
+                  ? `/mensajes/${tutoringGroupId}`
+                  : authorId
+                    ? `/perfil/${authorId}`
+                    : "#"
+              }
+            >
+              {tutoringGroupId
+                ? "Asesoría aceptada · Ir al chat"
+                : "Asesoría aceptada · Ver perfil"}{" "}
+              <ArrowUpRight size={15} />
+            </Link>
+          ) : (
+            <button
+              className="text-button"
+              onClick={() => onInterestClick(p)}
+            >
+              Me interesa <ArrowRight size={16} />
+            </button>
+          )
         ) : groupId && !isAdmin ? (
           (() => {
             if (groupStatus === "leader" || groupStatus === "member") {
@@ -133,6 +231,13 @@ export function PostCard({
               );
             }
             if (groupStatus === "none") {
+              if (isGroupFull) {
+                return (
+                  <span className="text-button muted" aria-disabled="true">
+                    Grupo completo
+                  </span>
+                );
+              }
               return (
                 <button
                   className="text-button"

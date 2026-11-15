@@ -1,6 +1,7 @@
 import { Mail } from "lucide-react";
 import { Avatar } from "@/components/ui";
 import { StudentProfileDto } from "../types";
+import "../styles/profile.css";
 
 export interface ProfileCardProps {
   profile: StudentProfileDto;
@@ -34,7 +35,12 @@ export function ProfileCard({ profile }: ProfileCardProps) {
         </a>
       )}
       {academicInfo && <p className="academic-info">{academicInfo}</p>}
-      <p className="bio">{profile.bio || "Todavía no agregó una descripción."}</p>
+      <p
+        className="bio"
+        style={{ textAlign: "justify", textJustify: "inter-word" }}
+      >
+        {profile.bio || "Todavía no agregó una descripción."}
+      </p>
       <h4>Habilidades</h4>
       <div className="tags">
         {profile.skills.map((s) => (

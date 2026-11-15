@@ -1,5 +1,7 @@
 export type PostType = "study_group" | "tutoring";
 export type PostStatus = "published" | "hidden" | "inactive";
+export type PostMeetingMode = "presencial" | "virtual" | "hibrido";
+export type PostMeetingShift = "manana" | "tarde" | "noche";
 
 export interface Course {
   id: string;
@@ -24,6 +26,8 @@ export interface Publication {
   benefits?: string | null;
   requirements?: string | null;
   maxCapacity?: number;
+  groupCurrentMembers?: number | null;
+  groupMaxCapacity?: number | null;
   status: PostStatus | string;
   createdAt?: string;
   updatedAt?: string;
@@ -49,6 +53,8 @@ export interface CreatePostPayload {
   benefits?: string;
   requirements?: string;
   maxCapacity?: number;
+  meetingMode?: PostMeetingMode;
+  meetingShift?: PostMeetingShift;
 }
 
 export interface UpdatePostPayload {
@@ -88,4 +94,32 @@ export interface PaginatedPostsResponse {
   limit: number;
   offset: number;
   items: Publication[];
+}
+
+export type TutoringRequestStatus = "pending" | "accepted" | "rejected";
+
+export interface TutoringRequestIncoming {
+  id: string;
+  publicationId: string;
+  tutorId: string;
+  requesterId: string;
+  message: string;
+  status: TutoringRequestStatus;
+  createdAt: string;
+  courseName: string;
+  publicationDescription: string;
+  applicant: {
+    id: string;
+    name: string;
+    email: string;
+    profilePhotoUrl: string | null;
+  };
+}
+
+export interface MyTutoringRequest {
+  id: string;
+  publicationId: string;
+  status: TutoringRequestStatus;
+  groupId: string | null;
+  createdAt: string;
 }

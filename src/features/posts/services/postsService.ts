@@ -3,10 +3,12 @@ import {
   Course,
   CreatePostPayload,
   DeletePostResponse,
+  MyTutoringRequest,
   PostFilterQuery,
   PostGroupDetailMinimal,
   PostGroupSummary,
   Publication,
+  TutoringRequestIncoming,
   UpdatePostPayload,
 } from "../types";
 
@@ -29,7 +31,33 @@ export const postsService = {
   },
 
   async getMyPosts(params?: PostFilterQuery): Promise<Publication[]> {
-    return api.request<Publication[]>(`/posts/me${buildQueryString(params)}`);
+    const items = await api.request<Publication[]>(
+      `/posts/me${buildQueryString({ limit: params?.limit, offset: params?.offset })}`,
+    );
+
+    const search = params?.search?.trim().toLowerCase();
+    return items.filter((p) => {
+      if (params?.type && p.type !== params.type) return false;
+      if (params?.courseId && p.courseId !== params.courseId && p.course?.id !== params.courseId) {
+        return false;
+      }
+      if (typeof params?.cycle === "number" && p.course?.cycle !== params.cycle) {
+        return false;
+      }
+      if (search) {
+        const haystack = [
+          p.description,
+          p.benefits,
+          p.requirements,
+          p.course?.name,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+      return true;
+    });
   },
 
   async getPostById(id: string): Promise<Publication> {
@@ -67,5 +95,37 @@ export const postsService = {
     return api.request<{ message: string }>(`/groups/${groupId}/join-requests`, "POST", {
       message,
     });
+  },
+
+  async createTutoringRequest(
+    postId: string,
+    message: string,
+  ): Promise<{ id: string; status: string; message: string }> {
+    return api.request<{ id: string; status: string; message: string }>(
+      `/posts/${postId}/tutoring-requests`,
+      "POST",
+      { message },
+    );
+  },
+
+  async getIncomingTutoringRequests(): Promise<TutoringRequestIncoming[]> {
+    return api.request<TutoringRequestIncoming[]>(
+      "/posts/tutoring-requests/incoming",
+    );
+  },
+
+  async getMyTutoringRequests(): Promise<MyTutoringRequest[]> {
+    return api.request<MyTutoringRequest[]>("/posts/tutoring-requests/mine");
+  },
+
+  async decideTutoringRequest(
+    requestId: string,
+    status: "accepted" | "rejected",
+  ): Promise<{ id: string; status: string }> {
+    return api.request<{ id: string; status: string }>(
+      `/posts/tutoring-requests/${requestId}`,
+      "PATCH",
+      { status },
+    );
   },
 };

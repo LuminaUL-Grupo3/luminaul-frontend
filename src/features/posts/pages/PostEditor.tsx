@@ -19,11 +19,45 @@ import {
 import {
   Course,
   CreatePostPayload,
+  PostMeetingMode,
+  PostMeetingShift,
   PostType,
   UpdatePostPayload,
 } from "../types";
 import "../styles/posts.css";
 import "./PostEditor.css";
+
+function toCourseCode(courseName: string): string {
+  const clean = courseName.trim().replace(/\s+/g, " ");
+  if (clean.length <= 20) return clean.toUpperCase();
+  const abbreviated = clean
+    .replace(/\bIngenier[íi]a\b/gi, "Ing.")
+    .replace(/\bProgramaci[óo]n\b/gi, "Prog.")
+    .replace(/\bAdministraci[óo]n\b/gi, "Adm.")
+    .replace(/\bArquitectura\b/gi, "Arq.")
+    .replace(/\bEstad[íi]stica\b/gi, "Est.")
+    .replace(/\bMatem[áa]tica\b/gi, "Mat.")
+    .replace(/\bSistemas\b/gi, "Sist.")
+    .replace(/\bDesarrollo\b/gi, "Des.")
+    .replace(/\bGesti[óo]n\b/gi, "Gest.")
+    .replace(/\bInvestigaci[óo]n\b/gi, "Inv.");
+  return abbreviated.slice(0, 20).trim().toUpperCase();
+}
+
+function findCourseForGroup(
+  group: { name: string; courseCode?: string },
+  courses: Course[],
+): Course | undefined {
+  const code = (group.courseCode || "").trim().toUpperCase();
+  if (code) {
+    const byCode = courses.find((c) => toCourseCode(c.name) === code);
+    if (byCode) return byCode;
+  }
+  const lowerName = group.name.toLowerCase();
+  return [...courses]
+    .sort((a, b) => b.name.length - a.name.length)
+    .find((c) => lowerName.includes(c.name.toLowerCase()));
+}
 
 interface PostFormState {
   courseId: string;
@@ -34,6 +68,8 @@ interface PostFormState {
   benefits: string;
   requirements: string;
   maxCapacity: number;
+  meetingMode: PostMeetingMode;
+  meetingShift: PostMeetingShift;
 }
 
 export function PostEditor() {
@@ -62,6 +98,8 @@ export function PostEditor() {
     benefits: "",
     requirements: "",
     maxCapacity: 5,
+    meetingMode: "virtual",
+    meetingShift: "tarde",
   });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
@@ -96,6 +134,8 @@ export function PostEditor() {
       benefits: post.benefits || "",
       requirements: post.requirements || "",
       maxCapacity: Math.min(8, Math.max(2, post.maxCapacity ?? 5)),
+      meetingMode: "virtual",
+      meetingShift: "tarde",
     });
     if (existingGroupId) setGroupMode("existing");
 
@@ -139,6 +179,35 @@ export function PostEditor() {
     () => (form.groupId ? myGroups.find((g) => g.id === form.groupId) || null : null),
     [myGroups, form.groupId],
   );
+  const groupMatchedCourse = useMemo(() => {
+    if (
+      isEditing ||
+      form.type !== "study_group" ||
+      groupMode !== "existing" ||
+      !selectedGroup
+    ) {
+      return undefined;
+    }
+    return findCourseForGroup(selectedGroup, courses);
+  }, [isEditing, form.type, groupMode, selectedGroup, courses]);
+
+  useEffect(() => {
+    if (!groupMatchedCourse) return;
+    if (form.courseId !== groupMatchedCourse.id) {
+      setForm((prev) => ({ ...prev, courseId: groupMatchedCourse.id }));
+      setFieldErrors((prev) => {
+        if (!prev.courseId) return prev;
+        const next = { ...prev };
+        delete next.courseId;
+        return next;
+      });
+    }
+    if (typeof groupMatchedCourse.cycle === "number") {
+      setSelectedCycle(groupMatchedCourse.cycle);
+    }
+    setLoadedCourse(groupMatchedCourse);
+  }, [groupMatchedCourse, form.courseId]);
+
   const activeCourse = selectedCourse || loadedCourse;
 
   const currentUserId = user?.id || myProfile.data?.userId;
@@ -244,6 +313,12 @@ export function PostEditor() {
           benefits: form.benefits,
           requirements: form.requirements,
           maxCapacity: resolvedCapacity,
+          ...(form.type === "study_group" && groupMode === "new"
+            ? {
+                meetingMode: form.meetingMode,
+                meetingShift: form.meetingShift,
+              }
+            : {}),
           ...(form.type === "study_group" &&
           groupMode === "existing" &&
           form.groupId
@@ -260,6 +335,12 @@ export function PostEditor() {
           benefits: form.benefits,
           requirements: form.requirements,
           maxCapacity: resolvedCapacity,
+          ...(form.type === "study_group" && groupMode === "new"
+            ? {
+                meetingMode: form.meetingMode,
+                meetingShift: form.meetingShift,
+              }
+            : {}),
           ...(form.type === "study_group" &&
           groupMode === "existing" &&
           form.groupId
@@ -342,12 +423,18 @@ export function PostEditor() {
                 groupMode={groupMode}
                 groupId={form.groupId}
                 maxCapacity={form.maxCapacity}
+                meetingMode={form.meetingMode}
+                meetingShift={form.meetingShift}
                 myGroups={myGroups}
                 selectedGroup={selectedGroup}
                 groupError={fieldErrors.groupId}
                 onChangeField={(key, value) => {
                   if (key === "type") setField("type", value as PostType);
                   else if (key === "groupId") setField("groupId", String(value));
+                  else if (key === "meetingMode")
+                    setField("meetingMode", value as PostMeetingMode);
+                  else if (key === "meetingShift")
+                    setField("meetingShift", value as PostMeetingShift);
                   else setField("maxCapacity", Number(value));
                 }}
                 onChangeGroupMode={setGroupMode}
@@ -355,6 +442,7 @@ export function PostEditor() {
 
               <PostCourseAndDetailsSection
                 isEditing={isEditing}
+                courseLocked={Boolean(groupMatchedCourse)}
                 courseId={form.courseId}
                 color={form.color}
                 description={form.description}
@@ -368,15 +456,10 @@ export function PostEditor() {
                 onChangeField={(key, value) => setField(key, value)}
               />
 
-              <div className="button-row" style={{ marginTop: 20 }}>
-                <button className="button" disabled={busy || !isOwner}>
-                  {busy
-                    ? "Guardando…"
-                    : isEditing
-                      ? "Guardar cambios"
-                      : "Publicar ahora"}
-                  <ArrowUpRight size={18} />
-                </button>
+              <div
+                className="button-row"
+                style={{ marginTop: 20, justifyContent: "flex-end" }}
+              >
                 <button
                   type="button"
                   className="button secondary"
@@ -386,6 +469,14 @@ export function PostEditor() {
                   }}
                 >
                   Regresar
+                </button>
+                <button className="button" disabled={busy || !isOwner}>
+                  {busy
+                    ? "Guardando…"
+                    : isEditing
+                      ? "Guardar cambios"
+                      : "Publicar ahora"}
+                  <ArrowUpRight size={18} />
                 </button>
               </div>
             </form>
@@ -411,20 +502,14 @@ export function PostEditor() {
 
       {leaving && (
         <Modal
-          title="¿Desea guardar los cambios?"
+          title="¿Salir sin guardar?"
           close={() => setLeaving(false)}
         >
           <p className="confirmation-copy">
-            Puedes guardar tu publicación antes de regresar, continuar editando
-            o salir sin guardar los cambios.
+            Tienes cambios sin publicar. ¿Deseas continuar editando o salir sin
+            guardar?
           </p>
           <div className="modal-actions">
-            <button
-              className="button secondary"
-              onClick={() => setLeaving(false)}
-            >
-              Seguir editando
-            </button>
             <button
               className="button secondary"
               onClick={() => navigate("/mis-publicaciones")}
@@ -433,12 +518,9 @@ export function PostEditor() {
             </button>
             <button
               className="button"
-              onClick={() => {
-                setLeaving(false);
-                formRef.current?.requestSubmit();
-              }}
+              onClick={() => setLeaving(false)}
             >
-              Guardar cambios
+              Seguir editando
             </button>
           </div>
         </Modal>

@@ -675,6 +675,9 @@ small {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 0;
+  border: 0;
+  text-align: left;
   color: #9399a4;
   background: none;
   font-size: 11px;
@@ -1473,7 +1476,9 @@ small {
 .profile-card .bio {
   color: #737c8a;
   font-size: 12px;
-  margin: 23px 0;
+  margin: 18px 0;
+  text-align: justify;
+  text-justify: inter-word;
 }
 .profile-card h4 {
   margin: 25px 0 12px;
@@ -1685,11 +1690,11 @@ td small {
   align-items: center;
   gap: 12px;
   padding: 16px 18px;
-  color: var(--orange-dark);
-  background: var(--orange-soft);
-  border: 1px solid #f3c3a4;
+  color: #2f6b45;
+  background: #eaf3ec;
+  border: 1px solid #b7dec3;
   border-radius: 18px;
-  box-shadow: 0 12px 40px #80300524;
+  box-shadow: 0 12px 32px rgba(47, 107, 69, 0.14);
   pointer-events: auto;
   animation: notice-in 0.25s ease-out both;
 }

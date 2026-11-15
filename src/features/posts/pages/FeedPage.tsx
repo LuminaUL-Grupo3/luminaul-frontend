@@ -7,6 +7,7 @@ import { PageHeader, Loading, Notice, Empty } from "@/components/ui";
 import {
   useCoursesQuery,
   useDeletePostMutation,
+  useMyTutoringRequestsQuery,
   usePostsFeedQuery,
 } from "../hooks/usePostsQueries";
 import { useGroupStatuses } from "../hooks/useGroupStatuses";
@@ -63,9 +64,23 @@ export function FeedPage({
   );
 
   const postsQuery = usePostsFeedQuery(filterQuery, { mine });
+  const myTutoringRequestsQuery = useMyTutoringRequestsQuery(
+    Boolean(user) && !mine && !isAdmin,
+  );
   const deletePostMutation = useDeletePostMutation();
   const postItems = postsQuery.data ?? [];
   const courseItems = coursesQuery.data ?? [];
+
+  const tutoringByPostId = useMemo(
+    () =>
+      new Map(
+        (myTutoringRequestsQuery.data ?? []).map((item) => [
+          item.publicationId,
+          item,
+        ]),
+      ),
+    [myTutoringRequestsQuery.data],
+  );
 
   const groupIds = useMemo(
     () =>
@@ -91,7 +106,6 @@ export function FeedPage({
         cancelLabel: "Regresar",
       }))
     ) {
-      feedbackUi.notify("No se eliminó el post");
       return;
     }
     try {
@@ -149,9 +163,15 @@ export function FeedPage({
             type={type}
             onTypeChange={setType}
             course={course}
-            onCourseChange={setCourse}
+            onCourseChange={(value) => {
+              setCourse(value);
+              if (value) setCycle("");
+            }}
             cycle={cycle}
-            onCycleChange={setCycle}
+            onCycleChange={(value) => {
+              setCycle(value);
+              if (value) setCourse("");
+            }}
             courses={courseItems}
           />
 
@@ -169,6 +189,8 @@ export function FeedPage({
                 groupStatus={
                   p.groupId ? groupStatuses.statuses[p.groupId] : undefined
                 }
+                tutoringStatus={tutoringByPostId.get(p.id)?.status}
+                tutoringGroupId={tutoringByPostId.get(p.id)?.groupId}
                 onRemove={remove}
                 onInterestClick={setJoining}
               />

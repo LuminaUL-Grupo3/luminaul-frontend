@@ -1018,6 +1018,130 @@
     min-height: 0;
   }
 }
+.spec04-create-form {
+  gap: 14px;
+}
+
+.spec04-create-intro {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f5f7f5;
+  border: 1px solid #e1e8e2;
+  color: #46534a;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.spec04-create-intro svg {
+  flex-shrink: 0;
+  color: var(--orange-dark, #c45f2c);
+}
+
+.spec04-create-form textarea {
+  resize: vertical;
+  min-height: 68px;
+}
+
+.spec04-create-form .input-error {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.spec04-create-form .field-error-message {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.spec04-capacity-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spec04-capacity-control input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  accent-color: var(--orange, #e27d4a);
+}
+
+.spec04-capacity-control input[type="number"] {
+  width: 68px;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.spec04-pill-group {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.spec04-pill-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 6px;
+  border-radius: 9px;
+  border: 1px solid #dce2de;
+  background: #ffffff;
+  color: #4b5563;
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.spec04-pill-option:hover {
+  border-color: #bfc8c2;
+  background: #f8faf8;
+}
+
+.spec04-pill-option.is-active {
+  border-color: var(--orange, #e27d4a);
+  background: #fff4ed;
+  color: var(--orange-dark, #b65a2f);
+  box-shadow: 0 0 0 1px rgba(226, 125, 74, 0.18);
+}
+
+.spec04-create-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.spec04-create-actions .button {
+  min-width: 120px;
+}
+
+@media (max-width: 640px) {
+  .spec04-pill-group {
+    grid-template-columns: 1fr;
+  }
+
+  .spec04-create-actions {
+    flex-direction: column-reverse;
+  }
+
+  .spec04-create-actions .button {
+    width: 100%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .spec04 *,
   .spec04 *::before,
