@@ -41,3 +41,60 @@
   justify-content: space-between;
   gap: 8px;
 }
+
+.admin-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.admin-filter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #667083;
+}
+
+.admin-filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 10px;
+  background: #f1f3f6;
+  border: 1px solid var(--border);
+}
+
+.admin-filter-chip {
+  border: 0;
+  background: transparent;
+  color: #606775;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-filter-chip:hover {
+  color: #1f2430;
+}
+
+.admin-filter-chip.active {
+  background: #ffffff;
+  color: #1f2430;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.1);
+}
+
+.tag.status-suspended,
+.tag.status-suspended:hover {
+  background: #fdecec;
+  color: #b42318;
+  border: 1px solid #f7c5c5;
+  transform: none;
+}

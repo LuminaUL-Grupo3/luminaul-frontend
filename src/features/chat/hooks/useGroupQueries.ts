@@ -18,6 +18,8 @@ export const groupKeys = {
     [...queryKeys.chatGroups, "members", userId, groupId] as const,
   messages: (userId: string, groupId: string) =>
     [...queryKeys.chatGroups, "messages", userId, groupId] as const,
+  directory: (filter: GroupFilter) =>
+    [...queryKeys.chatGroups, "directory", filter] as const,
   requestsRoot: [...queryKeys.chatGroups, "requests"] as const,
   requests: (userId: string) =>
     [...queryKeys.chatGroups, "requests", userId] as const,
@@ -35,7 +37,7 @@ export function useMyGroupsQuery() {
 /** Mantiene filtros en la clave y pagina el directorio en bloques pequeños. */
 export function useGroupsDirectoryQuery(filter: GroupFilter) {
   return useInfiniteQuery({
-    queryKey: ["spec04", "directory", filter],
+    queryKey: groupKeys.directory(filter),
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
       messagingService.directory({ ...filter, offset: pageParam, limit: 24 }),

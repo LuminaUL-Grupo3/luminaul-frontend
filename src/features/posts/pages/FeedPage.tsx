@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
-import { api } from "@/config/api";
-import { useSession } from "@/features/auth/hooks/useSession";
+import { useSession } from "@/features/auth";
 import { useFeedback } from "@/hooks/useFeedback";
-import { useResource } from "@/hooks/useResource";
 import { PageHeader, Loading, Notice, Empty } from "@/components/ui";
+import {
+  useCoursesQuery,
+  useDeletePostMutation,
+  usePostsFeedQuery,
+} from "../hooks/usePostsQueries";
 import { useGroupStatuses } from "../hooks/useGroupStatuses";
-import { Publication, Course } from "../types";
+import { PostFilterQuery, PostType, Publication } from "../types";
 import {
   PostCard,
   PostFilters,
@@ -23,7 +26,7 @@ export function FeedPage({
   mine?: boolean;
   search?: boolean;
 }) {
-  const { user } = useSession();
+  const { user, isAdmin } = useSession();
   const feedbackUi = useFeedback();
   const location = useLocation();
   const navigate = useNavigate();
@@ -46,28 +49,35 @@ export function FeedPage({
     });
   }, [location.key, feedbackUi.notify, navigate]);
 
-  const courses = useResource<Course[]>("/courses", []);
-  const params = new URLSearchParams({
-    limit: "12",
-    offset: String(page * 12),
-    ...(query ? { search: query } : {}),
-    ...(type ? { type } : {}),
-    ...(course ? { courseId: course } : {}),
-    ...(cycle ? { cycle } : {}),
-  });
-
-  const posts = useResource<Publication[]>(
-    `${mine ? "/posts/me" : "/posts"}?${params}`,
-    [],
+  const coursesQuery = useCoursesQuery();
+  const filterQuery = useMemo<PostFilterQuery>(
+    () => ({
+      limit: 12,
+      offset: page * 12,
+      ...(query ? { search: query } : {}),
+      ...(type ? { type: type as PostType } : {}),
+      ...(course ? { courseId: course } : {}),
+      ...(cycle ? { cycle: Number(cycle) } : {}),
+    }),
+    [page, query, type, course, cycle],
   );
 
-  const groupStatuses = useGroupStatuses(
-    mine
-      ? []
-      : posts.data
-          .map((p) => p.groupId)
-          .filter((id): id is string => Boolean(id)),
+  const postsQuery = usePostsFeedQuery(filterQuery, { mine });
+  const deletePostMutation = useDeletePostMutation();
+  const postItems = postsQuery.data ?? [];
+  const courseItems = coursesQuery.data ?? [];
+
+  const groupIds = useMemo(
+    () =>
+      mine || isAdmin
+        ? []
+        : postItems
+            .map((p) => p.groupId)
+            .filter((id): id is string => Boolean(id)),
+    [mine, isAdmin, postItems],
   );
+
+  const groupStatuses = useGroupStatuses(groupIds);
 
   useEffect(() => setPage(0), [query, type, course, cycle]);
 
@@ -86,9 +96,8 @@ export function FeedPage({
     }
     try {
       setError("");
-      await api.request(`/posts/${id}`, "DELETE");
+      await deletePostMutation.mutateAsync(id);
       feedbackUi.notify("Post eliminado con éxito");
-      posts.reload();
     } catch (e) {
       setError((e as Error).message);
     }
@@ -113,10 +122,12 @@ export function FeedPage({
               : "Siempre hay algo que puedes aprender. Y algo que puedes compartir."
         }
         action={
-          <Link className="button" to="/publicar">
-            <Plus size={18} />
-            Crear publicación
-          </Link>
+          !isAdmin ? (
+            <Link className="button" to="/publicar">
+              <Plus size={18} />
+              Crear publicación
+            </Link>
+          ) : undefined
         }
       />
 
@@ -127,7 +138,7 @@ export function FeedPage({
           <div className="feed-toolbar">
             <h2>
               {mine ? "Tu historial" : "En la comunidad"}{" "}
-              <span className="count">{posts.data.length}</span>
+              <span className="count">{postItems.length}</span>
             </h2>
             <span className="muted small-label">Más recientes primero</span>
           </div>
@@ -141,19 +152,20 @@ export function FeedPage({
             onCourseChange={setCourse}
             cycle={cycle}
             onCycleChange={setCycle}
-            courses={courses.data}
+            courses={courseItems}
           />
 
-          <Notice error>{error || posts.error}</Notice>
+          <Notice error>{error || postsQuery.error?.message}</Notice>
 
-          {posts.loading ? (
+          {postsQuery.isPending ? (
             <Loading />
-          ) : posts.data.length ? (
-            posts.data.map((p) => (
+          ) : postItems.length ? (
+            postItems.map((p) => (
               <PostCard
                 key={p.id}
                 post={p}
                 currentUserId={user?.id}
+                isAdmin={isAdmin}
                 groupStatus={
                   p.groupId ? groupStatuses.statuses[p.groupId] : undefined
                 }
@@ -186,7 +198,7 @@ export function FeedPage({
             <span>Página {page + 1}</span>
             <button
               className="button secondary small"
-              disabled={posts.data.length < 12}
+              disabled={postItems.length < 12}
               onClick={() => setPage(page + 1)}
             >
               Siguiente

@@ -107,3 +107,31 @@
   font-weight: 500;
   margin: 2px 0 8px;
 }
+
+.notification-preferences h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.notification-preferences > p {
+  color: #667486;
+  font-size: 13px;
+}
+
+.notification-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.notification-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: #c74819;
+}
+
+.notification-preferences small {
+  margin-top: 14px;
+}

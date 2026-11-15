@@ -6,6 +6,7 @@ import { useFeedback } from "@/hooks/useFeedback";
 import { useAdminAppealsQuery, useResolveAppealMutation } from "../hooks/useAdminQueries";
 import { AdminAppealDetailDto, AdminAppealStatus } from "../types";
 import { CONTENT_LABELS } from "./ReportsTable";
+import { StatusFilterBar } from "./StatusFilterBar";
 
 const STATUS_LABELS: Record<AdminAppealStatus, string> = {
   pending: "Pendiente",
@@ -46,20 +47,15 @@ export function AppealsTable() {
 
   return (
     <>
-      <div className="button-row">
-        <button
-          className={`button small ${filter === "pending" ? "" : "secondary"}`}
-          onClick={() => setFilter("pending")}
-        >
-          Pendientes
-        </button>
-        <button
-          className={`button small ${filter === undefined ? "" : "secondary"}`}
-          onClick={() => setFilter(undefined)}
-        >
-          Todas
-        </button>
-      </div>
+      <StatusFilterBar
+        ariaLabel="Filtrar apelaciones por estado"
+        value={filter}
+        options={[
+          { label: "Pendientes", value: "pending" },
+          { label: "Todas", value: undefined },
+        ]}
+        onChange={setFilter}
+      />
       <Notice error>{error || appeals.error?.message}</Notice>
       {appeals.isLoading ? (
         <Loading />

@@ -37,7 +37,8 @@ export function GroupDetailPage() {
       await cache.invalidateQueries({ queryKey: groupKeys.root });
     },
   });
-  const isLeader = group.data?.myRole === "leader",
+  const isAdmin = user?.role === "admin",
+    isLeader = group.data?.myRole === "leader",
     active = group.data?.myStatus === "active";
 
   /** Confirma el envío con un modal del diseño existente y refleja inmediatamente el estado pendiente. */
@@ -131,7 +132,7 @@ export function GroupDetailPage() {
               <MessageCircle size={18} />
               Abrir conversación
             </Link>
-          ) : (
+          ) : !isAdmin ? (
             <button
               className="button"
               disabled={pending || g.currentMembers >= g.maxCapacity}
@@ -149,7 +150,7 @@ export function GroupDetailPage() {
                     ? "Solicitar nuevo ingreso"
                     : "Solicitar ingreso"}
             </button>
-          )
+          ) : undefined
         }
       />
       <Notice error>{error}</Notice>

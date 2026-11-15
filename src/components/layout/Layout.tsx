@@ -25,16 +25,16 @@ import {
   X,
   ChevronRight,
 } from "lucide-react";
-import { useSession } from "../../features/auth";
-// Import directo de los barriles de hooks/componentes para conservar el lazy-loading de páginas
-import { useMyProfileQuery } from "../../features/profile/hooks/useProfileQueries";
+import { useSession } from "@/features/auth";
+// Import directo de los sub-barriles de hooks/componentes para conservar el lazy-loading de páginas
+import { useMyProfileQuery } from "@/features/profile/hooks";
 import { Avatar, Loading, Notice } from "../ui";
 import { Brand } from "../brand/Brand";
 import { useFeedback } from "../../hooks/useFeedback";
 import {
   NotificationsBell,
   NotificationRealtimeHost,
-} from "../../features/admin/components";
+} from "@/features/admin/components";
 
 const nav = [
   ["/", "Inicio", House],
@@ -52,6 +52,16 @@ const personal = [
   ["/moderacion", "Moderación", Shield],
 ] as const;
 
+const ADMIN_HIDDEN_PATHS = new Set([
+  "/mensajes",
+  "/solicitudes",
+  "/mis-publicaciones",
+  "/perfil",
+  "/horario",
+  "/mis-resenas",
+  "/moderacion",
+]);
+
 const secondarySections: Record<string, string> = {
   "/publicar": "Crear publicación",
   "/configuracion": "Configuración",
@@ -65,8 +75,8 @@ export function Layout() {
     [open, setOpen] = useState(false),
     [error, setError] = useState(""),
     location = useLocation(),
-    // SPEC-02: la foto del perfil se refleja en la barra superior en cuanto se edita
-    myProfile = useMyProfileQuery(Boolean(user));
+    // SPEC-02: la foto del perfil se refleja en la barra superior en cuanto se edita (solo estudiantes)
+    myProfile = useMyProfileQuery(Boolean(user && user.role !== "admin"));
 
   useEffect(() => setOpen(false), [location.pathname]);
 
@@ -126,15 +136,22 @@ export function Layout() {
           {/* SPEC-07: campana con el contador de notificaciones sin leer */}
           <NotificationsBell />
           <div className="topbar-divider" />
-          <Link className="person" to="/perfil">
+          <Link
+            className="person"
+            to={user.role === "admin" ? "/admin" : "/perfil"}
+          >
             <Avatar
               name={user.name}
-              src={myProfile.data?.profilePhotoUrl || undefined}
+              src={
+                user.role !== "admin"
+                  ? myProfile.data?.profilePhotoUrl || undefined
+                  : undefined
+              }
             />
             <span className="topbar-name">
               {user.name.split(" ")[0]}
               <small>
-                {user.role === "admin" ? "Administración" : "Estudiante"}
+                {user.role === "admin" ? "Administración" : "Alumno"}
               </small>
             </span>
           </Link>
@@ -162,7 +179,10 @@ export function Layout() {
           </button>
         </div>
         <nav aria-label="Comunidad">
-          {nav.map(([to, label, Icon]) => (
+          {(user.role === "admin"
+            ? nav.filter(([to]) => !ADMIN_HIDDEN_PATHS.has(to))
+            : nav
+          ).map(([to, label, Icon]) => (
             <NavLink key={to} to={to} end={to === "/"}>
               <Icon size={19} />
               {label}
@@ -171,7 +191,10 @@ export function Layout() {
         </nav>
         <div className="sidebar-heading">MI ESPACIO</div>
         <nav aria-label="Mi espacio">
-          {personal.map(([to, label, Icon]) => (
+          {(user.role === "admin"
+            ? personal.filter(([to]) => !ADMIN_HIDDEN_PATHS.has(to))
+            : personal
+          ).map(([to, label, Icon]) => (
             <NavLink key={to} to={to}>
               <Icon size={19} />
               {label}
@@ -184,10 +207,12 @@ export function Layout() {
             </NavLink>
           )}
         </nav>
-        <Link className="button full sidebar-create" to="/publicar">
-          <Plus size={18} />
-          Crear publicación
-        </Link>
+        {user.role !== "admin" && (
+          <Link className="button full sidebar-create" to="/publicar">
+            <Plus size={18} />
+            Crear publicación
+          </Link>
+        )}
         <div className="sidebar-bottom">
           <Link to="/configuracion">
             <Settings size={18} />

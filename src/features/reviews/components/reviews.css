@@ -131,3 +131,22 @@
     gap: 14px;
   }
 }
+
+.review {
+  border-top: 1px solid var(--border);
+  padding: 20px 0 5px;
+}
+
+.review .section-title {
+  margin-bottom: 3px;
+}
+
+.review .section-title strong {
+  font-size: 12px;
+}
+
+.review p {
+  font-size: 12px;
+  color: #7b8390;
+  margin: 9px 0;
+}

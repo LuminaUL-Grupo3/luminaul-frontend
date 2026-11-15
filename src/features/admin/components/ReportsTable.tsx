@@ -5,6 +5,7 @@ import { Loading, Notice, Empty, Modal, Field } from "@/components/ui";
 import { useFeedback } from "@/hooks/useFeedback";
 import { useAdminReportsQuery, useResolveReportMutation } from "../hooks/useAdminQueries";
 import { AdminContentType, AdminReportDetailDto, AdminReportStatus } from "../types";
+import { StatusFilterBar } from "./StatusFilterBar";
 import { SuspendUserModal } from "./SuspendUserModal";
 
 export const CONTENT_LABELS: Record<AdminContentType, string> = {
@@ -32,20 +33,15 @@ export function ReportsTable() {
 
   return (
     <>
-      <div className="button-row">
-        <button
-          className={`button small ${filter === "pending" ? "" : "secondary"}`}
-          onClick={() => setFilter("pending")}
-        >
-          Pendientes
-        </button>
-        <button
-          className={`button small ${filter === undefined ? "" : "secondary"}`}
-          onClick={() => setFilter(undefined)}
-        >
-          Todos
-        </button>
-      </div>
+      <StatusFilterBar
+        ariaLabel="Filtrar reportes por estado"
+        value={filter}
+        options={[
+          { label: "Pendientes", value: "pending" },
+          { label: "Todos", value: undefined },
+        ]}
+        onChange={setFilter}
+      />
       <Notice error>{reports.error?.message}</Notice>
       {reports.isLoading ? (
         <Loading />

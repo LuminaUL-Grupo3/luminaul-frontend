@@ -131,6 +131,6 @@ export type ChatCommand =
   | "chat:leave_room"
   | "chat:send_message"
   | "chat:typing"
-  | "reaction:add"
-  | "reaction:remove"
-  | "message:read";
+  | "chat:reaction_add"
+  | "chat:reaction_remove"
+  | "chat:message_read";

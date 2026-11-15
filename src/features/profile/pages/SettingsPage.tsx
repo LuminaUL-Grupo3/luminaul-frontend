@@ -1,14 +1,20 @@
 import { useState } from "react";
-import { api } from "@/config/api";
-import { useSession } from "@/features/auth";
+import {
+  useClearSession,
+  useDeleteAccountMutation,
+  useSession,
+} from "@/features/auth";
 import { useFeedback } from "@/hooks/useFeedback";
 import { PageHeader, Notice, Field, ActionForm } from "@/components/ui";
 import { useNotificationPreferences } from "@/hooks/useNotificationPreferences";
 import { BellRing } from "lucide-react";
+import "../styles/profile.css";
 
 export function SettingsPage() {
   const feedback = useFeedback();
-  const { setUser, user } = useSession(),
+  const { user } = useSession(),
+    clearSession = useClearSession(),
+    deleteAccount = useDeleteAccountMutation(),
     [current, setCurrent] = useState(""),
     [password, setPassword] = useState(""),
     [error, setError] = useState("");
@@ -69,7 +75,7 @@ export function SettingsPage() {
             method="PUT"
             payload={() => ({ currentPassword: current, password })}
             label="Actualizar contraseña"
-            done={() => setUser(null)}
+            done={() => clearSession()}
           >
             <Field label="Contraseña actual">
               <input
@@ -101,6 +107,7 @@ export function SettingsPage() {
           <Notice error>{error}</Notice>
           <button
             className="button danger-button"
+            disabled={deleteAccount.isPending}
             onClick={async () => {
               if (
                 !(await feedback.confirm({
@@ -113,15 +120,15 @@ export function SettingsPage() {
               )
                 return;
               try {
-                await api.request("/auth/me", "DELETE");
+                setError("");
+                await deleteAccount.mutateAsync();
                 feedback.notify("Tu cuenta ha sido eliminada");
-                setUser(null);
               } catch (e) {
                 setError((e as Error).message);
               }
             }}
           >
-            Eliminar cuenta
+            {deleteAccount.isPending ? "Eliminando…" : "Eliminar cuenta"}
           </button>
         </section>
       </div>

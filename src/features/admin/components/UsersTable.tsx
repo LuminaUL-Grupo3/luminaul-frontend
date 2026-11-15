@@ -50,7 +50,7 @@ export function UsersTable() {
           <table>
             <thead>
               <tr>
-                <th>Estudiante</th>
+                <th>Alumno</th>
                 <th>Estado</th>
                 <th>Acción</th>
               </tr>
@@ -63,7 +63,17 @@ export function UsersTable() {
                     <small>{u.email}</small>
                   </td>
                   <td>
-                    <span className="tag">
+                    <span
+                      className={`tag ${
+                        u.role === "admin"
+                          ? "purple"
+                          : u.status === "suspended"
+                            ? "status-suspended"
+                            : u.status === "pending_verification"
+                              ? "warning"
+                              : ""
+                      }`}
+                    >
                       {u.role === "admin" ? "Administrador" : STATUS_LABELS[u.status]}
                     </span>
                     {u.suspensionReason && <small>{u.suspensionReason}</small>}

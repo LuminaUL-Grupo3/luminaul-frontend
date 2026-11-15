@@ -11,10 +11,12 @@ import { date } from "@/config/api";
 import { Avatar, ReportButton } from "@/components/ui";
 import { Publication } from "../types";
 import { GroupMembershipStatus } from "../hooks/useGroupStatuses";
+import "../styles/posts.css";
 
 interface PostCardProps {
   post: Publication;
   currentUserId?: string;
+  isAdmin?: boolean;
   groupStatus?: GroupMembershipStatus;
   onRemove: (id: string) => void;
   onInterestClick: (post: Publication) => void;
@@ -23,20 +25,22 @@ interface PostCardProps {
 export function PostCard({
   post: p,
   currentUserId,
+  isAdmin = false,
   groupStatus,
   onRemove,
   onInterestClick,
 }: PostCardProps) {
-  const authorName = p.author?.name || "Estudiante";
+  const authorName = p.author?.name || "Alumno";
   const authorPhoto = p.author?.profilePhotoUrl ?? undefined;
   const authorId = p.author?.id || p.userId || "";
   const courseName = p.course?.name || "Curso";
-  const cycleNum = p.course?.cycle ?? 1;
+  const cycleNum = typeof p.course?.cycle === "number" ? p.course.cycle : null;
   const maxCapacityNum = p.maxCapacity;
   const groupId = p.groupId;
   const isMine =
     (Boolean(p.userId) && p.userId === currentUserId) ||
     (Boolean(p.author?.id) && p.author?.id === currentUserId);
+  const canManage = isMine || isAdmin;
 
   return (
     <article className="post-card" data-color={p.color || "white"} key={p.id}>
@@ -67,10 +71,12 @@ export function PostCard({
       <p className="post-description">{p.description}</p>
 
       <div className="post-details">
-        <span>
-          <BookOpen size={15} />
-          {cycleNum === 11 ? "Electivo" : `Ciclo ${cycleNum}`}
-        </span>
+        {cycleNum !== null && (
+          <span>
+            <BookOpen size={15} />
+            {cycleNum === 11 ? "Electivo" : `Ciclo ${cycleNum}`}
+          </span>
+        )}
         {maxCapacityNum ? (
           <span>
             <Users size={15} />
@@ -96,12 +102,14 @@ export function PostCard({
       )}
 
       <footer className="post-actions">
-        {isMine ? (
+        {canManage ? (
           <>
-            <Link className="text-button" to={`/publicar/${p.id}`}>
-              <Pencil size={16} />
-              Editar publicación
-            </Link>
+            {isMine && !isAdmin && (
+              <Link className="text-button" to={`/publicar/${p.id}`}>
+                <Pencil size={16} />
+                Editar publicación
+              </Link>
+            )}
             <button
               className="text-button danger"
               onClick={() => onRemove(p.id)}
@@ -110,13 +118,9 @@ export function PostCard({
               Borrar publicación
             </button>
           </>
-        ) : groupId ? (
+        ) : groupId && !isAdmin ? (
           (() => {
-            if (
-              groupStatus === "leader" ||
-              groupStatus === "admin" ||
-              groupStatus === "member"
-            ) {
+            if (groupStatus === "leader" || groupStatus === "member") {
               return (
                 <Link className="text-button muted" to={`/grupos/${groupId}`}>
                   Ver grupo <ArrowUpRight size={15} />

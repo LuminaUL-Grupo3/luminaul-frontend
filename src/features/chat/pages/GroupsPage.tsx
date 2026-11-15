@@ -22,6 +22,7 @@ function readDensity(key: string): "compact" | "wide" {
 /** Separa Mis grupos del directorio público, conservando la identidad visual del frontend actual. */
 export function GroupsPage() {
   const userId = useAuthStore((s) => s.user?.id || "");
+  const isAdmin = useAuthStore((s) => s.user?.role === "admin");
   const preferenceKey = `luminaul.groups.layout.${userId}`;
   const [density, setDensity] = useState<"compact" | "wide">(() =>
     readDensity(preferenceKey),
@@ -29,7 +30,9 @@ export function GroupsPage() {
   useEffect(() => {
     setDensity(readDensity(preferenceKey));
   }, [preferenceKey]);
-  const [tab, setTab] = useState<"mine" | "directory">("mine"),
+  const [tab, setTab] = useState<"mine" | "directory">(() =>
+      isAdmin ? "directory" : "mine",
+    ),
     [open, setOpen] = useState(false);
   const [courseCode, setCourseCode] = useState(""),
     [mode, setMode] = useState<MeetingMode | "">("");
@@ -48,10 +51,12 @@ export function GroupsPage() {
         title="Grupos de estudio"
         description="Encuentra a las personas con quienes quieres avanzar."
         action={
-          <button className="button" onClick={() => setOpen(true)}>
-            <Plus size={18} />
-            Crear grupo
-          </button>
+          !isAdmin ? (
+            <button className="button" onClick={() => setOpen(true)}>
+              <Plus size={18} />
+              Crear grupo
+            </button>
+          ) : undefined
         }
       />
       <div className="spec04-group-toolbar">

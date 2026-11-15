@@ -1,12 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/config/queryKeys";
 import { moderationService } from "../services/moderationService";
 import { CreateAppealRequest, CreateReportRequest } from "../types";
 
 // Todas las llaves empiezan con "moderation" para invalidarlas juntas
 export const moderationQueryKeys = {
-  all: ["moderation"] as const,
-  myLogs: ["moderation", "my-logs"] as const,
-  myReports: ["moderation", "reports", "me"] as const,
+  all: queryKeys.moderation,
+  myLogs: [...queryKeys.moderation, "my-logs"] as const,
+  myReports: [...queryKeys.moderation, "reports", "me"] as const,
 };
 
 // GET /moderation/my-logs (HU 6.3)
