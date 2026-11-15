@@ -6,8 +6,46 @@
 
 /* Sin esto la grilla ensancha las columnas de .profile-layout y .stack en vez de usar su propio scroll */
 .profile-layout > .stack,
+.profile-layout > .profile-card,
 .schedule-panel {
   min-width: 0;
+  max-width: 100%;
+}
+
+.profile-card {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.profile-card .bio {
+  margin: 18px 0;
+  max-width: 100%;
+  text-align: justify;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.55;
+}
+
+.profile-card .tag,
+.profile-card .course-tag {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.profile-bio-textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 112px;
+  resize: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .schedule-grid {

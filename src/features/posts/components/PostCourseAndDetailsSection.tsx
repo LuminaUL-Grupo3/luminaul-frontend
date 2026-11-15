@@ -7,6 +7,7 @@ import "../styles/posts.css";
 
 interface PostCourseAndDetailsSectionProps {
   isEditing: boolean;
+  courseLocked?: boolean;
   courseId: string;
   color: string;
   description: string;
@@ -25,6 +26,7 @@ interface PostCourseAndDetailsSectionProps {
 
 export function PostCourseAndDetailsSection({
   isEditing,
+  courseLocked = false,
   courseId,
   color,
   description,
@@ -37,6 +39,7 @@ export function PostCourseAndDetailsSection({
   onCourseChange,
   onChangeField,
 }: PostCourseAndDetailsSectionProps) {
+  const lockCourse = isEditing || courseLocked;
   return (
     <>
       <Field
@@ -44,22 +47,23 @@ export function PostCourseAndDetailsSection({
         hint={
           isEditing
             ? "El curso no se puede modificar una vez creada la publicación."
-            : "Selecciona la materia correspondiente a la publicación."
+            : courseLocked
+              ? "El curso corresponde al grupo seleccionado."
+              : undefined
         }
       >
         <div
-          className={`courses-category-box ${
-            fieldErrors.courseId ? "has-error" : ""
-          }${isEditing ? " locked" : ""}`}
+          className={`courses-category-box ${fieldErrors.courseId ? "has-error" : ""
+            }${lockCourse ? " locked" : ""}`}
         >
           <select
             required
-            disabled={isEditing}
+            disabled={lockCourse}
             aria-label="Curso"
             className={fieldErrors.courseId ? "input-error" : ""}
             value={courseId}
             onChange={(e) => {
-              if (!isEditing) onCourseChange(e.target.value);
+              if (!lockCourse) onCourseChange(e.target.value);
             }}
           >
             <option value="">Selecciona un curso</option>
@@ -100,7 +104,7 @@ export function PostCourseAndDetailsSection({
                   )}
                 </div>
               </div>
-              {!isEditing && (
+              {!lockCourse && (
                 <button
                   type="button"
                   className="button small secondary"
@@ -142,13 +146,14 @@ export function PostCourseAndDetailsSection({
 
       <Field
         label="3. Descripción Detallada"
-        hint={`${description.length}/1000 caracteres`}
+        hint={`${description.length}/500 caracteres`}
       >
         <textarea
           required
-          maxLength={1000}
+          maxLength={500}
           rows={5}
           className={`post-details-textarea post-details-textarea--tall ${fieldErrors.description ? "input-error" : ""}`}
+          style={{ resize: "none", width: "100%", maxWidth: "100%", minWidth: 0, boxSizing: "border-box" }}
           value={description}
           onChange={(e) => onChangeField("description", e.target.value)}
           placeholder="¿Cuál es el objetivo de estudio? Describe temas específicos, horarios tentativos o metas a cumplir en equipo."
@@ -161,48 +166,64 @@ export function PostCourseAndDetailsSection({
         )}
       </Field>
 
-      <div className="post-details-two-cols">
-        <Field
-          label="Beneficios esperados"
-          hint={`Qué lograrán resolver o aprender juntos (${benefits.length}/500).`}
-        >
-          <textarea
-            required
-            maxLength={500}
-            rows={3}
-            className={`post-details-textarea post-details-textarea--compact ${fieldErrors.benefits ? "input-error" : ""}`}
-            value={benefits}
-            onChange={(e) => onChangeField("benefits", e.target.value)}
-            placeholder="Ejemplo: Preparar evaluaciones continuas, repasar código limpio y resolver dudas."
-          />
-          {fieldErrors.benefits && (
-            <div className="field-error-message" role="alert">
-              <AlertCircle size={15} />
-              <span>{fieldErrors.benefits}</span>
-            </div>
-          )}
-        </Field>
+      <div
+        className="post-details-two-cols"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+          gap: 18,
+          width: "100%",
+          maxWidth: "100%",
+          minWidth: 0,
+        }}
+      >
+        <div style={{ minWidth: 0, maxWidth: "100%", overflow: "hidden" }}>
+          <Field
+            label="Beneficios esperados"
+            hint={`${benefits.length}/100 caracteres`}
+          >
+            <textarea
+              required
+              maxLength={100}
+              rows={3}
+              className={`post-details-textarea post-details-textarea--compact ${fieldErrors.benefits ? "input-error" : ""}`}
+              style={{ resize: "none", width: "100%", maxWidth: "100%", minWidth: 0, boxSizing: "border-box" }}
+              value={benefits}
+              onChange={(e) => onChangeField("benefits", e.target.value)}
+              placeholder="Ejemplo: Preparar evaluaciones continuas, repasar código limpio y resolver dudas."
+            />
+            {fieldErrors.benefits && (
+              <div className="field-error-message" role="alert">
+                <AlertCircle size={15} />
+                <span>{fieldErrors.benefits}</span>
+              </div>
+            )}
+          </Field>
+        </div>
 
-        <Field
-          label="Requisitos sugeridos"
-          hint={`Conocimientos o herramientas necesarias (${requirements.length}/500).`}
-        >
-          <textarea
-            required
-            maxLength={500}
-            rows={3}
-            className={`post-details-textarea post-details-textarea--compact ${fieldErrors.requirements ? "input-error" : ""}`}
-            value={requirements}
-            onChange={(e) => onChangeField("requirements", e.target.value)}
-            placeholder="Ejemplo: Estar cursando la materia o tener instalado el entorno de desarrollo."
-          />
-          {fieldErrors.requirements && (
-            <div className="field-error-message" role="alert">
-              <AlertCircle size={15} />
-              <span>{fieldErrors.requirements}</span>
-            </div>
-          )}
-        </Field>
+        <div style={{ minWidth: 0, maxWidth: "100%", overflow: "hidden" }}>
+          <Field
+            label="Requisitos sugeridos"
+            hint={`${requirements.length}/100 caracteres`}
+          >
+            <textarea
+              required
+              maxLength={100}
+              rows={3}
+              className={`post-details-textarea post-details-textarea--compact ${fieldErrors.requirements ? "input-error" : ""}`}
+              style={{ resize: "none", width: "100%", maxWidth: "100%", minWidth: 0, boxSizing: "border-box" }}
+              value={requirements}
+              onChange={(e) => onChangeField("requirements", e.target.value)}
+              placeholder="Ejemplo: Estar cursando la materia o tener instalado el entorno de desarrollo."
+            />
+            {fieldErrors.requirements && (
+              <div className="field-error-message" role="alert">
+                <AlertCircle size={15} />
+                <span>{fieldErrors.requirements}</span>
+              </div>
+            )}
+          </Field>
+        </div>
       </div>
     </>
   );

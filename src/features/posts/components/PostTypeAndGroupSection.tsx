@@ -1,12 +1,42 @@
 import {
   AlertCircle,
   GraduationCap,
+  Laptop,
   Link2,
+  MapPin,
+  Moon,
   Sparkles,
+  Sun,
+  Sunset,
   Users,
 } from "lucide-react";
 import { Field } from "@/components/ui";
-import { PostGroupSummary, PostType } from "../types";
+import {
+  PostGroupSummary,
+  PostMeetingMode,
+  PostMeetingShift,
+  PostType,
+} from "../types";
+
+const MODE_OPTIONS: {
+  value: PostMeetingMode;
+  label: string;
+  Icon: typeof Laptop;
+}[] = [
+  { value: "virtual", label: "Virtual", Icon: Laptop },
+  { value: "presencial", label: "Presencial", Icon: MapPin },
+  { value: "hibrido", label: "Híbrido", Icon: Sparkles },
+];
+
+const SHIFT_OPTIONS: {
+  value: PostMeetingShift;
+  label: string;
+  Icon: typeof Sun;
+}[] = [
+  { value: "manana", label: "Mañana", Icon: Sun },
+  { value: "tarde", label: "Tarde", Icon: Sunset },
+  { value: "noche", label: "Noche", Icon: Moon },
+];
 
 interface PostTypeAndGroupSectionProps {
   isEditing: boolean;
@@ -14,10 +44,15 @@ interface PostTypeAndGroupSectionProps {
   groupMode: "new" | "existing";
   groupId: string;
   maxCapacity: number;
+  meetingMode: PostMeetingMode;
+  meetingShift: PostMeetingShift;
   myGroups: PostGroupSummary[];
   selectedGroup: PostGroupSummary | null;
   groupError?: string;
-  onChangeField: (key: "type" | "groupId" | "maxCapacity", value: string | number) => void;
+  onChangeField: (
+    key: "type" | "groupId" | "maxCapacity" | "meetingMode" | "meetingShift",
+    value: string | number,
+  ) => void;
   onChangeGroupMode: (mode: "new" | "existing") => void;
 }
 
@@ -27,6 +62,8 @@ export function PostTypeAndGroupSection({
   groupMode,
   groupId,
   maxCapacity,
+  meetingMode,
+  meetingShift,
   myGroups,
   selectedGroup,
   groupError,
@@ -40,7 +77,7 @@ export function PostTypeAndGroupSection({
         hint={
           isEditing
             ? "El tipo de publicación no se puede cambiar una vez creada."
-            : "Selecciona cómo deseas colaborar con otros alumnos."
+            : undefined
         }
       >
         <select
@@ -132,15 +169,13 @@ export function PostTypeAndGroupSection({
       </Field>
 
       {type === "study_group" && (
-        <Field
-          label="Modalidad del Grupo de Estudio"
-          hint="Elige si deseas auto-crear una sala nueva o adjuntar un grupo que ya lideras."
-        >
-          <div
-            className="group-mode-toggle"
-            role="radiogroup"
-            aria-label="Modalidad del grupo de estudio"
-          >
+        <>
+          <Field label="Modalidad del Grupo de Estudio">
+            <div
+              className="group-mode-toggle"
+              role="radiogroup"
+              aria-label="Modalidad del grupo de estudio"
+            >
             <button
               type="button"
               role="radio"
@@ -180,6 +215,7 @@ export function PostTypeAndGroupSection({
               </div>
             </button>
           </div>
+          </Field>
 
           {(groupMode === "new" || isEditing) && (
             <div className="group-capacity-inline" style={{ marginTop: 12 }}>
@@ -197,7 +233,7 @@ export function PostTypeAndGroupSection({
                   Capacidad Máxima del Grupo
                 </label>
                 <span style={{ fontSize: 12, color: "#64748b" }}>
-                  Mín. 2 y máx. 8 integrantes
+                  Mín. 2 y máx. 8 integrantes (incluye al líder)
                 </span>
               </div>
               <div className="capacity-control-box">
@@ -228,16 +264,76 @@ export function PostTypeAndGroupSection({
                   />
                 </div>
               </div>
-              <span
-                style={{
-                  fontSize: 12,
-                  color: "#64748b",
-                  marginTop: 6,
-                  display: "block",
-                }}
-              >
-                Mínimo 2 y máximo 8 integrantes (incluye al líder/creador).
-              </span>
+
+              {groupMode === "new" && !isEditing && (
+                <div className="post-group-schedule-grid">
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "#334155",
+                        marginBottom: 6,
+                      }}
+                    >
+                      Modalidad de reunión
+                    </label>
+                    <div
+                      className="post-pill-group"
+                      role="radiogroup"
+                      aria-label="Modalidad del grupo"
+                    >
+                      {MODE_OPTIONS.map(({ value, label, Icon }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          role="radio"
+                          aria-checked={meetingMode === value}
+                          className={`post-pill-option${meetingMode === value ? " is-active" : ""}`}
+                          onClick={() => onChangeField("meetingMode", value)}
+                        >
+                          <Icon size={14} aria-hidden="true" />
+                          <span>{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      style={{
+                        display: "block",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "#334155",
+                        marginBottom: 6,
+                      }}
+                    >
+                      Turno preferido
+                    </label>
+                    <div
+                      className="post-pill-group"
+                      role="radiogroup"
+                      aria-label="Turno del grupo"
+                    >
+                      {SHIFT_OPTIONS.map(({ value, label, Icon }) => (
+                        <button
+                          key={value}
+                          type="button"
+                          role="radio"
+                          aria-checked={meetingShift === value}
+                          className={`post-pill-option${meetingShift === value ? " is-active" : ""}`}
+                          onClick={() => onChangeField("meetingShift", value)}
+                        >
+                          <Icon size={14} aria-hidden="true" />
+                          <span>{label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -301,7 +397,7 @@ export function PostTypeAndGroupSection({
               )}
             </div>
           )}
-        </Field>
+        </>
       )}
     </>
   );

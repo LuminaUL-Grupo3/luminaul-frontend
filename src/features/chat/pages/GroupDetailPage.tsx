@@ -91,17 +91,29 @@ export function GroupDetailPage() {
       await run(() => messagingService.kick(id, userId));
   }
 
-  /** Un líder debe transferir antes de salir; el backend repite esta validación. */
+  /** Un líder puede salir solo si transfiere el liderazgo o si es el último integrante activo. */
   async function leave() {
+    const isSoleMember = Boolean(active && (group.data?.currentMembers ?? 0) <= 1);
+    const isSoloLeader = Boolean(isLeader && isSoleMember);
     if (
       await feedback.confirm({
-        title: "¿Salir del grupo?",
-        description:
-          "Dejarás de ver sus conversaciones, pero tu historial de pertenencia se conservará.",
-        acceptLabel: "Salir del grupo",
+        title: isSoloLeader
+          ? "¿Salir y eliminar el grupo?"
+          : "¿Salir del grupo?",
+        description: isSoloLeader
+          ? "Eres el líder y el único integrante activo. Si sales ahora, el grupo se eliminará junto con cualquier publicación vinculada."
+          : "Dejarás de ver sus conversaciones, pero tu historial de pertenencia se conservará.",
+        acceptLabel: isSoloLeader
+          ? "Salir y eliminar grupo"
+          : "Salir del grupo",
       })
     ) {
-      if (await run(() => messagingService.leave(id))) navigate("/grupos");
+      if (await run(() => messagingService.leave(id))) {
+        if (isSoloLeader) {
+          await cache.invalidateQueries({ queryKey: ["posts"] });
+        }
+        navigate("/grupos");
+      }
     }
   }
 
@@ -196,7 +208,13 @@ export function GroupDetailPage() {
             </div>
             <div>
               <dt>Modalidad</dt>
-              <dd>{g.meetingMode}</dd>
+              <dd>
+                {g.meetingMode === "presencial"
+                  ? "Presencial"
+                  : g.meetingMode === "hibrido"
+                    ? "Híbrido"
+                    : "Virtual"}
+              </dd>
             </div>
             <div>
               <dt>Turno</dt>
@@ -215,20 +233,6 @@ export function GroupDetailPage() {
               </dd>
             </div>
           </dl>
-          {g.benefits && (
-            <p>
-              <strong>Beneficios</strong>
-              <br />
-              {g.benefits}
-            </p>
-          )}
-          {g.requirements && (
-            <p>
-              <strong>Requisitos</strong>
-              <br />
-              {g.requirements}
-            </p>
-          )}
           {isLeader && (
             <Link className="button secondary full" to="/solicitudes">
               Revisar solicitudes
@@ -237,17 +241,27 @@ export function GroupDetailPage() {
           {active && (
             <button
               className="button secondary danger full"
-              disabled={Boolean(isLeader) || action.isPending}
+              disabled={
+                (Boolean(isLeader) && g.currentMembers > 1) || action.isPending
+              }
               onClick={() => void leave()}
             >
               <LogOut size={16} />
-              Salir del grupo
+              {isLeader && g.currentMembers <= 1
+                ? "Salir y eliminar grupo"
+                : "Salir del grupo"}
             </button>
           )}
-          {isLeader && (
+          {isLeader && g.currentMembers > 1 && (
             <small className="muted">
               Para salir, primero transfiere el liderazgo a otro integrante
               activo.
+            </small>
+          )}
+          {isLeader && g.currentMembers <= 1 && (
+            <small className="muted">
+              Al ser el último integrante, salir eliminará el grupo y su
+              publicación vinculada (si existe).
             </small>
           )}
         </aside>

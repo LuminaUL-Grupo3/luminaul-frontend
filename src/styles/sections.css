@@ -362,10 +362,11 @@
 .app-notices .action-toast {
   width: 100%;
   border-radius: 10px;
-  background: #fff;
-  border: 1px solid #e4e7ec;
-  border-left: 3px solid #558273;
-  box-shadow: 0 8px 28px #29334318;
+  color: #2f6b45;
+  background: #eaf3ec;
+  border: 1px solid #b7dec3;
+  border-left: 3px solid #407752;
+  box-shadow: 0 8px 28px rgba(47, 107, 69, 0.12);
   pointer-events: auto;
   animation: live-notice-enter 220ms ease-out;
 }
@@ -385,7 +386,8 @@
   height: 100%;
   background: #cc6738;
   transform-origin: left;
-  animation: notice-countdown 10s linear forwards;
+  will-change: transform;
+  animation: notice-countdown 5s linear forwards;
 }
 .action-toast .notice-lifetime > span {
   background: #558273;
@@ -514,7 +516,7 @@
     animation: none;
   }
   .notice-lifetime > span {
-    animation: notice-countdown 10s steps(10) forwards !important;
+    animation: notice-countdown 5s linear forwards !important;
   }
   .notice-closing .notice-lifetime > span {
     animation: none !important;

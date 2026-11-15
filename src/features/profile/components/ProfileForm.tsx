@@ -1,11 +1,12 @@
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { useSession } from "@/features/auth";
 import { useFeedback } from "@/hooks/useFeedback";
 import { Avatar, Notice, Field } from "@/components/ui";
 import { useUpdateProfileMutation } from "../hooks/useProfileQueries";
 import { PROFILE_MAJOR, StudentProfileDto } from "../types";
+import "../styles/profile.css";
 
 const parseList = (value: string) =>
   value
@@ -49,6 +50,7 @@ export interface ProfileFormProps {
 }
 
 export function ProfileForm({ profile }: ProfileFormProps) {
+  const navigate = useNavigate();
   const { user, setUser } = useSession();
   const feedback = useFeedback();
   const updateProfile = useUpdateProfileMutation(),
@@ -93,6 +95,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       });
       setUser({ ...user!, name: updated.name });
       feedback.notify("Perfil actualizado correctamente");
+      navigate("/perfil");
     } catch (e) {
       setError((e as Error).message);
     }
@@ -130,9 +133,14 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             }}
           />
         </Field>
-        <Field label="Descripción personal">
+        <Field
+          label="Descripción personal"
+          hint={`${bio.length}/500 caracteres`}
+        >
           <textarea
-            maxLength={1000}
+            className="profile-bio-textarea"
+            maxLength={500}
+            style={{ textAlign: "justify" }}
             value={bio}
             onChange={(e) => setBio(e.target.value)}
           />
@@ -149,9 +157,13 @@ export function ProfileForm({ profile }: ProfileFormProps) {
           <Field label="Ciclo académico">
             <select
               value={academicCycle}
-              onChange={(e) => setAcademicCycle(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value) setAcademicCycle(e.target.value);
+              }}
             >
-              <option value="">Selecciona tu ciclo</option>
+              <option value="" disabled hidden>
+                Selecciona tu ciclo
+              </option>
               {Array.from({ length: 10 }, (_, i) => (
                 <option key={i + 1} value={String(i + 1)}>
                   Ciclo {i + 1}
@@ -160,11 +172,22 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             </select>
           </Field>
         </div>
-        <Field label="Habilidades" hint="Separa con comas.">
-          <input value={skills} onChange={(e) => setSkills(e.target.value)} />
-        </Field>
-        <Field label="Intereses" hint="Separa con comas.">
+        <Field
+          label="Habilidades"
+          hint={`Separa con comas (${skills.length}/100 caracteres)`}
+        >
           <input
+            maxLength={100}
+            value={skills}
+            onChange={(e) => setSkills(e.target.value)}
+          />
+        </Field>
+        <Field
+          label="Intereses"
+          hint={`Separa con comas (${interests.length}/100 caracteres)`}
+        >
+          <input
+            maxLength={100}
             value={interests}
             onChange={(e) => setInterests(e.target.value)}
           />

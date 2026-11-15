@@ -23,6 +23,7 @@ export interface GroupDetailDto {
   meetingMode: MeetingMode;
   meetingShift: MeetingShift;
   maxCapacity: number;
+  groupType?: "study_group" | "tutoring";
   currentMembers: number;
   leader: { id: string; name: string; profilePhotoUrl: string | null };
   myRole: GroupRole | null;

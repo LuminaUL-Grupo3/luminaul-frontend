@@ -35,14 +35,22 @@ export function GroupsPage() {
     ),
     [open, setOpen] = useState(false);
   const [courseCode, setCourseCode] = useState(""),
-    [mode, setMode] = useState<MeetingMode | "">("");
+    [mode, setMode] = useState<MeetingMode | "">(""),
+    [groupTypeFilter, setGroupTypeFilter] = useState<
+      "" | "study_group" | "tutoring"
+    >("");
   const mine = useMyGroupsQuery(),
     directory = useGroupsDirectoryQuery({
       courseCode: courseCode.trim().toUpperCase() || undefined,
       meetingMode: mode,
     });
+  const mineRows = (mine.data || []).filter((group) => {
+    if (!groupTypeFilter) return true;
+    const type = group.groupType ?? "study_group";
+    return type === groupTypeFilter;
+  });
   const rows =
-    tab === "mine" ? mine.data || [] : directory.data?.pages.flat() || [];
+    tab === "mine" ? mineRows : directory.data?.pages.flat() || [];
   const query = tab === "mine" ? mine : directory;
   return (
     <div className="spec04">
@@ -100,6 +108,24 @@ export function GroupsPage() {
             <option value="wide">Amplias</option>
           </select>
         </label>
+        {tab === "mine" && (
+          <label className="group-density-control">
+            Tipo
+            <select
+              aria-label="Filtrar mis grupos por tipo"
+              value={groupTypeFilter}
+              onChange={(event) =>
+                setGroupTypeFilter(
+                  event.target.value as "" | "study_group" | "tutoring",
+                )
+              }
+            >
+              <option value="">Todos</option>
+              <option value="study_group">Estudio</option>
+              <option value="tutoring">Asesoría</option>
+            </select>
+          </label>
+        )}
         {tab === "directory" && (
           <div className="spec04-directory-filters">
             <label className="search-input">
@@ -137,8 +163,8 @@ export function GroupsPage() {
         <Loading />
       ) : rows.length ? (
         <div className="group-grid" data-density={density}>
-          {rows.map((group, index) => (
-            <GroupCard key={group.id} group={group} colorToneIndex={index} />
+          {rows.map((group) => (
+            <GroupCard key={group.id} group={group} />
           ))}
         </div>
       ) : (

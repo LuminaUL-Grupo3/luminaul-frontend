@@ -6,8 +6,17 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
+import type { CSSProperties } from "react";
 import { Course, PostGroupSummary, PostType } from "../types";
 import { formatCourseName } from "../utils/formatCourseName";
+
+const wrapTextStyle: CSSProperties = {
+  flex: 1,
+  minWidth: 0,
+  overflowWrap: "anywhere",
+  wordBreak: "break-word",
+  whiteSpace: "pre-wrap",
+};
 
 interface PostLivePreviewProps {
   color: string;
@@ -45,9 +54,8 @@ export function PostLivePreview({
       <div className="live-preview-header">
         <span className="live-preview-label">
           <Eye size={15} />
-          Vista Previa en Vivo
+          Vista Previa
         </span>
-        <span className="badge">Tiempo Real</span>
       </div>
 
       <div className="panel live-preview-card">
@@ -108,13 +116,6 @@ export function PostLivePreview({
                 ? formatCourseName(activeCourse.name)
                 : "Selecciona un curso"}
             </span>
-            {activeCourse?.cycle && (
-              <span className="tag">
-                {activeCourse.cycle === 11
-                  ? "Electivo"
-                  : `Ciclo ${activeCourse.cycle}`}
-              </span>
-            )}
             {type === "study_group" &&
               groupMode === "existing" &&
               selectedGroup && (
@@ -174,6 +175,8 @@ export function PostLivePreview({
                 flexDirection: "column",
                 gap: 6,
                 fontSize: 13,
+                minWidth: 0,
+                maxWidth: "100%",
               }}
             >
               {benefits.trim() && (
@@ -192,7 +195,7 @@ export function PostLivePreview({
                       flexShrink: 0,
                     }}
                   />
-                  <div>
+                  <div style={wrapTextStyle}>
                     <strong>Beneficios:</strong> {benefits}
                   </div>
                 </div>
@@ -213,7 +216,7 @@ export function PostLivePreview({
                       flexShrink: 0,
                     }}
                   />
-                  <div>
+                  <div style={wrapTextStyle}>
                     <strong>Requisitos:</strong> {requirements}
                   </div>
                 </div>
