@@ -278,7 +278,8 @@ export function CreateGroupModal({ close }: { close: () => void }) {
         </Field>
 
         <div className="two-cols">
-          <Field label="Modalidad">
+          <div className="field">
+            <span>Modalidad</span>
             <div
               className="spec04-pill-group"
               role="radiogroup"
@@ -298,9 +299,10 @@ export function CreateGroupModal({ close }: { close: () => void }) {
                 </button>
               ))}
             </div>
-          </Field>
+          </div>
 
-          <Field label="Turno preferido">
+          <div className="field">
+            <span>Turno preferido</span>
             <div
               className="spec04-pill-group"
               role="radiogroup"
@@ -320,7 +322,7 @@ export function CreateGroupModal({ close }: { close: () => void }) {
                 </button>
               ))}
             </div>
-          </Field>
+          </div>
         </div>
 
         <Notice error>{error}</Notice>

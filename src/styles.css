@@ -1941,7 +1941,7 @@ dialog::backdrop {
   .editor-layout {
     grid-template-columns: 1fr;
   }
-  .editor-layout > aside {
+  .editor-layout > aside:not(.spec04-group-about) {
     display: none;
   }
   .profile-layout {
