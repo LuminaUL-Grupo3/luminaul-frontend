@@ -941,10 +941,16 @@
   }
   .spec04-message-content,
   .spec04 .mine .spec04-message-content {
-    max-width: 87%;
+    max-width: calc(100% - 34px);
+  }
+  .spec04 .bubble-row {
+    gap: 6px;
   }
   .spec04 .bubble-row > .avatar {
-    display: none;
+    width: 24px;
+    height: 24px;
+    font-size: 9px;
+    margin-top: 2px;
   }
   .spec04 .bubble {
     padding: 10px 12px;

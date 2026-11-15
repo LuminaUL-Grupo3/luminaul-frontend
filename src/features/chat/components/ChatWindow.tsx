@@ -383,7 +383,7 @@ export function ChatWindow(props: ChatWindowProps) {
           ref={field}
           aria-label="Mensaje"
           rows={1}
-          maxLength={4000}
+          maxLength={500}
           value={text}
           disabled={revoked}
           placeholder={
