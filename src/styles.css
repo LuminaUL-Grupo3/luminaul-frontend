@@ -675,6 +675,9 @@ small {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 0;
+  border: 0;
+  text-align: left;
   color: #9399a4;
   background: none;
   font-size: 11px;
