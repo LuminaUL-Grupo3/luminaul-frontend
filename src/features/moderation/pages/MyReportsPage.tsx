@@ -10,6 +10,7 @@ import {
   ModerationLogDto,
   REPORT_STATUS_LABELS,
 } from "../types";
+import "../styles/moderation.css";
 
 // HU 6.3 y 6.4: contenido propio moderado (con apelación) y reportes enviados
 export function MyReportsPage() {
@@ -22,7 +23,7 @@ export function MyReportsPage() {
         title="Moderación"
         description="Revisa tu contenido moderado, apela si fue un error y sigue tus reportes."
       />
-      <div className="tabs">
+      <div className="tabs moderation-tabs">
         {(
           [
             ["moderated", "Mi contenido moderado", ShieldAlert],
@@ -54,15 +55,15 @@ function ModeratedContentList() {
     );
 
   return (
-    <div className="stack">
+    <div className="moderation-list">
       {logs.data.map((log) => (
-        <article className="panel" key={log.id}>
+        <article className="panel moderation-card" key={log.id}>
           <span className="tag warning">
             {CONTENT_TYPE_LABELS[log.contentType]} ·{" "}
             {log.appealStatus ? APPEAL_STATUS_LABELS[log.appealStatus] : "Contenido oculto"}
           </span>
           <p>{log.content ?? "Este contenido ya fue eliminado."}</p>
-          <p className="muted">
+          <p className="muted moderation-meta">
             Términos detectados: {log.detectedWords.join(", ")} · {date(log.moderatedAt)}
           </p>
           {log.canAppeal && (
@@ -90,14 +91,14 @@ function MyReportsList() {
     );
 
   return (
-    <div className="stack">
+    <div className="moderation-list">
       {reports.data.map((report) => (
-        <article className="panel" key={report.id}>
+        <article className="panel moderation-card" key={report.id}>
           <span className="tag">
             {CONTENT_TYPE_LABELS[report.targetType]} · {REPORT_STATUS_LABELS[report.status]}
           </span>
           <p>{report.reason}</p>
-          <p className="muted">{date(report.createdAt)}</p>
+          <p className="muted moderation-meta">{date(report.createdAt)}</p>
         </article>
       ))}
     </div>
