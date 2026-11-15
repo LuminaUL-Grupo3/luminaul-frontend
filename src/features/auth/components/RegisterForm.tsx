@@ -33,7 +33,7 @@ export function RegisterForm({
 
   return (
     <form className="form" onSubmit={submit} noValidate>
-      <Field label="Nombre completo">
+      <Field label="Nombre completo" hint="Nombre y apellido">
         <input
           autoComplete="name"
           maxLength={150}

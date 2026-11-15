@@ -6,6 +6,7 @@ import {
   AdminReportStatus,
   AdminStatsDto,
   AdminUserListItemDto,
+  AdminUserModerationStatsDto,
   ChangeUserStatusRequest,
   ChangeUserStatusResponse,
   MarkNotificationReadResponse,
@@ -62,6 +63,10 @@ export const adminService = {
 
   getStats(): Promise<AdminStatsDto> {
     return api.request("/admin/stats");
+  },
+
+  getUserModerationStats(userId: string): Promise<AdminUserModerationStatsDto> {
+    return api.request(`/admin/users/${userId}/moderation-stats`);
   },
 };
 

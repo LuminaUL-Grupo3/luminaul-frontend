@@ -146,8 +146,8 @@ function ResolveReportModal({ decision, close }: { decision: Decision; close: ()
             ? `Se quitará del sitio y se notificará al autor (${report.target.authorName ?? "autor"}).`
             : "El contenido seguirá visible y el reporte quedará cerrado."}
         </p>
-        <Field label="Notas de la decisión (opcional)">
-          <textarea maxLength={1000} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <Field label="Notas de la decisión (opcional)" hint="Máximo 100 caracteres">
+          <textarea maxLength={100} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </Field>
         <Notice error>{error}</Notice>
         <button className="button" disabled={mutation.isPending}>

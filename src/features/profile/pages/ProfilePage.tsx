@@ -4,13 +4,15 @@ import { useSession } from "@/features/auth";
 import { PageHeader, Loading, Notice } from "@/components/ui";
 import { useUserProfileQuery } from "../hooks/useProfileQueries";
 import { ProfileCard, AvailabilitySchedule } from "../components";
+import { UserModerationStatsPanel } from "@/features/admin";
 import { UserReviewsSection } from "@/features/reviews";
 
 export function ProfilePage() {
   const { id } = useParams(),
     { user } = useSession(),
     target = id || user!.id,
-    own = target === user!.id;
+    own = target === user!.id,
+    isAdmin = user?.role === "admin";
   const profile = useUserProfileQuery(target);
 
   if (profile.isLoading) return <Loading />;
@@ -46,6 +48,7 @@ export function ProfilePage() {
       <div className="profile-layout">
         <ProfileCard profile={p} />
         <section className="stack">
+          {isAdmin && !own && <UserModerationStatsPanel userId={target} />}
           <AvailabilitySchedule availability={p.availabilities} own={own} />
           <UserReviewsSection userId={target} userName={p.name} />
         </section>

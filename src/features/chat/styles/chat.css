@@ -190,11 +190,17 @@
   margin: 0 0 17px;
   animation: spec04-message-in 0.2s ease-out;
 }
+.spec04 .bubble-row .spec04-sender-avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 2px;
+  border-radius: 50%;
+}
+.spec04 .bubble-row .spec04-sender-avatar > .avatar,
 .spec04 .bubble-row > .avatar {
   width: 30px;
   height: 30px;
   font-size: 10px;
-  margin-top: 2px;
   flex-shrink: 0;
 }
 .spec04 .bubble-row.mine {

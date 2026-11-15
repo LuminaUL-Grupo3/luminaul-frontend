@@ -26,49 +26,53 @@ export function GroupMembersList({
         <h2>Integrantes</h2>
         <span className="count">{members.length}</span>
       </div>
-      {members.map((member) => (
-        <div className="member-row" key={member.userId}>
-          <Link to={`/perfil/${member.userId}`} className="person">
-            <Avatar
-              name={member.name}
-              src={member.profilePhotoUrl || undefined}
-            />
-            <div>
-              <strong>
-                {member.name}
-                {member.userId === currentUserId ? " (tú)" : ""}
-              </strong>
-              <span>
-                {member.role === "leader" ? "Líder del grupo" : "Integrante"}
-              </span>
-            </div>
-          </Link>
-          {isLeader && member.userId !== currentUserId && (
-            <div className="button-row">
-              <button
-                type="button"
-                className="icon-button"
-                disabled={busy}
-                aria-label={`Transferir liderazgo a ${member.name}`}
-                title="Transferir liderazgo"
-                onClick={() => onTransfer(member.userId, member.name)}
-              >
-                <Crown size={17} />
-              </button>
-              <button
-                type="button"
-                className="icon-button danger"
-                disabled={busy}
-                aria-label={`Expulsar a ${member.name}`}
-                title="Expulsar integrante"
-                onClick={() => onKick(member.userId, member.name)}
-              >
-                <UserMinus size={17} />
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
+      {members.map((member) => {
+        const studentCode = member.email?.split("@")[0];
+        return (
+          <div className="member-row" key={member.userId}>
+            <Link to={`/perfil/${member.userId}`} className="person">
+              <Avatar
+                name={member.name}
+                src={member.profilePhotoUrl || undefined}
+              />
+              <div>
+                <strong>
+                  {member.name}
+                  {member.userId === currentUserId ? " (tú)" : ""}
+                </strong>
+                <span>
+                  {member.role === "leader" ? "Líder del grupo" : "Integrante"}
+                  {studentCode ? ` · ${studentCode}` : ""}
+                </span>
+              </div>
+            </Link>
+            {isLeader && member.userId !== currentUserId && (
+              <div className="button-row">
+                <button
+                  type="button"
+                  className="icon-button"
+                  disabled={busy}
+                  aria-label={`Transferir liderazgo a ${member.name}`}
+                  title="Transferir liderazgo"
+                  onClick={() => onTransfer(member.userId, member.name)}
+                >
+                  <Crown size={17} />
+                </button>
+                <button
+                  type="button"
+                  className="icon-button danger"
+                  disabled={busy}
+                  aria-label={`Expulsar a ${member.name}`}
+                  title="Expulsar integrante"
+                  onClick={() => onKick(member.userId, member.name)}
+                >
+                  <UserMinus size={17} />
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </section>
   );
 }

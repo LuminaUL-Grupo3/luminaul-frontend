@@ -1,4 +1,5 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Reply, CheckCheck, Check } from "lucide-react";
 import { Avatar, ReportButton } from "@/components/ui";
 import {
@@ -78,10 +79,17 @@ export function MessageItem({
       className={`bubble-row ${mine ? "mine" : ""} ${!visible ? "is-hidden" : ""}`}
     >
       {!mine && (
-        <Avatar
-          name={message.sender.name}
-          src={message.sender.profilePhotoUrl || undefined}
-        />
+        <Link
+          to={`/perfil/${message.senderId}`}
+          className="spec04-sender-avatar"
+          aria-label={`Ver perfil de ${message.sender.name}`}
+          title={`Ver perfil de ${message.sender.name}`}
+        >
+          <Avatar
+            name={message.sender.name}
+            src={message.sender.profilePhotoUrl || undefined}
+          />
+        </Link>
       )}
       <div className="spec04-message-content">
         <div className="bubble">

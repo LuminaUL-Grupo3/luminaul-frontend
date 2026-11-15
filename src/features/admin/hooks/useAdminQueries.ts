@@ -106,6 +106,15 @@ export function useAdminStatsQuery() {
   });
 }
 
+export function useAdminUserModerationStatsQuery(userId: string) {
+  return useQuery({
+    queryKey: [ADMIN_KEY, "user-moderation-stats", userId],
+    queryFn: () => adminService.getUserModerationStats(userId),
+    enabled: Boolean(userId),
+    retry: false,
+  });
+}
+
 export function useMyNotificationsQuery() {
   const userId = useAuthStore((state) => state.user?.id || "");
   return useQuery({

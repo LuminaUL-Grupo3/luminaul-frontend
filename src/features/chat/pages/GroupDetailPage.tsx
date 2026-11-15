@@ -21,8 +21,12 @@ export function GroupDetailPage() {
     navigate = useNavigate(),
     feedback = useFeedback(),
     cache = useQueryClient();
-  const group = useGroupDetailQuery(id),
-    members = useGroupMembersQuery(id, group.data?.myStatus === "active");
+  const isAdmin = user?.role === "admin",
+    group = useGroupDetailQuery(id),
+    members = useGroupMembersQuery(
+      id,
+      group.data?.myStatus === "active" || isAdmin,
+    );
   const [joinOpen, setJoinOpen] = useState(false),
     [success, setSuccess] = useState(false),
     [message, setMessage] = useState(""),
@@ -37,8 +41,7 @@ export function GroupDetailPage() {
       await cache.invalidateQueries({ queryKey: groupKeys.root });
     },
   });
-  const isAdmin = user?.role === "admin",
-    isLeader = group.data?.myRole === "leader",
+  const isLeader = group.data?.myRole === "leader",
     active = group.data?.myStatus === "active";
 
   /** Confirma el envío con un modal del diseño existente y refleja inmediatamente el estado pendiente. */
@@ -167,7 +170,7 @@ export function GroupDetailPage() {
       />
       <Notice error>{error}</Notice>
       <div className="editor-layout">
-        {active ? (
+        {active || isAdmin ? (
           <div>
             {members.isPending ? (
               <Loading />

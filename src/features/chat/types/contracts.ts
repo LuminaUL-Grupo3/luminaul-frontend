@@ -9,6 +9,7 @@ export type ReactionEmoji = (typeof reactionEmojis)[number];
 export interface GroupMemberDto {
   userId: string;
   name: string;
+  email?: string;
   role: GroupRole;
   status: MemberStatus;
   profilePhotoUrl: string | null;

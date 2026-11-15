@@ -383,7 +383,7 @@ export function ChatWindow(props: ChatWindowProps) {
           ref={field}
           aria-label="Mensaje"
           rows={1}
-          maxLength={500}
+          maxLength={100}
           value={text}
           disabled={revoked}
           placeholder={
@@ -418,7 +418,7 @@ export function ChatWindow(props: ChatWindowProps) {
         </button>
       </form>
       <span className="spec04-composer-hint">
-        Enter para enviar · Mayús + Enter para una nueva línea
+        Enter para enviar · Shift + Enter para una nueva línea
       </span>
     </section>
   );

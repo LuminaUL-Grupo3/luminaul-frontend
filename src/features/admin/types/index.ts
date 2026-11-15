@@ -104,6 +104,13 @@ export interface AdminStatsDto {
   pendingAppeals: number;
 }
 
+export interface AdminUserModerationStatsDto {
+  userId: string;
+  reportsReceivedCount: number;
+  removedContentCount: number;
+  suspensionsCount: number;
+}
+
 export interface NotificationDto {
   id: string;
   userId: string;

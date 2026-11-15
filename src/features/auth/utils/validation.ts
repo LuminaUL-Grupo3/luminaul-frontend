@@ -3,6 +3,7 @@ import { OTP_LENGTH, PASSWORD_MIN_LENGTH } from "../constants";
 // Mensajes de los criterios de aceptación H.U. 3.1 y 3.5
 export const VALIDATION_MESSAGES = {
   required: "Debe ingresar todos los datos",
+  fullName: "Debes ingresar tu nombre y apellido",
   institutionalEmail:
     "El correo ingresado no pertenece a la organización de la Universidad de Lima",
   passwordLength: `La contraseña debe tener por lo menos ${PASSWORD_MIN_LENGTH} caracteres`,
@@ -10,6 +11,7 @@ export const VALIDATION_MESSAGES = {
 } as const;
 
 const INSTITUTIONAL_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@aloe\.ulima\.edu\.pe$/;
+const FULL_NAME_REGEX = /\S+\s+\S+/;
 const OTP_REGEX = new RegExp(`^\\d{${OTP_LENGTH}}$`);
 
 // Igual que el backend: sin espacios y en minúsculas
@@ -27,6 +29,7 @@ export function validateRegistration(data: {
   if (!data.name.trim() || !data.email.trim() || !data.password) {
     return VALIDATION_MESSAGES.required;
   }
+  if (!FULL_NAME_REGEX.test(data.name.trim())) return VALIDATION_MESSAGES.fullName;
   if (!isInstitutionalEmail(data.email)) return VALIDATION_MESSAGES.institutionalEmail;
   if (data.password.length < PASSWORD_MIN_LENGTH) return VALIDATION_MESSAGES.passwordLength;
   return "";
