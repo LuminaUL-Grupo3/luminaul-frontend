@@ -23,15 +23,45 @@ export type Feedback = {
   confirm: (options: Confirmation) => Promise<boolean>;
   alert: (options: Omit<Confirmation, "cancelLabel" | "informative">) => Promise<void>;
   notify: (message: string) => void;
+  toggleSpotify: () => void;
 };
 
 export const FeedbackContext = createContext<Feedback | null>(null);
+
+const DEFAULT_SPOTIFY_EMBED =
+  "https://open.spotify.com/embed/playlist/37i9dQZF1DZ06evO08ff3r?autoplay=1";
+
+function toSpotifyEmbedUrl(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return DEFAULT_SPOTIFY_EMBED;
+  const srcMatch = trimmed.match(/src=["']([^"']+)["']/i);
+  const candidate = srcMatch ? srcMatch[1] : trimmed;
+  try {
+    const parsed = new URL(candidate);
+    if (
+      parsed.hostname !== "open.spotify.com" &&
+      parsed.hostname !== "embed.spotify.com"
+    ) {
+      return null;
+    }
+    const cleanPath = parsed.pathname.replace(/^\/intl-[a-z-]+\//i, "/");
+    const embedPath = cleanPath.startsWith("/embed/")
+      ? cleanPath
+      : `/embed${cleanPath}`;
+    return `https://open.spotify.com${embedPath}?autoplay=1`;
+  } catch {
+    return null;
+  }
+}
 
 export function FeedbackProvider({ children }: { children: ReactNode }) {
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const [message, setMessage] = useState<{ id: number; text: string } | null>(
     null,
   );
+  const [spotifyOpen, setSpotifyOpen] = useState(false);
+  const [spotifyInput, setSpotifyInput] = useState(DEFAULT_SPOTIFY_EMBED);
+  const [spotifyUrl, setSpotifyUrl] = useState(DEFAULT_SPOTIFY_EMBED);
   const resolvePending = useRef<((accepted: boolean) => void) | null>(null);
   const sequence = useRef(0);
   const opener = useRef<HTMLElement | null>(null);
@@ -82,8 +112,13 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const toggleSpotify = useCallback(
+    () => setSpotifyOpen((prev) => !prev),
+    [],
+  );
+
   return (
-    <FeedbackContext.Provider value={{ confirm, alert, notify }}>
+    <FeedbackContext.Provider value={{ confirm, alert, notify, toggleSpotify }}>
       {children}
       {confirmation && (
         <ConfirmationDialog options={confirmation} settle={settle} />
@@ -101,6 +136,54 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
           />
         )}
       </div>
+      {spotifyOpen && (
+        <div
+          className="spotify-toast"
+          role="region"
+          aria-label="Reproductor de Spotify"
+        >
+          <button
+            type="button"
+            className="spotify-toast-close"
+            onClick={() => setSpotifyOpen(false)}
+            aria-label="Cerrar reproductor"
+          >
+            <X size={13} />
+          </button>
+          <form
+            className="spotify-toast-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const next = toSpotifyEmbedUrl(spotifyInput);
+              if (!next) {
+                notify("Ingresa un enlace o embed válido de Spotify.");
+                return;
+              }
+              setSpotifyUrl(next);
+              setSpotifyInput(next);
+            }}
+          >
+            <input
+              type="text"
+              value={spotifyInput}
+              onChange={(e) => setSpotifyInput(e.target.value)}
+              placeholder="Pega enlace o embed de Spotify..."
+              aria-label="Enlace o embed de Spotify"
+            />
+            <button type="submit">Cargar</button>
+          </form>
+          <div className="spotify-toast-frame">
+            <iframe
+              key={spotifyUrl}
+              src={spotifyUrl}
+              width="100%"
+              height="152"
+              allow="encrypted-media; autoplay"
+              title="Playlist de estudio en Spotify"
+            />
+          </div>
+        </div>
+      )}
     </FeedbackContext.Provider>
   );
 }

@@ -246,7 +246,14 @@ export function Layout() {
             <LogOut size={18} />
             Cerrar sesión
           </button>
-          <span>LuminaUL · Ingeniería de Software II</span>
+          <button
+            type="button"
+            className="sidebar-credit"
+            onClick={feedback.toggleSpotify}
+            title="Abrir playlist de estudio"
+          >
+            LuminaUL · Ingeniería de Software II
+          </button>
         </div>
       </aside>
       <main className="main-content" id="main-content">

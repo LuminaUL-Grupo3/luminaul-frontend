@@ -682,10 +682,75 @@ small {
   background: none;
   font-size: 11px;
 }
-.sidebar-bottom > span {
+.sidebar-bottom > span,
+.sidebar-bottom > .sidebar-credit {
   font-size: 8px;
   color: #b5bac2;
   margin-top: 7px;
+}
+.sidebar-bottom > .sidebar-credit:hover {
+  color: var(--orange);
+}
+.spotify-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 300px;
+  padding: 4px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
+  z-index: 9999;
+}
+.spotify-toast-close {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  z-index: 10000;
+}
+.spotify-toast-form {
+  display: flex;
+  gap: 6px;
+  padding: 4px 4px 6px;
+}
+.spotify-toast-form input {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #262b33;
+  font-size: 11px;
+}
+.spotify-toast-form button {
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--orange);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+.spotify-toast-frame {
+  overflow: hidden;
+  border-radius: 12px;
+}
+.spotify-toast-frame iframe {
+  display: block;
+  border: 0;
 }
 .main-content {
   margin: 76px 0 0 239px;
