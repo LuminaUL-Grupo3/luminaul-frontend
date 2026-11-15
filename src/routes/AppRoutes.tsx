@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, ReactElement, Suspense } from "react";
 import { Routes, Route, Link, Navigate } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 import { Layout } from "@/components/layout";
@@ -7,7 +7,7 @@ import { AuthPage, useSession } from "@/features/auth";
 
 // Cada dominio se descarga cuando se visita, manteniendo ligera la entrada pública.
 const LandingPage = lazy(() =>
-  import("@/features/welcome/LandingPage").then((module) => ({
+  import("@/features/welcome").then((module) => ({
     default: module.LandingPage,
   })),
 );
@@ -86,6 +86,12 @@ function AdminRoutePage() {
   return user?.role === "admin" ? <AdminPage /> : <Navigate to="/" replace />;
 }
 
+/** Oculta rutas personales de alumno al rol administrador (permite /perfil/:id para moderación). */
+function StudentOnlyRoute({ children }: { children: ReactElement }) {
+  const { user } = useSession();
+  return user?.role === "admin" ? <Navigate to="/admin" replace /> : children;
+}
+
 function UnknownPage() {
   return (
     <div className="empty">
@@ -130,20 +136,97 @@ export function AppRoutes() {
       />
       <Route element={<Layout />}>
         <Route path="buscar" element={<FeedPage search />} />
-        <Route path="mis-publicaciones" element={<FeedPage mine />} />
-        <Route path="publicar" element={<PostEditor />} />
-        <Route path="publicar/:id" element={<PostEditor />} />
+        <Route
+          path="mis-publicaciones"
+          element={
+            <StudentOnlyRoute>
+              <FeedPage mine />
+            </StudentOnlyRoute>
+          }
+        />
+        <Route
+          path="publicar"
+          element={
+            <StudentOnlyRoute>
+              <PostEditor />
+            </StudentOnlyRoute>
+          }
+        />
+        <Route
+          path="publicar/:id"
+          element={
+            <StudentOnlyRoute>
+              <PostEditor />
+            </StudentOnlyRoute>
+          }
+        />
         <Route path="grupos" element={<GroupsPage />} />
         <Route path="grupos/:id" element={<GroupDetailPage />} />
-        <Route path="solicitudes" element={<RequestsPage />} />
-        <Route path="mensajes" element={<ChatPage />} />
-        <Route path="mensajes/:id" element={<ChatPage />} />
-        <Route path="perfil" element={<ProfilePage />} />
-        <Route path="perfil/editar" element={<EditProfilePage />} />
+        <Route
+          path="solicitudes"
+          element={
+            <StudentOnlyRoute>
+              <RequestsPage />
+            </StudentOnlyRoute>
+          }
+        />
+        <Route
+          path="mensajes"
+          element={
+            <StudentOnlyRoute>
+              <ChatPage />
+            </StudentOnlyRoute>
+          }
+        />
+        <Route
+          path="mensajes/:id"
+          element={
+            <StudentOnlyRoute>
+              <ChatPage />
+            </StudentOnlyRoute>
+          }
+        />
+        <Route
+          path="perfil"
+          element={
+            <StudentOnlyRoute>
+              <ProfilePage />
+            </StudentOnlyRoute>
+          }
+        />
+        <Route
+          path="perfil/editar"
+          element={
+            <StudentOnlyRoute>
+              <EditProfilePage />
+            </StudentOnlyRoute>
+          }
+        />
         <Route path="perfil/:id" element={<ProfilePage />} />
-        <Route path="horario" element={<AvailabilityPage />} />
-        <Route path="mis-resenas" element={<MyReviewsPage />} />
-        <Route path="moderacion" element={<ModerationPage />} />
+        <Route
+          path="horario"
+          element={
+            <StudentOnlyRoute>
+              <AvailabilityPage />
+            </StudentOnlyRoute>
+          }
+        />
+        <Route
+          path="mis-resenas"
+          element={
+            <StudentOnlyRoute>
+              <MyReviewsPage />
+            </StudentOnlyRoute>
+          }
+        />
+        <Route
+          path="moderacion"
+          element={
+            <StudentOnlyRoute>
+              <ModerationPage />
+            </StudentOnlyRoute>
+          }
+        />
         <Route path="notificaciones" element={<NotificationsPage />} />
         <Route path="configuracion" element={<SettingsPage />} />
         <Route path="admin" element={<AdminRoutePage />} />

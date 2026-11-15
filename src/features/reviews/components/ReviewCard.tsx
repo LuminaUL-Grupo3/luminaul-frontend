@@ -4,6 +4,7 @@ import { date } from "@/config/api";
 import { Avatar, ReportButton } from "@/components/ui";
 import { ReviewDto } from "../types";
 import { RatingStars } from "./RatingStars";
+import "./reviews.css";
 
 // Tarjeta de una reseña: estrellas, autor, fecha, texto y botón "Reportar" (HU 5.2).
 // En "Reseñas que escribí" muestra al estudiante calificado en lugar del autor.

@@ -302,7 +302,7 @@ export function useChatSocket(groupId: string, enabled: boolean) {
     async (messageId: string, emoji: ReactionEmoji, add: boolean) => {
       const version = generation.current;
       const result = await chatCommand<{ message: GroupMessageDto }>(
-        add ? "reaction:add" : "reaction:remove",
+        add ? "chat:reaction_add" : "chat:reaction_remove",
         { groupId, messageId, emoji },
       );
       if (version !== generation.current || currentRoom.current !== groupId)
@@ -317,7 +317,7 @@ export function useChatSocket(groupId: string, enabled: boolean) {
     async (messageId: string) => {
       if (!joined || revoked) return;
       const version = generation.current;
-      await chatCommand("message:read", { groupId, messageId });
+      await chatCommand("chat:message_read", { groupId, messageId });
       if (version !== generation.current || currentRoom.current !== groupId)
         return;
       // No pone el contador a cero a ciegas: otro mensaje podría llegar antes de recibir este ACK.

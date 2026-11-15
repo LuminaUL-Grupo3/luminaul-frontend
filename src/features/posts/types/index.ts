@@ -45,6 +45,7 @@ export interface CreatePostPayload {
   courseId: string;
   groupId?: string;
   description: string;
+  color?: string;
   benefits?: string;
   requirements?: string;
   maxCapacity?: number;
@@ -53,9 +54,33 @@ export interface CreatePostPayload {
 export interface UpdatePostPayload {
   groupId?: string | null;
   description?: string;
+  color?: string;
   benefits?: string;
   requirements?: string;
   maxCapacity?: number;
+}
+
+export interface DeletePostResponse {
+  success: boolean;
+  message: string;
+  deletedId: string;
+  deletedAt: string;
+}
+
+export interface PostGroupSummary {
+  id: string;
+  name: string;
+  description?: string | null;
+  courseCode?: string;
+  myRole?: string | null;
+  maxCapacity?: number;
+  currentMembers?: number;
+}
+
+export interface PostGroupDetailMinimal {
+  id: string;
+  myRole: "leader" | "member" | null;
+  pendingRequest: boolean;
 }
 
 export interface PaginatedPostsResponse {

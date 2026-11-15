@@ -14,7 +14,7 @@ import { useFeedback } from "../../hooks/useFeedback";
 
 // Carga el diálogo de SPEC-06 al abrirlo y evita un ciclo de importación con sus campos compartidos.
 const ModerationReportModal = lazy(() =>
-  import("@/features/moderation/components/ReportModal").then((module) => ({ default: module.ReportModal })),
+  import("@/features/moderation").then((module) => ({ default: module.ReportModal })),
 );
 
 export function Notice({

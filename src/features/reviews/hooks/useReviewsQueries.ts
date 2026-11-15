@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/config/queryKeys";
 import { reviewsApiService } from "../services/ReviewsApiService";
 import { UserReviewsSummaryDto } from "../types";
 
 // Llaves de caché de TanStack Query. Todas empiezan con "reviews" para invalidarlas juntas.
 export const reviewsQueryKeys = {
-  all: ["reviews"] as const,
-  me: ["reviews", "me"] as const,
-  user: (userId: string) => ["reviews", "user", userId] as const,
-  eligibility: (userId: string) => ["reviews", "eligibility", userId] as const,
+  all: queryKeys.reviews,
+  me: [...queryKeys.reviews, "me"] as const,
+  user: (userId: string) => [...queryKeys.reviews, "user", userId] as const,
+  eligibility: (userId: string) => [...queryKeys.reviews, "eligibility", userId] as const,
 };
 
 // Resumen vacío mientras llega la respuesta

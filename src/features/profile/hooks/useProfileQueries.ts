@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/config/queryKeys";
 import { profileService } from "../services/profileService";
 import { StudentProfileDto, UpdateAvailabilityRequest } from "../types";
 
-const PROFILE_KEY = "profile";
+const PROFILE_KEY = queryKeys.profile[0];
 
 // enabled permite al Layout esperar a que haya sesión antes de pedir /profiles/me
 export function useMyProfileQuery(enabled = true) {
@@ -22,15 +23,14 @@ export function useUserProfileQuery(userId: string) {
   });
 }
 
-// Tras cualquier cambio se invalidan "me" y el perfil por id del mismo usuario
+// Tras cualquier cambio se invalidan las consultas del perfil
 function useInvalidateProfiles() {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: [PROFILE_KEY] });
+  return () => queryClient.invalidateQueries({ queryKey: queryKeys.profile });
 }
 
 // La foto y los datos del perfil también se muestran en publicaciones, reseñas y chat:
-// se guarda la respuesta para que la barra superior cambie al instante y se invalidan
-// todas las consultas para que el resto de pantallas vuelva a pedir los datos actuales
+// se actualiza el perfil en caché y se invalidan únicamente las features afectadas
 export function useUpdateProfileMutation() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -38,7 +38,12 @@ export function useUpdateProfileMutation() {
     onSuccess: (updated: StudentProfileDto) => {
       queryClient.setQueryData([PROFILE_KEY, "me"], updated);
       queryClient.setQueryData([PROFILE_KEY, updated.userId], updated);
-      return queryClient.invalidateQueries();
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.profile }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.posts }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.reviews }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.chatGroups }),
+      ]);
     },
   });
 }
