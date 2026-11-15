@@ -15,6 +15,35 @@ const parseList = (value: string) =>
 
 const emptyToNull = (value: string) => value.trim() || null;
 
+function isValidHttpImageUrl(raw: string): boolean {
+  try {
+    const parsed = new URL(raw);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+    return Boolean(parsed.hostname && (parsed.hostname.includes(".") || parsed.hostname === "localhost"));
+  } catch {
+    return false;
+  }
+}
+
+function verifyImageLoads(url: string, timeoutMs = 6000): Promise<boolean> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    let settled = false;
+    const finish = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      img.onload = null;
+      img.onerror = null;
+      resolve(ok);
+    };
+    const timer = window.setTimeout(() => finish(false), timeoutMs);
+    img.onload = () => finish(img.naturalWidth > 0);
+    img.onerror = () => finish(false);
+    img.src = url;
+  });
+}
+
 export interface ProfileFormProps {
   profile: StudentProfileDto;
 }
@@ -28,18 +57,37 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     [photoUrl, setPhotoUrl] = useState(profile.profilePhotoUrl || ""),
     [skills, setSkills] = useState(profile.skills.join(", ")),
     [interests, setInterests] = useState(profile.interests.join(", ")),
+    [checkingPhoto, setCheckingPhoto] = useState(false),
     [error, setError] = useState("");
+
+  const isSaving = checkingPhoto || updateProfile.isPending;
 
   async function submit(e: FormEvent) {
     e.preventDefault();
-    if (updateProfile.isPending) return;
+    if (isSaving) return;
     setError("");
+    const trimmedPhotoUrl = emptyToNull(photoUrl);
+    if (trimmedPhotoUrl) {
+      if (!isValidHttpImageUrl(trimmedPhotoUrl)) {
+        setError("La foto de perfil debe ser una URL válida (http:// o https://).");
+        return;
+      }
+      setCheckingPhoto(true);
+      const loads = await verifyImageLoads(trimmedPhotoUrl);
+      setCheckingPhoto(false);
+      if (!loads) {
+        setError(
+          "No se pudo cargar la imagen desde esa URL. Verifica que sea un enlace directo a una imagen válida.",
+        );
+        return;
+      }
+    }
     try {
       const updated = await updateProfile.mutateAsync({
         bio: emptyToNull(bio),
         major: PROFILE_MAJOR,
         academicCycle: emptyToNull(academicCycle),
-        profilePhotoUrl: emptyToNull(photoUrl),
+        profilePhotoUrl: trimmedPhotoUrl,
         skills: parseList(skills),
         interests: parseList(interests),
       });
@@ -67,13 +115,19 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             title="El nombre completo institucional no se puede modificar"
           />
         </Field>
-        <Field label="URL de la foto de perfil">
+        <Field
+          label="URL de la foto de perfil"
+          hint="Opcional. Debe ser un enlace http:// o https:// a una imagen válida (se probará antes de guardar)."
+        >
           <input
             type="url"
             maxLength={255}
             placeholder="https://"
             value={photoUrl}
-            onChange={(e) => setPhotoUrl(e.target.value)}
+            onChange={(e) => {
+              setPhotoUrl(e.target.value);
+              if (error) setError("");
+            }}
           />
         </Field>
         <Field label="Descripción personal">
@@ -116,11 +170,15 @@ export function ProfileForm({ profile }: ProfileFormProps) {
           />
         </Field>
         <Notice error>{error}</Notice>
-        <button className="button" disabled={updateProfile.isPending}>
-          {updateProfile.isPending ? (
+        <button className="button" disabled={isSaving}>
+          {isSaving ? (
             <LoaderCircle className="spin" size={18} />
           ) : null}
-          {updateProfile.isPending ? "Guardando…" : "Guardar perfil"}
+          {checkingPhoto
+            ? "Verificando imagen…"
+            : updateProfile.isPending
+              ? "Guardando…"
+              : "Guardar perfil"}
           <ArrowRight size={16} />
         </button>
       </form>
