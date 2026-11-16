@@ -89,7 +89,7 @@ export function SettingsPage() {
               <input
                 type="password"
                 minLength={10}
-                maxLength={128}
+                maxLength={72}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

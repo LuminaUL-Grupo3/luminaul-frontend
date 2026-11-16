@@ -73,7 +73,7 @@ export function SuspendUserModal({ user, suspend, close }: Props) {
         )}
         <Field label={suspend ? "Detalle (opcional)" : "Motivo de la reactivación"}>
           <textarea
-            maxLength={400}
+            maxLength={300}
             value={detail}
             onChange={(e) => setDetail(e.target.value)}
           />
