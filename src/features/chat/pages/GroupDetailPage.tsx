@@ -86,9 +86,9 @@ export function GroupDetailPage() {
   async function kick(userId: string, name: string) {
     if (
       await feedback.confirm({
-        title: `¿Expulsar a ${name}?`,
+        title: `¿Desea expulsar al miembro ${name} del grupo?`,
         description: "Perderá acceso al grupo y a su conversación.",
-        acceptLabel: "Expulsar integrante",
+        acceptLabel: "Confirmar",
       })
     )
       await run(() => messagingService.kick(id, userId));
