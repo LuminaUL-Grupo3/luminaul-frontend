@@ -180,8 +180,11 @@ export function PostTypeAndGroupSection({
               type="button"
               role="radio"
               aria-checked={groupMode === "new"}
-              className={`group-mode-btn ${groupMode === "new" ? "active" : ""}`}
+              aria-disabled={isEditing}
+              disabled={isEditing}
+              className={`group-mode-btn ${groupMode === "new" ? "active" : ""}${isEditing ? " locked" : ""}`}
               onClick={() => {
+                if (isEditing) return;
                 onChangeGroupMode("new");
                 onChangeField("groupId", "");
               }}
@@ -199,10 +202,14 @@ export function PostTypeAndGroupSection({
               type="button"
               role="radio"
               aria-checked={groupMode === "existing"}
+              aria-disabled={isEditing}
+              disabled={isEditing}
               className={`group-mode-btn ${
                 groupMode === "existing" ? "active" : ""
-              }`}
-              onClick={() => onChangeGroupMode("existing")}
+              }${isEditing ? " locked" : ""}`}
+              onClick={() => {
+                if (!isEditing) onChangeGroupMode("existing");
+              }}
             >
               <Link2 size={18} />
               <div>
@@ -217,7 +224,7 @@ export function PostTypeAndGroupSection({
           </div>
           </Field>
 
-          {(groupMode === "new" || isEditing) && (
+          {groupMode === "new" && !isEditing && (
             <div className="group-capacity-inline" style={{ marginTop: 12 }}>
               <div
                 style={{
@@ -265,8 +272,7 @@ export function PostTypeAndGroupSection({
                 </div>
               </div>
 
-              {groupMode === "new" && !isEditing && (
-                <div className="post-group-schedule-grid">
+              <div className="post-group-schedule-grid">
                   <div>
                     <label
                       style={{
@@ -333,13 +339,12 @@ export function PostTypeAndGroupSection({
                     </div>
                   </div>
                 </div>
-              )}
             </div>
           )}
 
           {groupMode === "existing" && (
             <div className="group-select-container">
-              {myGroups.length === 0 ? (
+              {myGroups.length === 0 && !isEditing ? (
                 <div className="empty-groups-notice">
                   <AlertCircle size={16} />
                   <span>
@@ -351,11 +356,13 @@ export function PostTypeAndGroupSection({
                 <>
                   <select
                     aria-label="Seleccionar grupo existente"
+                    disabled={isEditing}
                     className={`existing-group-select ${
                       groupError ? "input-error" : ""
-                    }`}
+                    }${isEditing ? " locked" : ""}`}
                     value={groupId}
                     onChange={(e) => {
+                      if (isEditing) return;
                       const selectedId = e.target.value;
                       onChangeField("groupId", selectedId);
                       const grp = myGroups.find((g) => g.id === selectedId);
@@ -370,6 +377,11 @@ export function PostTypeAndGroupSection({
                     <option value="">
                       -- Selecciona un grupo existente --
                     </option>
+                    {groupId && !myGroups.some((g) => g.id === groupId) && (
+                      <option value={groupId}>
+                        Grupo vinculado ({groupId.slice(0, 8)}...)
+                      </option>
+                    )}
                     {myGroups.map((g) => (
                       <option key={g.id} value={g.id}>
                         {g.name}{" "}
@@ -392,6 +404,11 @@ export function PostTypeAndGroupSection({
                         Capacidad: {selectedGroup.maxCapacity ?? 6} integrantes
                       </span>
                     </div>
+                  )}
+                  {isEditing && (
+                    <small style={{ color: "#64748b", fontSize: 12 }}>
+                      El grupo vinculado no se puede cambiar una vez creada la publicación.
+                    </small>
                   )}
                 </>
               )}
