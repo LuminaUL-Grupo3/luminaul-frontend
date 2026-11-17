@@ -61,7 +61,7 @@ export function ReportsTable() {
               </p>
               <p className="muted">
                 Reportado por {r.reporter.name} · Estado del contenido:{" "}
-                {r.target.currentStatus ?? "—"}
+                {contentStatusLabel(r.target.currentStatus)}
               </p>
               {r.resolutionNotes && <p className="muted">Notas: {r.resolutionNotes}</p>}
               <div className="button-row">
@@ -159,4 +159,17 @@ function ResolveReportModal({ decision, close }: { decision: Decision; close: ()
       </form>
     </Modal>
   );
+}
+
+// D-03: estado del contenido en español (valores de status en publications, group_messages y reviews)
+const CONTENT_STATUS_LABELS: Record<string, string> = {
+  published: "Publicado",
+  hidden: "Oculto por moderación",
+  inactive: "Eliminado",
+  deleted: "Eliminado",
+};
+
+function contentStatusLabel(status: string | null): string {
+  if (!status) return "—";
+  return CONTENT_STATUS_LABELS[status] ?? status;
 }

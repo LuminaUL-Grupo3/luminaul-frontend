@@ -1,5 +1,6 @@
 import { useDeferredValue, useState } from "react";
 import { RotateCcw } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Loading, Notice, Empty } from "@/components/ui";
 import { useAdminUsersQuery } from "../hooks/useAdminQueries";
 import { AdminAccountStatus, AdminUserListItemDto } from "../types";
@@ -59,7 +60,10 @@ export function UsersTable() {
               {items.map((u) => (
                 <tr key={u.id}>
                   <td>
-                    <strong>{u.name}</strong>
+                    {/* M1: el nombre lleva al perfil, igual que en Reportes y Apelaciones */}
+                    <Link to={`/perfil/${u.id}`}>
+                      <strong>{u.name}</strong>
+                    </Link>
                     <small>{u.email}</small>
                   </td>
                   <td>
